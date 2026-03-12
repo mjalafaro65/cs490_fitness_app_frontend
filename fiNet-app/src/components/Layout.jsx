@@ -1,18 +1,23 @@
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 
 function Layout() {
+  const location = useLocation();
+  const hideNavBar = location.pathname === "/" || location.pathname === "/login" || location.pathname === "/signup" || location.pathname === "/survey";
+  /* may not be the most ideal, but for now can just put the names of pages where you don't want
+  the navigation bar showing*/
 
   return (
     <div>
-      <header style={{ padding: "30px", backgroundColor: "#FFF", color: "white", marginTop: "1px" }}>
-        <h1 style ={{ display: "inline-block", border: "5px solid #f0f0f0", padding: "10px 16px" }}>SAKILA FILMS SHOP</h1>
-        <nav style={{ marginTop: "15px", display: "flex", justifyContent: "center", gap: "120px", flexWrap: "wrap"}}>
-          <Link to="/" style={{ color: "#000000", border: "1px", padding: "10px 40px", borderRadius: "6px", backgroundColor: "#f0f0f0", size: "16px" }}>Home</Link>
-          <Link to="/dashboard" style={{  color: "#000000", border: "1px", padding: "10px 30px", borderRadius: "6px", backgroundColor: "#f0f0f0", size: "16px" }}>Dashboard</Link>
-        </nav>
-      </header>
+      <h1 style ={{ color: "black", padding: "10px" }}>FitNet</h1>
+      {!hideNavBar && (
+        <header>
+          <nav style={{ marginTop: "15px", display: "flex", justifyContent: "center", gap: "120px", flexWrap: "wrap"}}>
+            <Link to="/dashboard" style={{  color: "#000000", border: "1px", padding: "10px 30px", borderRadius: "6px", backgroundColor: "#f0f0f0", size: "16px" }}>Dashboard</Link>
+          </nav>
+        </header>
+      )}
 
-      <main style={{ padding: "20px" }}>
+      <main>
         <Outlet />
       </main>
     </div>
