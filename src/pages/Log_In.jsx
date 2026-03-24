@@ -5,8 +5,6 @@ import "../App.css";
 
 function Log_In(){
     const [signUpData, setData] = useState({
-        first_name: "", 
-        last_name: "", 
         email: "", 
         password: ""
     });

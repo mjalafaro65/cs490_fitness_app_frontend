@@ -2,7 +2,7 @@ import { Link, Outlet, useLocation } from "react-router-dom";
 
 function Layout() {
   const location = useLocation();
-  const hideNavBar = location.pathname === "/" || location.pathname === "/login" || location.pathname === "/signup" || location.pathname === "/survey";
+  const hideNavBar = location.pathname === "/" || location.pathname === "/login" || location.pathname === "/signup" || location.pathname === "/initialsurvey";
   /* may not be the most ideal, but for now can just put the names of pages where you don't want
   the navigation bar showing*/
 

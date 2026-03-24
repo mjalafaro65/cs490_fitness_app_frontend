@@ -4,6 +4,7 @@ import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Sign_Up from "./pages/Sign_Up";
 import Log_In from "./pages/Log_In";
+import Initial_Survey from "./pages/InitialSurvey";
 import ClientSettings from "./pages/ClientSettings";
 import ClientProfile from "./pages/ClientProfile";
 import ClientWorkoutPlans from "./pages/ClientWorkoutPlans";
@@ -20,6 +21,7 @@ function App() {
         <Route index element={<Landing />} />
         <Route path="signup" element ={<Sign_Up />}/>
         <Route path="login" element ={<Log_In />}/>
+        <Route path="initialsurvey" element ={<Initial_Survey />}/>
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="clientprofile" element={<ClientProfile />} />
         <Route path="clientworkoutplans" element={<ClientWorkoutPlans />} />

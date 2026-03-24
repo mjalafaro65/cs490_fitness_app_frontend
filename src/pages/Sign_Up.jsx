@@ -22,6 +22,8 @@ function Sign_Up(){
         console.log("Form submitted:", signUpData);
     };
 
+    /* and then go to the initial_survey page*/
+
     return (
         <div className="form-container">
             <h2>Sign Up</h2>
