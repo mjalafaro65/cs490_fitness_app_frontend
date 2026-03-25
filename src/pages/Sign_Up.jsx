@@ -10,6 +10,7 @@ function Sign_Up(){
         email: "", 
         password: ""
     });
+    
     const navigate = useNavigate();
 
     const handleChange = (e) => {
@@ -45,7 +46,7 @@ function Sign_Up(){
             <fieldset className="fieldset bg-base-200 border-base-500 rounded-box w-xs border p-4">
                 <legend className="fieldset-legend px-2 text-xl bg-base-200 rounded-box">Sign Up</legend>
                     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                        <label className="label">Enter your email: </label>
+                        <label className="label font-semibold">Enter your email: </label>
                         <input
                             className="input"
                             type="email"
@@ -55,7 +56,7 @@ function Sign_Up(){
                             onChange={handleChange}
                             required
                         />
-                        <label className="label">Create a password: </label>
+                        <label className="label font-semibold">Create a password: </label>
                         <input
                             className="input"
                             type="password"

@@ -43,7 +43,7 @@ function Log_In(){
             <fieldset className="fieldset bg-base-200 border-base-500 rounded-box w-xs border p-4">
                 <legend className="fieldset-legend px-2 text-xl bg-base-200 rounded-box">Log In</legend>
                     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                        <label className="label">Email: </label>
+                        <label className="label font-semibold">Email: </label>
                         <input
                             className="input"
                             type="email"
@@ -53,7 +53,7 @@ function Log_In(){
                             onChange={handleChange}
                             required
                         />
-                        <label className="label">Password: </label>
+                        <label className="label font-semibold">Password: </label>
                         <input
                             className="input"
                             type="password"
