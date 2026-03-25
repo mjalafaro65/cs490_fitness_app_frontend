@@ -78,11 +78,13 @@ function Initial_Survey(){
                 </div>
                 <div className="form-label">
                     <label>Gender: </label><br />
-                    <select id="gender" name="gender" onChange={handleChange} required>
+                    <select id="gender" name="gender" onChange={handleChange}>
                         <option value="">Select</option>
                         <option value="female">Female</option>
                         <option value="male">Male</option>
+                        <option value="prefer_not_to_say">Prefer not to say</option>
                         <option value="other">Other</option>
+                        <option value="null">None</option>
                     </select>
                 </div>
                 <div className="form-label">
@@ -93,7 +95,6 @@ function Initial_Survey(){
                         placeholder="Enter a URL here"
                         value={initialData.profile_photo}
                         onChange={handleChange}
-                        required
                     />
                 </div>
                 <div className="form-label">
@@ -115,7 +116,6 @@ function Initial_Survey(){
                         placeholder=""
                         value={initialData.height}
                         onChange={handleChange}
-                        required
                     />
                 </div>
                 <div className="form-label">
@@ -129,7 +129,6 @@ function Initial_Survey(){
                         placeholder=""
                         value={initialData.weight}
                         onChange={handleChange}
-                        required
                     />
                 </div>
                 <button type="submit">Get Started!</button>

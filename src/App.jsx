@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
@@ -17,21 +18,23 @@ import ProgressLogs from "./pages/ProgressLogs";
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Layout />}>
-        <Route index element={<Landing />} />
+        <Route path="landing" element={<Landing />} />
         <Route path="signup" element ={<Sign_Up />}/>
         <Route path="login" element ={<Log_In />}/>
         <Route path="initialsurvey" element ={<Initial_Survey />}/>
-        <Route path="dashboard" element={<Dashboard />} />
-        <Route path="clientprofile" element={<ClientProfile />} />
-        <Route path="clientworkoutplans" element={<ClientWorkoutPlans />} />
-        <Route path="meallogs" element={<MealLogs />} />
-        <Route path="messages" element={<Messages />} />
-        <Route path="mycoach" element={<MyCoach />} />
-        <Route path="notifications" element={<Notifications />} />
+
         <Route path="clientsettings" element={<ClientSettings />} />
-        <Route path="progresslogs" element={<ProgressLogs />} />
-      </Route>
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="mycoach" element={<MyCoach />} />
+
+        <Route path="/" element={<ProtectedRoute>{(user) => <Layout user={user} />}</ProtectedRoute>}>
+          <Route path="clientprofile" element={<ClientProfile />} />
+          <Route path="clientworkoutplans" element={<ClientWorkoutPlans />} />
+          <Route path="meallogs" element={<MealLogs />} />
+          <Route path="messages" element={<Messages />} />
+          <Route path="notifications" element={<Notifications />} />
+          <Route path="progresslogs" element={<ProgressLogs />} />
+        </Route>
     </Routes>
   );
 }
