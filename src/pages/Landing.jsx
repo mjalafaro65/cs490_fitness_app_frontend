@@ -19,8 +19,8 @@ function Landing(){
             <p>Here information about the page can go here. 
                 This is just for testing for now.
             </p>
-            <button style = {{marginLeft: "10px"}} onClick={handleClick}>Sign Up</button>
-            <button style = {{marginLeft: "10px"}} onClick={handleClick2}>Log In</button>
+            <button className="btn btn-primary" style = {{marginLeft: "10px"}} onClick={handleClick}>Sign Up</button>
+            <button className="btn btn-primary" style = {{marginLeft: "10px"}} onClick={handleClick2}>Log In</button>
         </section>
 
     );
