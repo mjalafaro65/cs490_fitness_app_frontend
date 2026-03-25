@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import "../App.css";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 function Landing(){
     const navigate = useNavigate();
@@ -15,15 +16,15 @@ function Landing(){
 
     return (
     <div>
-        <div class="navbar bg-base-100 shadow-sm" >
-            <div class="flex-1">
-                <a class="btn btn-ghost text-xl">FitNet</a>
+        <div className="navbar bg-base-100 shadow-sm" >
+            <div className="flex-1">
+                <a className="btn btn-ghost text-xl">FitNet</a>
             </div>
-            <div class="flex-none">
-                <ul class="menu menu-horizontal gap-x-5 px-3">
-                <li><a>Home</a></li>
-                <li><a>About Us</a></li>
-                <li><a>Coaches</a></li>
+            <div className="flex-none">
+                <ul className="menu menu-horizontal gap-x-5 px-3">
+                <li><Link to="/coaches">Home</Link></li>
+                <li><Link to="/coaches">About Us</Link></li>
+                <li><Link to="/coaches">Coaches</Link></li>
                 <li>
                     <details>
                     <summary className="btn btn-primary h-8 rounded-t p-2">Login In/Sign Up</summary>
