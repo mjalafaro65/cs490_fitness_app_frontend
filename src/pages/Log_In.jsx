@@ -21,33 +21,33 @@ function Log_In(){
     };
 
     return (
-        <div className="form-container">
-            <h2>Log In</h2>
-            <form onSubmit={handleSubmit}>
-                <div className="form-label">
-                    <label>Email: </label><br />
-                    <input
-                        type="email"
-                        name="email"
-                        placeholder="Enter your email"
-                        value={signUpData.email}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-                <div className="form-label">
-                    <label>Password: </label><br />
-                    <input
-                        type="password"
-                        name="password"
-                        placeholder="Enter your password"
-                        value={signUpData.password}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-                <button type="submit">Log In</button>
-            </form>
+        <div>
+            <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+                <legend className="fieldset-legend">Login</legend>
+                    <form onSubmit={handleSubmit}>
+                        <label className="label">Email: </label>
+                        <input
+                            className="input"
+                            type="email"
+                            name="email"
+                            placeholder="Enter your email"
+                            value={signUpData.email}
+                            onChange={handleChange}
+                            required
+                        />
+                        <label className="label">Password: </label>
+                        <input
+                            className="input"
+                            type="password"
+                            name="password"
+                            placeholder="Enter your password"
+                            value={signUpData.password}
+                            onChange={handleChange}
+                            required
+                        />
+                        <button className="btn btn-neutral mt-4" type="submit">Log In</button>
+                    </form>
+                </fieldset>
         </div>
 
     );
