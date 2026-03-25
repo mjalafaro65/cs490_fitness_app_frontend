@@ -96,7 +96,7 @@ function CDashboard(){
                   {/* List item */}
                   <li>
                     <Link
-                      to="/"
+                      to="/dashboard"
                       className="is-drawer-close:tooltip is-drawer-close:tooltip-right flex items-center"
                       data-tip="Dashboard"
                     >

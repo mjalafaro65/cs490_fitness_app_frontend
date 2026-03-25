@@ -1,37 +1,55 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../App.css";
+import api from "../axios.jsx";
 
 /*add input validation here */
 
 function Log_In(){
-    const [signUpData, setData] = useState({
+    const [loginData, setData] = useState({
         email: "", 
         password: ""
     });
+    
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
         setData({
-            ...signUpData, [e.target.name]: e.target.value
+            ...loginData, [e.target.name]: e.target.value
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log("Form submitted:", signUpData);
+
+        try{
+            const response = await api.post("/auth/login", loginData);
+            console.log("Form submitted:", response.data.access_token);
+            console.log("STATUS:", response.status);
+
+            if(response.status === 200 || response.status === 201){
+                localStorage.setItem("token", response.data.access_token); //storing the access_token???
+                navigate("/client/dashboard");
+            }
+        }
+        catch(error){
+            console.error("Login failed:", error.message);
+            alert("Wrong email or password failed, please try again");
+        }
     };
 
     return (
-        <div>
-            <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
-                <legend className="fieldset-legend">Login</legend>
-                    <form onSubmit={handleSubmit}>
+        <div className="flex items-center justify-center min-h-screen bg-blue-600">
+            <fieldset className="fieldset bg-base-200 border-base-500 rounded-box w-xs border p-4">
+                <legend className="fieldset-legend px-2 text-xl bg-base-200 rounded-box">Log In</legend>
+                    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                         <label className="label">Email: </label>
                         <input
                             className="input"
                             type="email"
                             name="email"
                             placeholder="Enter your email"
-                            value={signUpData.email}
+                            value={loginData.email}
                             onChange={handleChange}
                             required
                         />
@@ -41,7 +59,7 @@ function Log_In(){
                             type="password"
                             name="password"
                             placeholder="Enter your password"
-                            value={signUpData.password}
+                            value={loginData.password}
                             onChange={handleChange}
                             required
                         />
