@@ -59,7 +59,7 @@ function Navbar(){
     ];
 
     return (
-        <div className="flex flex-col h-screen bg-base-200 w-14 hover:w-64 transition-all duration-300 overflow-hidden">
+        <div className="group flex flex-col h-screen bg-base-200 w-14 hover:w-64 transition-all duration-300 overflow-hidden">
             <ul className="menu flex-1 p-2">
                 {pages.map((tab, index) => (
                 <li key={index} className="my-1">
@@ -69,7 +69,7 @@ function Navbar(){
                       data-tip={tab}
                     >
                       {tab.icon}
-                      <span className="whitespace-nowrap opacity-0 hover:opacity-100 transition-opacity duration-300">{tab.label}</span>
+                      <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">{tab.label}</span>
                     </Link>
                   </li>
                 ))}

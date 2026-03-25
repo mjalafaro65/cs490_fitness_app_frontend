@@ -7,12 +7,11 @@ import Navbar from "../../components/Navbar";
 
 function MyCoach(){
   return (
-    <div className="drawer drawer-mobile">
+    <div className="drawer lg:drawer-open">
       <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
       <Navbar />
 
       <div className="drawer-content p-4">
-        {/* Your page content here */}
         <h1>My Coach</h1>
       </div>
     </div>
