@@ -1,17 +1,22 @@
 import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
+
+{/*initial pages (shared by all) */}
 import Landing from "./pages/Landing";
-import Dashboard from "./pages/Dashboard";
 import Sign_Up from "./pages/Sign_Up";
 import Log_In from "./pages/Log_In";
 import Initial_Survey from "./pages/InitialSurvey";
-import ClientSettings from "./pages/ClientSettings";
-import ClientProfile from "./pages/ClientProfile";
-import ClientWorkoutPlans from "./pages/ClientWorkoutPlans";
+
+{/*client specific pages */}
+import ClientDashboard from "./pages/client/CDashboard";
+import ClientSettings from "./pages/client/CSettings";
+import ClientProfile from "./pages/client/CProfile";
+import ClientWorkoutPlans from "./pages/client/CWorkoutPlans";
+import MyCoach from "./pages/client/MyCoach";
+
 import MealLogs from "./pages/MealLogs";
 import Messages from "./pages/Messages";
-import MyCoach from "./pages/MyCoach";
 import Notifications from "./pages/Notifications";
 import ProgressLogs from "./pages/ProgressLogs";
 
@@ -22,14 +27,15 @@ function App() {
         <Route path="signup" element ={<Sign_Up />}/>
         <Route path="login" element ={<Log_In />}/>
         <Route path="initialsurvey" element ={<Initial_Survey />}/>
-
-        <Route path="clientsettings" element={<ClientSettings />} />
-        <Route path="dashboard" element={<Dashboard />} />
+        
+        {/* left this out for now since I didn't make a login, so if you want to view these pages, take out of protected route*/}
+        <Route path="/client/settings" element={<ClientSettings />} />
+        <Route path="/client/dashboard" element={<ClientDashboard />} />
         <Route path="mycoach" element={<MyCoach />} />
 
         <Route path="/" element={<ProtectedRoute>{(user) => <Layout user={user} />}</ProtectedRoute>}>
-          <Route path="clientprofile" element={<ClientProfile />} />
-          <Route path="clientworkoutplans" element={<ClientWorkoutPlans />} />
+          <Route path="/client/profile" element={<ClientProfile />} />
+          <Route path="/client/workoutplans" element={<ClientWorkoutPlans />} />
           <Route path="meallogs" element={<MealLogs />} />
           <Route path="messages" element={<Messages />} />
           <Route path="notifications" element={<Notifications />} />

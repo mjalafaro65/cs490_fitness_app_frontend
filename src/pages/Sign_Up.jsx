@@ -1,15 +1,16 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../App.css";
+import api from "../axios.jsx";
 
 /*add input validation here */
 
 function Sign_Up(){
     const [signUpData, setData] = useState({
-        first_name: "", 
-        last_name: "", 
         email: "", 
         password: ""
     });
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
         setData({
@@ -17,9 +18,26 @@ function Sign_Up(){
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log("Form submitted:", signUpData);
+        const termsAndCond = document.getElementById("terms");
+        if(!termsAndCond.checked){
+            alert("Please agree to the Terms & Conditions to proceed");
+            return;
+        }
+        try{
+            const response = await api.post("/auth/register", signUpData);
+            console.log("Form submitted:", response.data);
+            console.log("STATUS:", response.status);
+
+            if(response.status === 200 || response.status === 201){
+                navigate("/initialsurvey");
+            }
+        }
+        catch(error){
+            console.error("Signup failed:", error.response?.data);
+            alert("Signup failed, please try again");
+        }
     };
 
     /* and then go to the initial_survey page*/
@@ -28,28 +46,6 @@ function Sign_Up(){
         <div className="form-container">
             <h2>Sign Up</h2>
             <form onSubmit={handleSubmit}>
-                <div className="form-label">
-                    <label>First Name: </label><br />
-                    <input
-                        type="text"
-                        name="first_name"
-                        placeholder="Enter your first name"
-                        value={signUpData.first_name}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-                <div className="form-label">
-                    <label>Last Name: </label><br />
-                    <input
-                        type="text"
-                        name="last_name"
-                        placeholder="Enter your last name"
-                        value={signUpData.last_name}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
                 <div className="form-label">
                     <label>Email: </label><br />
                     <input

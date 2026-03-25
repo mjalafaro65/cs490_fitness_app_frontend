@@ -1,15 +1,15 @@
 import { useState, useEffect } from "react";
-import "../App.css";
+import "../../App.css";
 
-function MyCoach(){
+function CProfile(){
   return (
     <div>
       <section className="blue">
-        <h2 style = {{color: "black"}}>MyCoach</h2>
+        <h2 style = {{color: "black"}}>ClientProfile</h2>
       </section>
     </div>
 
   );
 
 }
-export default MyCoach;
+export default CProfile;

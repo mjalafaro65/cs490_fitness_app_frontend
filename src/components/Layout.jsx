@@ -18,11 +18,11 @@ function Layout({user}) {
           )}
           {user?.role === 'client' && (
             <>
-              <Link to="/dashboard" style={{  color: "#000000", border: "1px", padding: "10px 20px", borderRadius: "6px", backgroundColor: "#f0f0f0", size: "16px" }}>Dashboard</Link>
-              <Link to="/clientprofile" style={{  color: "#000000", border: "1px", padding: "10px 20px", borderRadius: "6px", backgroundColor: "#f0f0f0", size: "16px" }}>Profile</Link>
+              <Link to="/client/dashboard" style={{  color: "#000000", border: "1px", padding: "10px 20px", borderRadius: "6px", backgroundColor: "#f0f0f0", size: "16px" }}>Dashboard</Link>
+              <Link to="/client/profile" style={{  color: "#000000", border: "1px", padding: "10px 20px", borderRadius: "6px", backgroundColor: "#f0f0f0", size: "16px" }}>Profile</Link>
               <Link to="/mycoach" style={{  color: "#000000", border: "1px", padding: "10px 20px", borderRadius: "6px", backgroundColor: "#f0f0f0", size: "16px" }}>My Coach</Link>
-              <Link to="/clientsettings" style={{  color: "#000000", border: "1px", padding: "10px 20px", borderRadius: "6px", backgroundColor: "#f0f0f0", size: "16px" }}>Settings</Link>
-              <Link to="/clientworkoutplans" style={{  color: "#000000", border: "1px", padding: "10px 20px", borderRadius: "6px", backgroundColor: "#f0f0f0", size: "16px" }}>Workout Plans</Link>
+              <Link to="/client/settings" style={{  color: "#000000", border: "1px", padding: "10px 20px", borderRadius: "6px", backgroundColor: "#f0f0f0", size: "16px" }}>Settings</Link>
+              <Link to="/client/workoutplans" style={{  color: "#000000", border: "1px", padding: "10px 20px", borderRadius: "6px", backgroundColor: "#f0f0f0", size: "16px" }}>Workout Plans</Link>
               <Link to="/progresslogs" style={{  color: "#000000", border: "1px", padding: "10px 20px", borderRadius: "6px", backgroundColor: "#f0f0f0", size: "16px" }}>Progress Logs</Link>
               <Link to="/meallogs" style={{  color: "#000000", border: "1px", padding: "10px 20px", borderRadius: "6px", backgroundColor: "#f0f0f0", size: "16px" }}>Meal Logs</Link>
             </>
