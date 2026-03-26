@@ -33,7 +33,7 @@ const Coaches = ({ isPublic }) => {
 
     <div >
       
-      {isNotLoggedIn ? (
+      {isNotLoggedIn || isPublic ? (
         <VisitorNavbar />
       ) : (
         <div className="p-4 border-b border-base-300 flex items-center">
