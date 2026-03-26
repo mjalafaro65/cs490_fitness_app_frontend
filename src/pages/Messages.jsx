@@ -9,7 +9,7 @@ function Messages(){
         <Navbar />
       <div className="drawer-content">
         <section className="p-6 flex flex-col gap-6">
-          <h2 div className="text-2xl font-bold mb-6">Messages</h2>
+          <h2 className="text-2xl font-bold mb-6">Messages</h2>
         </section>
       </div>
     </div>

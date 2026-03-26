@@ -12,7 +12,7 @@ function VisitorNavbar() {
 
             <div className="navbar-center">
                 <ul className="menu menu-horizontal gap-x-15 px-6 text-xl">
-                <li><Link to="/landing">Home</Link></li>
+                <li><Link to="/">Home</Link></li>
                 <li><Link to="/about-us">About Us</Link></li>
                 <li><Link to="/coaches">Coaches</Link></li>
                 </ul>
