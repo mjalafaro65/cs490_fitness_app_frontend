@@ -48,6 +48,7 @@ function App() {
         <Route path="signup" element ={<Sign_Up />}/>
         <Route path="login" element ={<Log_In />}/>
         <Route path="coaches" element ={<Coaches isPublic={true} />}/>
+        <Route path="initialsurvey" element ={<InitialSurvey />}/>
         
 
         <Route  element={<Layout />}>

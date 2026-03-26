@@ -38,6 +38,20 @@ function CSettings(){
             alert("Update failed, please try again");
         }
     };
+    
+    const handleDelete = async (e) => {
+        e.preventDefault();
+        
+        try{
+            const response = await api.delete("/auth/me");
+            console.log("STATUS:", response.status);
+
+        }
+        catch(error){
+            console.error("Deletio failed:", error.response?.data);
+            alert("Update failed, please try again");
+        }
+    };
 
     return (
 
