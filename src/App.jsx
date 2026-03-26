@@ -3,7 +3,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
 
 {/*initial pages (shared by all) */}
-import Landing from "./pages/Landing";
+import Landing from "./pages/visitors/Landing";
+import AboutUs from "./pages/visitors/AboutUs";
 import Sign_Up from "./pages/Sign_Up";
 import Log_In from "./pages/Log_In";
 import Coaches from "./pages/Coaches";
@@ -24,6 +25,7 @@ function App() {
   return (
     <Routes>
         <Route path="landing" element={<Landing />} />
+        <Route path="about-us" element={<AboutUs />} />
         <Route path="signup" element ={<Sign_Up />}/>
         <Route path="login" element ={<Log_In />}/>
         <Route path="coaches" element ={<Coaches/>}/>

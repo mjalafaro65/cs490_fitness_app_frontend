@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import "../App.css";
+import "../../App.jsx"
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
@@ -22,17 +22,20 @@ function Landing(){
             </div>
             <div className="flex-none">
                 <ul className="menu menu-horizontal gap-x-5 px-3">
-                <li><Link to="/coaches">Home</Link></li>
-                <li><Link to="/coaches">About Us</Link></li>
+                <li><Link to="/landing">Home</Link></li>
+                <li><Link to="/about-us">About Us</Link></li>
                 <li><Link to="/coaches">Coaches</Link></li>
-                <li>
-                    <details>
-                    <summary className="btn btn-primary h-8 rounded-t p-2">Login In/Sign Up</summary>
-                    <ul class="bg-base-100 rounded-t-none p-2">
-                        <li><a>Log In</a></li>
-                        <li><a>Sign Up</a></li>
+                <li className="dropdown dropdown-end">
+                <details>
+                    <summary className="btn btn-primary h-8 min-h-0 px-4 rounded-t">
+                    Login In/Sign Up
+                    </summary>
+                    {/* Added 'dropdown-content' and 'menu' classes below */}
+                    <ul className="dropdown-content menu bg-base-100 rounded-box z-[100] w-52 p-2 shadow-xl">
+                    <li><a>Log In</a></li>
+                    <li><a>Sign Up</a></li>
                     </ul>
-                    </details>
+                </details>
                 </li>
                 </ul>
             </div>
