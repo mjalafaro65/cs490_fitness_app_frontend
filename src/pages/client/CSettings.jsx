@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../App.css";
 import PopUp from "../../components/PopUp";
+import Navbar from "../../components/Navbar";
 
 function CSettings(){
   const [isPopOpen, setPopOpen] = useState(false);
 
     return (
         <div>
+          <Navbar />
           <h1>Settings</h1>
           <button onClick={() => setPopOpen("account")}>DELETE ACCOUNT</button>
           <PopUp isOpen={isPopOpen === "account"} onClose={() => setPopOpen(false)}>

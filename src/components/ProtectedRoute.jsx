@@ -1,31 +1,32 @@
 import { Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import api from "../axios.jsx";
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ allowedRoles, children }) => {
     const [user, setUser] = useState(undefined);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-    fetch("/api/me")
-        .then(res => {
-        if (!res.ok) return null;
-            return res.json();
-        })
-        .then(data => {
-            setUser(data);
-        })
-        .catch(() => {
-            setUser(null);
-        });
+        const fetchUser = async () => {
+            try{
+                const response = await api.get("/auth/me");
+                setUser(response.data);
+            } catch(err){
+                setUser(null);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUser();
     }, []);
 
-    if (user === undefined) {
+    if (loading) {
         return <div>Loading...</div>;
     }
-
-    if (user === null) {
-        return <Navigate to="/landing" />;
+    if (!user) {
+        return <Navigate to="/login" />;
     }
-
     return children(user);
 };
 
