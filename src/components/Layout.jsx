@@ -12,19 +12,19 @@ function Layout({user}) {
         <nav>
           {!hideNavBar && (
             <>
-            <Link to="/messages" style={{  color: "#000000", border: "1px", padding: "10px 20px", borderRadius: "6px", backgroundColor: "#f0f0f0", size: "16px" }}>Messages</Link>
-            <Link to="/notifications" style={{  color: "#000000", border: "1px", padding: "10px 20px", borderRadius: "6px", backgroundColor: "#f0f0f0", size: "16px" }}>Notifications</Link>
+            <Link to="/messages">Messages</Link>
+            <Link to="/notifications">Notifications</Link>
             </>
           )}
           {user?.role === 'client' && (
             <>
-              <Link to="/client/dashboard" style={{  color: "#000000", border: "1px", padding: "10px 20px", borderRadius: "6px", backgroundColor: "#f0f0f0", size: "16px" }}>Dashboard</Link>
-              <Link to="/client/profile" style={{  color: "#000000", border: "1px", padding: "10px 20px", borderRadius: "6px", backgroundColor: "#f0f0f0", size: "16px" }}>Profile</Link>
-              <Link to="/mycoach" style={{  color: "#000000", border: "1px", padding: "10px 20px", borderRadius: "6px", backgroundColor: "#f0f0f0", size: "16px" }}>My Coach</Link>
-              <Link to="/client/settings" style={{  color: "#000000", border: "1px", padding: "10px 20px", borderRadius: "6px", backgroundColor: "#f0f0f0", size: "16px" }}>Settings</Link>
-              <Link to="/client/workoutplans" style={{  color: "#000000", border: "1px", padding: "10px 20px", borderRadius: "6px", backgroundColor: "#f0f0f0", size: "16px" }}>Workout Plans</Link>
-              <Link to="/progresslogs" style={{  color: "#000000", border: "1px", padding: "10px 20px", borderRadius: "6px", backgroundColor: "#f0f0f0", size: "16px" }}>Progress Logs</Link>
-              <Link to="/meallogs" style={{  color: "#000000", border: "1px", padding: "10px 20px", borderRadius: "6px", backgroundColor: "#f0f0f0", size: "16px" }}>Meal Logs</Link>
+              <Link to="/client/dashboard">Dashboard</Link>
+              <Link to="/client/profile">Profile</Link>
+              <Link to="/mycoach">My Coach</Link>
+              <Link to="/client/settings">Settings</Link>
+              <Link to="/client/workoutplans">Workout Plans</Link>
+              <Link to="/progresslogs">Progress Logs</Link>
+              <Link to="/meallogs">Meal Logs</Link>
             </>
           )}
           {user?.role === 'coach' && (
