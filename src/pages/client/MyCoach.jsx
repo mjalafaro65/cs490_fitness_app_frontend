@@ -16,7 +16,7 @@ function MyCoach(){
                   <h2 className="text-lg font-bold mb-2">My Coach</h2>
                   <span className="text-sm opacity-70 mb-3">No coach assigned</span>
                   <div className="mt-auto flex justify-center">
-                    <button className="btn btn-primary btn-sm">Browse Coaches</button>
+                    <button className="btn btn-primary btn-sm"  onClick={() => navigate("/coaches")} >Browse Coaches</button>
                   </div>
                 </div>
                 <div className="divider divider-horizontal"></div>

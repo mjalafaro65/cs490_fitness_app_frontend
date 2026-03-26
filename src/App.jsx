@@ -43,7 +43,7 @@ import AdminProgressLogs from "./pages/admin/AProgressLogs";
 function App() {
   return (
     <Routes>
-        <Route path="landing" element={<Landing />} />
+        <Route path="/" element={<Landing />} />
         <Route path="about-us" element={<AboutUs />} />
         <Route path="signup" element ={<Sign_Up />}/>
         <Route path="login" element ={<Log_In />}/>
