@@ -123,7 +123,7 @@ function Landing() {
                                     <div className="flex flex-col items-center gap-3">
                                         <div className="avatar">
                                             {/* w-48 is much bigger than the original w-32, but not "full screen" big */}
-                                            <div className="w-80 h-80 rounded-2xl ring ring-blue-800 ring-offset-base-100 ring-offset-2 shadow-inner">
+                                            <div className="w-full h-80 rounded-2xl ring ring-blue-800 ring-offset-base-100 ring-offset-2 shadow-inner">
                                                 <img
                                                     src={coach.before_photo}
                                                     alt="Before"
@@ -142,7 +142,7 @@ function Landing() {
                                     {/* After Photo */}
                                     <div className="flex flex-col items-center gap-3">
                                         <div className="avatar">
-                                            <div className="w-80 h-80 rounded-2xl ring ring-blue-800 ring-offset-base-100 ring-offset-2 shadow-inner">
+                                            <div className="w-full h-80 rounded-2xl ring ring-blue-800 ring-offset-base-100 ring-offset-2 shadow-inner">
                                                 <img
                                                     src={coach.after_photo}
                                                     alt="After"

@@ -43,34 +43,37 @@ import AdminProgressLogs from "./pages/admin/AProgressLogs";
 function App() {
   return (
     <Routes>
-        <Route path="landing" element={<Landing />} />
+        <Route path="/" element={<Landing />} />
         <Route path="about-us" element={<AboutUs />} />
         <Route path="signup" element ={<Sign_Up />}/>
         <Route path="login" element ={<Log_In />}/>
-        <Route path="coaches" element ={<Coaches/>}/>
-        <Route path="messages" element={<Messages />} />
-        <Route path="notifications" element={<Notifications />} />
-        <Route path="initialsurvey" element ={<InitialSurvey />}/>
+        <Route path="coaches" element ={<Coaches isPublic={true} />}/>
         
-        <Route path="client/dashboard" element={<ClientDashboard />} />
-        <Route path="client/mycoach" element={<MyCoach />} />
-        <Route path="client/profile" element={<ClientProfile />} />
-        <Route path="client/workoutplans" element={<ClientWorkoutPlans />} />
-        <Route path="client/meallogs" element={<ClientMealLogs />} />
-        <Route path="client/progresslogs" element={<ClientProgressLogs />} />
-        <Route path="client/settings" element={<ClientSettings />} />
 
-        <Route path="/" element={<Layout />}>
-        {/* client Routes */}
-          <Route element={<ProtectedRoute allowedRoles={["1"]} />}>
+        <Route  element={<Layout />}>
+          <Route element={<ProtectedRoute />}> 
+            <Route path="messages" element={<Messages />} />
+            <Route path="notifications" element={<Notifications />} />
+          </Route>
+
+          {/* client Routes */}
+          <Route path="/client" element={<ProtectedRoute allowedRoles={["1"]} />}>
+            <Route path="dashboard" element={<ClientDashboard />} />
+            <Route path="mycoach" element={<MyCoach />} />
+            <Route path="coaches" isPublic={false}  element ={<Coaches  isPublic={false}/>}/>
+            <Route path="profile" element={<ClientProfile />} />
+            <Route path="workoutplans" element={<ClientWorkoutPlans />} />
+            <Route path="meallogs" element={<ClientMealLogs />} />
+            <Route path="progresslogs" element={<ClientProgressLogs />} />
+            <Route path="settings" element={<ClientSettings />} />
           </Route>
 
           {/* coach Routes */}
-          <Route element={<ProtectedRoute allowedRoles={["2"]} />}>
+          <Route path="/coach" element={<ProtectedRoute allowedRoles={["2"]} />}>
           </Route>
 
           {/* admin Routes */}
-          <Route element={<ProtectedRoute allowedRoles={["3"]} />}>
+          <Route path="/admin" element={<ProtectedRoute allowedRoles={["3"]} />}>
           </Route>
           
         </Route>
