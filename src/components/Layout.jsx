@@ -1,6 +1,8 @@
 import Navbar from "./Navbar";
+import { useState, useEffect } from "react";
+import { Outlet } from "react-router-dom"; 
 
-function Layout({ children }) {
+function Layout() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -16,9 +18,15 @@ function Layout({ children }) {
   }, []);
 
   return (
-    <div>
+    <div className="flex min-h-screen"> 
+      
+      {/* Side Navigation */}
       <Navbar user={user} />
-      <main>{children}</main>
+
+      {/* Main Content Area */}
+      <main className="flex-1 bg-base-100">
+        <Outlet /> 
+      </main>
     </div>
   );
 }
