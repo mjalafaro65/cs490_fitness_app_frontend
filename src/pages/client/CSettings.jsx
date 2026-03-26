@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../App.css";
 import PopUp from "../../components/PopUp";
+import Navbar from "../../components/Navbar";
 
 function CSettings(){
   const [isPopOpen, setPopOpen] = useState(false);
