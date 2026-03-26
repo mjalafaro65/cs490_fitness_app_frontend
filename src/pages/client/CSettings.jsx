@@ -102,7 +102,7 @@ function CSettings(){
               </fieldset>
               </section>
               <div>
-              <button className="btn btn-primary" onClick={() => setPopOpen("account")}>DELETE ACCOUNT</button>
+              <button className="btn btn-secondary" onClick={() => setPopOpen("account")}>DELETE ACCOUNT</button>
                 <PopUp isOpen={isPopOpen === "account"} onClose={() => setPopOpen(false)}>
                   <h2>Delete Account</h2>
                   <form>
@@ -114,6 +114,15 @@ function CSettings(){
                 <button className="btn btn-primary" onClick={() => setPopOpen("retake_survey")}>RETAKE INITIAL SURVEY</button>
                 <PopUp isOpen={isPopOpen === "retake_survey"} onClose={() => setPopOpen(false)}>
                   <h2>Initial Survey</h2>
+                  <form>
+                    <button type="submit">Submit</button>
+                  </form>
+                </PopUp>
+              </div>
+              <div>
+              <button className="btn btn-primary" onClick={() => setPopOpen("transfer")}>Transfer Account</button>
+                <PopUp isOpen={isPopOpen === "transfer"} onClose={() => setPopOpen(false)}>
+                  <h2>Transfer Account</h2>
                   <form>
                     <button type="submit">Submit</button>
                   </form>
