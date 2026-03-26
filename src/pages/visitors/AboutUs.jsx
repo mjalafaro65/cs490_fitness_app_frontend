@@ -1,11 +1,12 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+
 import "../../App.css";
-import api from "../../axios.jsx";
+import VisitorNavbar from "../../components/VisitorNavbar.jsx";
 
 function AboutUs(){
     return(
         <div>
+            <VisitorNavbar/>
+        
             <p>hello</p>
         </div>
     )
