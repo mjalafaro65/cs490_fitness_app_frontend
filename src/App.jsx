@@ -26,8 +26,8 @@ function App() {
         <Route path="landing" element={<Landing />} />
         <Route path="signup" element ={<Sign_Up />}/>
         <Route path="login" element ={<Log_In />}/>
-        <Route path="coaches" element ={<Coaches/>}/>
-        {/* <Route path="initial-survey" element ={<InitialSurvey />}/> */}
+        <Route path="coaches" element ={<Coaches isPublic={true} />}/>
+        <Route path="initialsurvey" element ={<InitialSurvey />}/>
         
         {/* left this out for now since I didn't make a login, so if you want to view these pages, take out of protected route*/}
         <Route path="/client/settings" element={<ClientSettings />} />

@@ -30,7 +30,7 @@ function Initial_Survey(){
         e.preventDefault();
         
         try{
-            const response = await api.post("/client/daily-survey", initialData);
+            const response = await api.post("/auth/setup", initialData);
             console.log("Form submitted:", response.data);
             console.log("STATUS:", response.status);
 
@@ -91,7 +91,7 @@ function Initial_Survey(){
                             required
                         />
                         <label className="label font-semibold">Gender: </label>
-                        <select className="select" id="gender" name="gender" onChange={handleChange}>
+                        <select className="select" id="gender" name="gender" value={initialData.gender} onChange={handleChange}>
                             <option value="">Select</option>
                             <option value="female">Female</option>
                             <option value="male">Male</option>
@@ -114,15 +114,14 @@ function Initial_Survey(){
                                         name="bio"
                                         placeholder="Tell us about yourself!"
                                         value={initialData.bio}
-                                        onChange={handleChange}>
-                            </textarea>
+                                        onChange={handleChange}></textarea>
                             <div className="label">Optional (you can always edit this later!)</div>
                         </div>
                         <label className="label font-semibold">Height: </label>
                         <input
                             className="input"
                             type="number"
-                            name="inches"
+                            name="height"
                             placeholder=""
                             value={initialData.height}
                             onChange={handleChange}
