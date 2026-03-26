@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import "../../App.css";
 import PopUp from "../../components/PopUp";
 import Navbar from "../../components/Navbar";
@@ -10,14 +11,14 @@ function ProgressLogs(){
     <div className="drawer lg:drawer-open">
       <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
       <Navbar />
-      <div className="flex justify-end gap-2">
-        <button className="btn btn-primary btn-sm rounded-t" onClick={() => setPopOpen("create")}>Create New Goal</button>
-        <button className="btn btn-primary btn-sm rounded-t" onClick={() => setPopOpen("editGoal")}>Edit Goals</button>
-        <button className="btn btn-primary btn-sm rounded-t" onClick={() => setPopOpen("editAct")}>Edit Activity</button> 
-      </div>
       <div className="drawer-content">
         <section className="p-6 flex flex-col gap-6">
           <div className="text-2xl font-bold mb-4">My Progress/Analystics</div>
+          <div className="flex justify-end gap-2">
+            <button className="btn btn-primary btn-sm rounded-t" onClick={() => setPopOpen("create")}>Create New Goal</button>
+            <button className="btn btn-primary btn-sm rounded-t" onClick={() => setPopOpen("editGoal")}>Edit Goals</button>
+            <button className="btn btn-primary btn-sm rounded-t" onClick={() => setPopOpen("editAct")}>Edit Activity</button> 
+          </div>
               <div className="flex w-full grow gap-4">
                 <div className="card bg-base-300 rounded-box grow p-4">
                   <h2 className="text-xs mb-2">Steps Today</h2>
