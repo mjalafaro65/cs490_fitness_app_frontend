@@ -6,6 +6,8 @@ import Navbar from "../../components/Navbar";
 //put calender in here-- have to import a package to get 
 
 function ClientWorkoutPlans(){
+  const [isPopOpen, setPopOpen] = useState(null);
+
   return (
     <div className="drawer lg:drawer-open">
       <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
