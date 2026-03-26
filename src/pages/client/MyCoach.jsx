@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import Navbar from "../../components/Navbar";
 
 function MyCoach(){
+  const navigate = useNavigate();
   return (
     <div className="drawer lg:drawer-open">
       <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
@@ -16,7 +17,7 @@ function MyCoach(){
                   <h2 className="text-lg font-bold mb-2">My Coach</h2>
                   <span className="text-sm opacity-70 mb-3">No coach assigned</span>
                   <div className="mt-auto flex justify-center">
-                    <button className="btn btn-primary btn-sm"  onClick={() => navigate("/coaches")} >Browse Coaches</button>
+                    <button className="btn btn-primary btn-sm" onClick={() => navigate("/client/coaches")} >Browse Coaches</button>
                   </div>
                 </div>
                 <div className="divider divider-horizontal"></div>
@@ -30,14 +31,14 @@ function MyCoach(){
                   <h2 className="text-lg font-bold mb-2">Saved Coaches</h2>
                   <span className="text-sm opacity-70 mb-3">No coach assigned</span>
                   <div className="mt-auto flex justify-center">
-                    <button className="btn btn-primary btn-sm">Browse Coaches</button>
+                    <button className="btn btn-primary btn-sm" onClick={() => navigate("/client/coaches")}>Browse Coaches</button>
                   </div>
                 </div>
                 <div className="card bg-base-300 rounded-box flex-1 grow p-4 flex flex-col">
                   <h2 className="text-lg font-bold mb-2">My Reviews</h2>
                   <span className="text-sm opacity-70 mb-3">No reviews</span>
                   <div className="mt-auto flex justify-center">
-                    <button className="btn btn-primary btn-sm">Browse Coaches</button>
+                    <button className="btn btn-primary btn-sm" onClick={() => navigate("/client/coaches")}>Browse Coaches</button>
                   </div>
                 </div>
               </div>
