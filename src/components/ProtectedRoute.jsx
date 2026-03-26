@@ -31,8 +31,8 @@ const ProtectedRoute = ({ allowedRoles }) => {
         return <Navigate to="/login" replace />;
     }
 
-    const hasAccess = user.roles.some(role => 
-        allowedRoles.map(String).includes(String(role))
+    const hasAccess = !allowedRoles || user.roles.some(role => 
+    allowedRoles.map(String).includes(String(role))
     );
 
     if (!hasAccess) {
