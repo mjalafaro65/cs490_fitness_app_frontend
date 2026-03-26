@@ -18,7 +18,7 @@ import MyCoach from "./pages/client/MyCoach";
 import MealLogs from "./pages/MealLogs";
 import Messages from "./pages/Messages";
 import Notifications from "./pages/Notifications";
-import ProgressLogs from "./pages/ProgressLogs";
+import ProgressLogs from "./pages/ProgressLogs";   
 
 function App() {
   return (
@@ -32,7 +32,7 @@ function App() {
         {/* left this out for now since I didn't make a login, so if you want to view these pages, take out of protected route*/}
         <Route path="/client/settings" element={<ClientSettings />} />
         <Route path="/client/dashboard" element={<ClientDashboard />} />
-        <Route path="mycoach" element={<MyCoach />} />
+        <Route path="/mycoach" element={<MyCoach />} />
 
         <Route path="/" element={<ProtectedRoute>{(user) => <Layout user={user} />}</ProtectedRoute>}>
           <Route path="/client/workoutplans" element={<ClientWorkoutPlans />} />
