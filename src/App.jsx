@@ -22,15 +22,12 @@ import MyCoach from "./pages/client/MyCoach";
 import ClientProgressLogs from "./pages/client/CProgressLogs";   
 import ClientMealLogs from "./pages/client/CMealLogs";
 
-{/*coach specific pages 
-import CoachDashboard from "./pages/coach/Dashboard";
-import CoachSettings from "./pages/coach/Settings";
-import CoachProfile from "./pages/coach/Profile";
-import CoachWorkoutPlans from "./pages/coach/WorkoutPlans";
-import CoachProgressLogs from "./pages/coach/ProgressLogs"; 
-import CoachMealLogs from "./pages/coach/MealLogs";
+import CoachDashboard from "./pages/coach/CoDashboard";
+import CoachSettings from "./pages/coach/CoSettings";
+import CoachProfile from "./pages/coach/CoProfile";
+import CoachWorkoutPlans from "./pages/coach/CoWorkoutPlans";
+import CoachMealLogs from "./pages/coach/CoMealLogs";
 
-{/*admin specific pages 
 import AdminDashboard from "./pages/admin/ADashboard";
 import AdminSettings from "./pages/admin/ASettings";
 import AdminProfile from "./pages/admin/AProfile";
@@ -38,7 +35,7 @@ import AdminWorkoutPlans from "./pages/admin/AWorkoutPlans";
 import AdminCoach from "./pages/admin/ACoach";
 import AdminMealLogs from "./pages/admin/AMealLogs";
 import AdminProgressLogs from "./pages/admin/AProgressLogs";  
-*/} 
+
 
 function App() {
   return (
@@ -71,10 +68,24 @@ function App() {
 
           {/* coach Routes */}
           <Route path="/coach" element={<ProtectedRoute allowedRoles={["2"]} />}>
+            <Route path="dashboard" element={<CoachDashboard />} />
+            <Route path="coaches" isPublic={false}  element ={<Coaches  isPublic={false}/>}/>
+            <Route path="profile" element={<CoachProfile />} />
+            <Route path="workoutplans" element={<CoachWorkoutPlans />} />
+            <Route path="meallogs" element={<CoachMealLogs />} />
+            <Route path="settings" element={<CoachSettings />} />
           </Route>
 
           {/* admin Routes */}
           <Route path="/admin" element={<ProtectedRoute allowedRoles={["3"]} />}>
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="mycoach" element={<AdminCoach />} />
+            <Route path="coaches" isPublic={false}  element ={<Coaches  isPublic={false}/>}/>
+            <Route path="profile" element={<AdminProfile />} />
+            <Route path="workoutplans" element={<AdminWorkoutPlans />} />
+            <Route path="meallogs" element={<AdminMealLogs />} />
+            <Route path="progresslogs" element={<AdminProgressLogs />} />
+            <Route path="settings" element={<AdminSettings />} />
           </Route>
           
         </Route>
