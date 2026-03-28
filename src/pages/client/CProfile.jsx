@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../App.css";
 import PopUp from "../../components/PopUp";
-import Navbar from "../../components/Navbar";
 import api from "../../axios";
+
+//idk if we want 
 
 function CProfile(){
 

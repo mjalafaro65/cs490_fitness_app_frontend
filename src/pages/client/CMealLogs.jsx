@@ -1,12 +1,32 @@
 import { useState, useEffect } from "react";
 import "../../App.css";
 import PopUp from "../../components/PopUp";
-import Navbar from "../../components/Navbar";
 
 //put calender in here-- have to import a package to get + edit assignment button
+//edit the forms inside the buttons once we get endpoint
 
 function MealLogs(){
   const [isPopOpen, setPopOpen] = useState(null);
+
+  const handleChange = (e) => {
+        setData({
+            ...initialData, [e.target.name]: e.target.value
+        });
+    };
+
+  const handleSubmit = async (e) => {
+        e.preventDefault();
+        
+        try{
+            const response = await api.post("/coach/coach-profile", initialData); //fix this api
+            console.log("STATUS:", response.status);
+
+        }
+        catch(error){
+            console.error("Update failed:", error.response?.data);
+            alert("Update failed, please try again");
+        }
+    };
 
   return (
     <div className="drawer lg:drawer-open">
@@ -29,7 +49,7 @@ function MealLogs(){
               <h2 className="text-lg font-bold mb-2">Create New Meal Plan</h2>
                 <span className="text-sm opacity-70 mb-3">Nothing to see</span>
                 <div className="mt-auto flex justify-center">
-                  <button className="btn btn-primary btn-sm">Create New</button>
+                  <button className="btn btn-primary btn-sm" onClick={() => setPopOpen("create")}>Create New</button>
                 </div>
             </div>
             <div className="card bg-base-300 rounded-box grow p-4">
@@ -41,10 +61,34 @@ function MealLogs(){
       </div>
 
     <PopUp isOpen={isPopOpen !== null} onClose={() => setPopOpen(null)}>
+       {isPopOpen === "create" && (
+      <>
+          <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+            <h2>Create New Meal Plan</h2>
+              <label className="label">
+                Daily Goal:
+                <input className = "input" type="text" name="daily_goal" />
+              </label>
+              <label className="label">
+                Energy Level:
+                <input className="input" type="number" name="energy_level" />
+              </label>
+              <label className="label">
+                Target Focus:
+                <input className="input" type="text" name="target_focus" />
+              </label>
+              <label className="label">
+                Water (in oz):
+                <input className="input" type="number" name="water_oz" />
+              </label>
+              <button className="btn btn-primary" type="submit">Update</button>
+          </fieldset>
+        </>
+      )}
       {isPopOpen === "log" && (
         <>
           <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
-            <h2>Create a New Goal</h2>
+            <h2>Log Meal</h2>
               <label className="label">
                 Daily Goal:
                 <input className = "input" type="text" name="daily_goal" />
@@ -74,53 +118,17 @@ function MealLogs(){
         </>
       )}
   
-    {isPopOpen === "browse" && (
+    {isPopOpen === "browse" && ( 
       <>
-        <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
-          <legend className = "fieldset-legend">Edit Goals</legend>
-              <label className="label">
-                Daily Goal  :
-              <input className = "input" type="text" name="daily_goal" />
-              </label>
-              <label className="label">
-                Energy Level:
-                <input className="input" type="number" name="energy_level" />
-              </label>
-              <label className="label">
-                Target Focus:
-                <input className="input" type="text" name="target_focus" />
-              </label>
-              <label className="label">
-                Water (in oz):
-                <input className="input" type="number" name="water_oz" />
-              </label>
-              <button className="btn btn-primary" type="submit">Update</button>
-        </fieldset>
+        <form>
+        </form>
       </>
       )}
 
-    {isPopOpen === "history" && (
+    {isPopOpen === "history" && ( 
       <>
-          <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
-            <h2>Edit Activity</h2>
-              <label className="label">
-                Daily Goal:
-                <input className = "input" type="text" name="daily_goal" />
-              </label>
-              <label className="label">
-                Energy Level:
-                <input className="input" type="number" name="energy_level" />
-              </label>
-              <label className="label">
-                Target Focus:
-                <input className="input" type="text" name="target_focus" />
-              </label>
-              <label className="label">
-                Water (in oz):
-                <input className="input" type="number" name="water_oz" />
-              </label>
-              <button className="btn btn-primary" type="submit">Update</button>
-          </fieldset>
+          <form>
+        </form>
         </>
       )}
     </PopUp>

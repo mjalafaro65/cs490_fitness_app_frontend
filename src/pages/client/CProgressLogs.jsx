@@ -48,7 +48,7 @@ function ProgressLogs(){
               <h2 className="text-lg font-bold mb-2">Today's Activity</h2>
                 <span className="text-sm opacity-70 mb-3">Nothing logged for today</span>
                 <div className="mt-auto flex justify-center">
-                  <button className="btn btn-primary btn-sm">Log Activity</button>
+                  <button className="btn btn-primary btn-sm" onClick={() => setPopOpen("log")}>Log Activity</button>
                 </div>
             </div>
           </div>
@@ -137,6 +137,23 @@ function ProgressLogs(){
               <button className="btn btn-primary" type="submit">Update</button>
           </fieldset>
         </>
+      )}
+
+      {isPopOpen === "log" && (
+      <>
+        <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+          <legend className = "fieldset-legend">Log Activity</legend>
+              <label className="label">
+                Activity Name:
+              <input className = "input" type="text" name="name" />
+              </label>
+              <label className="label">
+                Sets/Reps:
+                <input className="input" type="number" name="sets_reps" />
+              </label>
+              <button className="btn btn-primary" type="submit">Log</button>
+        </fieldset>
+      </>
       )}
     </PopUp>
   </div>
