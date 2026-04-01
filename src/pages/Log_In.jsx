@@ -29,7 +29,7 @@ function Log_In(){
             console.log("STATUS:", response.status);
 
             if(response.status === 200 || response.status === 201){
-                localStorage.setItem("token", response.data.access_token); //storing the access_token
+                localStorage.setItem("token", response.data.access_token); 
                 navigate("/client/initial-survey");
             }
         }

@@ -119,28 +119,39 @@ function Initial_Survey() {
                                 <span>HIGH</span>
                             </div>
                         </div>
-                        <label className="label font-semibold">Height: </label>
-                        <input
-                            className="input"
-                            type="number"
-                            name="inches"
-                            placeholder=""
-                            value={initialData.height}
-                            onChange={handleChange}
-                        />
-                        <label className="label font-semibold">Weight: </label>
-                        <input
-                            className="input"
-                            type="number"
-                            name="weight"
-                            min = "0"
-                            max = "10000"
-                            step = "1"
-                            placeholder=""
-                            value={initialData.weight}
-                            onChange={handleChange}
-                        />
-                        <button className="btn btn-neutral mt-4" type="submit">Get Started!</button>
+
+                        {/* Mood Score Slider */}
+                        <div className="form-control w-full">
+                            <label className="label flex justify-between">
+                                <span className="label-text font-bold">Current Mood</span>
+                                <span className="badge badge-secondary font-bold">{initialData.mood_score} / 5</span>
+                            </label>
+                            <input
+                                type="range"
+                                min="1"
+                                max="5"
+                                name="mood_score"
+                                value={initialData.mood_score}
+                                className="range range-secondary range-sm w-full"
+                                step="1"
+                                onChange={handleChange}
+                            />
+                            <div className="flex w-full justify-between px-2 text-[10px] font-bold opacity-50 mt-1">
+                                <span>TERRIBLE</span>
+                                <span>NEUTRAL</span>
+                                <span>AMAZING</span>
+                            </div>
+                        </div>
+
+                        {/* Submit Button */}
+                        <div className="card-actions mt-4">
+                            <button className="btn btn-primary btn-block text-lg" type="submit">
+                                Launch Workout
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                </svg>
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
