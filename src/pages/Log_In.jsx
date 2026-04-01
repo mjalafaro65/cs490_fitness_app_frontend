@@ -30,7 +30,7 @@ function Log_In(){
 
             if(response.status === 200 || response.status === 201){
                 localStorage.setItem("token", response.data.access_token); //storing the access_token
-                navigate("/client/dashboard");
+                navigate("/client/initial-survey");
             }
         }
         catch(error){

@@ -33,7 +33,7 @@ function Sign_Up(){
             console.log("STATUS:", response.status);
 
             if(response.status === 200 || response.status === 201){
-                navigate("/initialsurvey");
+                navigate("/setup");
             }
         }
         catch(error){
