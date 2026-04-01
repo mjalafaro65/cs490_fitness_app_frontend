@@ -11,7 +11,7 @@ import Initial_Survey from "./pages/InitialSurvey";
 import Coaches from "./pages/Coaches";
 import Messages from "./pages/Messages";
 import Notifications from "./pages/Notifications";
-import SetupPageadd from "./pages/SetupPage";
+import SetupPage from "./pages/SetupPage";
 
 
 {/*client specific pages */}
@@ -44,7 +44,6 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="about-us" element={<AboutUs />} />
         <Route path="signup" element ={<Sign_Up />}/>
-        <Route path="setup" element ={<SetupPage />}/>
         <Route path="login" element ={<Log_In />}/>
         <Route path="coaches" element ={<Coaches isPublic={true} />}/>
         <Route path="setup" element ={<SetupPage />}/>

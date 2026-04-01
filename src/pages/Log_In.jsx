@@ -31,7 +31,7 @@ function Log_In() {
             const response = await api.post("/auth/login", loginData);
 
             if (response.status === 200 || response.status === 201) {
-                localStorage.setItem("token", response.data.access_token);
+                localStorage.setItem("token", response.data.token);
 
                 await fetchUser();
 

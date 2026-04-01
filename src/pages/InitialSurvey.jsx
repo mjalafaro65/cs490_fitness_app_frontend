@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../App.css";
 import api from "../axios.jsx";
@@ -6,14 +6,44 @@ import api from "../axios.jsx";
 /*add input validation here */
 
 function Initial_Survey() {
+    const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
+
     const [initialData, setData] = useState({
         "daily_goal": "",
         "target_focus": "",
         "energy_level": 3,
         "mood_score": 3
     });
+    useEffect(() => {
+        const checkStatus = async () => {
+            const token = localStorage.getItem("token");
 
-    const navigate = useNavigate();
+            if (!token) {
+                navigate("/login");
+                return;
+            }
+
+            try {
+                const response = await api.get("/client/daily-survey");
+                if (response.data.completed) {
+                    navigate("/client/dashboard");
+                } else {
+                    setLoading(false);
+                }
+            } catch (error) {
+                if (error.response?.status === 401) {
+                    localStorage.removeItem("token");
+                    navigate("/login");
+                } else {
+                    setLoading(false);
+                }
+            }
+        };
+        checkStatus();
+    }, [navigate]);
+
+
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -47,6 +77,14 @@ function Initial_Survey() {
         }
     };
 
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-50">
+                <span className="loading loading-spinner loading-lg text-primary"></span>
+            </div>
+        );
+    }
+
     return (
         // Main Container with a modern subtle background
         <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
@@ -75,7 +113,7 @@ function Initial_Survey() {
                                 placeholder="e.g., Hit a new PR on squats"
                                 value={initialData.daily_goal}
                                 onChange={handleChange}
-                                
+
                             />
                         </div>
 
@@ -91,7 +129,7 @@ function Initial_Survey() {
                                 placeholder="e.g., Leg Day / Cardio"
                                 value={initialData.target_focus}
                                 onChange={handleChange}
-                                
+
                             />
                         </div>
 
