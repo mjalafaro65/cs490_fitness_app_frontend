@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../App.css";
-import api from "../axios.jsx";
+import api from "../axios";
 import { Link } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 
@@ -22,7 +22,7 @@ function Log_In() {
         });
     };
 
-    const { fetchUser } = useAuth(); 
+    const { fetchUser } = useAuth();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -33,9 +33,44 @@ function Log_In() {
             if (response.status === 200 || response.status === 201) {
                 localStorage.setItem("token", response.data.token);
 
-                await fetchUser();
+                const userData = await fetchUser();
 
-                navigate("/client/initial-survey");
+                const roles = userData?.roles || []
+                const userId = userData?.user_id;
+
+                if (roles.includes(3)) {
+                    navigate("/admin/dashboard");
+                }
+                if (roles.includes(2)) {
+                    if (!userId) {
+                        // Coach exists in Auth but hasn't filled out their profile
+                        return navigate("/setup");
+                    }
+
+                    let coachProfileStatus = null; // Declare the variable first
+
+                  
+                    try {
+                        const response = await api.get("/coach/coach-profile");
+                        // console.log(response)
+                        coachProfileStatus=response.data.status
+                    } catch (error) {
+                        console.error("Coach profile fetch failed:", error.message);
+                    }
+
+                    if (coachProfileStatus == "approved") {
+                        return navigate("/coach/dashboard");
+
+                    // if status is on switched it will navigate to client profile
+                    } else {
+                        navigate("/client/initial-survey");
+                    }
+
+                }
+
+                if (roles.includes(1)) {
+                    navigate("/client/initial-survey");
+                }
             }
         } catch (error) {
             console.error("Login failed:", error.message);

@@ -209,14 +209,14 @@ function Navbar() {
 
     let allPages = [];
 
-    if (user?.roles?.includes(1)) {
-        allPages = [...clientPages, ...pages];
+    if (user?.roles?.includes(3)) {
+        allPages = [...adminPages, ...pages];
     }
-    else if (user?.roles?.includes(2)) {
+    else if (user?.roles?.includes(2) ) {
         allPages = [...coachPages, ...pages];
     }
-    else if (user?.roles?.includes(3)) {
-        allPages = [...adminPages, ...pages];
+    else if (user?.roles?.includes(1)) {
+        allPages = [...clientPages, ...pages];
     }
     else {
         allPages = [...pages];
