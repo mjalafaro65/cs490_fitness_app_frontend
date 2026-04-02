@@ -1,13 +1,37 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import { useNavigate } from "react-router-dom";
+import api from "../axios";
+import { useEffect, useState } from "react";
 
 
 function Navbar() {
     const { user, loading } = useAuth();
     const navigate = useNavigate();
 
+    const [coachStatus, setCoachStatus] = useState(null);
+    useEffect(() => {
+
+        const fetchStatus = async () => {
+            if (user?.roles?.includes(2)) {
+                try {
+                    const response = await api.get("/coach/coach-profile");
+                    // console.log(response)
+                    setCoachStatus(response.data.status);
+                } catch (error) {
+                    console.error("Coach profile fetch failed:", error.message);
+                }
+
+            }
+
+        }
+
+        fetchStatus();
+
+    }, [user])
+
     if (loading) return null;
+
 
     const handleLogout = () => {
         localStorage.removeItem("token");
@@ -18,6 +42,8 @@ function Navbar() {
 
         window.location.reload();
     };
+
+
 
     const pages = [
         {
@@ -209,10 +235,12 @@ function Navbar() {
 
     let allPages = [];
 
+
+
     if (user?.roles?.includes(3)) {
         allPages = [...adminPages, ...pages];
     }
-    else if (user?.roles?.includes(2) ) {
+    else if (user?.roles?.includes(2) && coachStatus == "approved") {
         allPages = [...coachPages, ...pages];
     }
     else if (user?.roles?.includes(1)) {

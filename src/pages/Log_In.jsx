@@ -47,7 +47,7 @@ function Log_In() {
                         return navigate("/setup");
                     }
 
-                    let coachProfileStatus = null; // Declare the variable first
+                    let coachProfileStatus = null; 
 
                   
                     try {
