@@ -7,10 +7,11 @@ import Landing from "./pages/visitors/Landing";
 import AboutUs from "./pages/visitors/AboutUs";
 import Sign_Up from "./pages/Sign_Up";
 import Log_In from "./pages/Log_In";
-import InitialSurvey from "./pages/InitialSurvey";
+import Initial_Survey from "./pages/InitialSurvey";
 import Coaches from "./pages/Coaches";
 import Messages from "./pages/Messages";
 import Notifications from "./pages/Notifications";
+import SetupPageadd from "./pages/SetupPage";
 
 
 {/*client specific pages */}
@@ -43,19 +44,23 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="about-us" element={<AboutUs />} />
         <Route path="signup" element ={<Sign_Up />}/>
+        <Route path="setup" element ={<SetupPage />}/>
         <Route path="login" element ={<Log_In />}/>
         <Route path="coaches" element ={<Coaches isPublic={true} />}/>
-        <Route path="initialsurvey" element ={<InitialSurvey />}/>
+        <Route path="setup" element ={<SetupPage />}/>
         
 
         <Route  element={<Layout />}>
           <Route element={<ProtectedRoute />}> 
             <Route path="messages" element={<Messages />} />
             <Route path="notifications" element={<Notifications />} />
+            
+            
           </Route>
 
           {/* client Routes */}
           <Route path="/client" element={<ProtectedRoute allowedRoles={["1"]} />}>
+            <Route path="initial-survey" element ={<Initial_Survey />}/>
             <Route path="dashboard" element={<ClientDashboard />} />
             <Route path="mycoach" element={<MyCoach />} />
             <Route path="coaches" isPublic={false}  element ={<Coaches  isPublic={false}/>}/>
