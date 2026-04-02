@@ -17,7 +17,9 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await api.get("/auth/me");
       setUser(res.data);
-    } catch {
+    } catch (error) {
+      console.warn("Session expired or invalid");
+      localStorage.removeItem("token"); 
       setUser(null);
     } finally {
       setLoading(false);

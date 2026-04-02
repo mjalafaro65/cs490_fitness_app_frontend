@@ -1,19 +1,22 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../AuthContext";
+import { useNavigate } from "react-router-dom";
+
 
 function Navbar() {
     const { user, loading } = useAuth();
+    const navigate = useNavigate();
 
     if (loading) return null;
 
     const handleLogout = () => {
-        localStorage.removeItem("token"); 
+        localStorage.removeItem("token");
         localStorage.removeItem("user");
 
 
-         navigate("/");
-    
-        window.location.reload(); 
+        navigate("/", { replace: true });
+
+        window.location.reload();
     };
 
     const pages = [
@@ -31,8 +34,8 @@ function Navbar() {
         },
         {
             label: "Log Out",
-            onClick: handleLogout, 
-            isButton: true,       
+            onClick: handleLogout,
+            isButton: true,
             icon: (
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="my-1.5 inline-block size-4">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
@@ -224,14 +227,31 @@ function Navbar() {
             <ul className="menu flex-1 p-2">
                 {allPages.map((tab, index) => (
                     <li key={index} className="my-1">
-                        <Link
-                            to={tab.to}
-                            className="is-drawer-close:tooltip is-drawer-close:tooltip-right flex items-center"
-                            data-tip={tab}
-                        >
-                            {tab.icon}
-                            <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">{tab.label}</span>
-                        </Link>
+                        {tab.isButton ? (
+                            /* RENDER AS BUTTON FOR LOGOUT */
+                            <button
+                                onClick={tab.onClick}
+                                className="is-drawer-close:tooltip is-drawer-close:tooltip-right flex items-center w-full text-left"
+                                data-tip={tab.label}
+                            >
+                                {tab.icon}
+                                <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    {tab.label}
+                                </span>
+                            </button>
+                        ) : (
+                            /* RENDER AS LINK FOR EVERYTHING ELSE */
+                            <Link
+                                to={tab.to}
+                                className="is-drawer-close:tooltip is-drawer-close:tooltip-right flex items-center"
+                                data-tip={tab.label}
+                            >
+                                {tab.icon}
+                                <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    {tab.label}
+                                </span>
+                            </Link>
+                        )}
                     </li>
                 ))}
             </ul>
