@@ -46,7 +46,6 @@ function App() {
         <Route path="login" element ={<Log_In />}/>
         <Route path="coaches" element ={<Coaches isPublic={true} />}/>
         <Route path="initialsurvey" element ={<InitialSurvey />}/>
-        
 
         <Route  element={<Layout />}>
           <Route element={<ProtectedRoute />}> 
