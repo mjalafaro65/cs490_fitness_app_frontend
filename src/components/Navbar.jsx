@@ -6,29 +6,10 @@ import { useEffect, useState } from "react";
 
 
 function Navbar() {
-    const { user, loading } = useAuth();
+    const { user, loading, coachStatus } = useAuth();
     const navigate = useNavigate();
 
-    const [coachStatus, setCoachStatus] = useState(null);
-    useEffect(() => {
 
-        const fetchStatus = async () => {
-            if (user?.roles?.includes(2)) {
-                try {
-                    const response = await api.get("/coach/coach-profile");
-                    // console.log(response)
-                    setCoachStatus(response.data.status);
-                } catch (error) {
-                    console.error("Coach profile fetch failed:", error.message);
-                }
-
-            }
-
-        }
-
-        fetchStatus();
-
-    }, [user])
 
     if (loading) return null;
 

@@ -6,6 +6,7 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [coachStatus, setCoachStatus] = useState(null);
 
   const fetchUser = async () => {
     const token = localStorage.getItem("token");
@@ -17,12 +18,26 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await api.get("/auth/me");
       setUser(res.data);
+
+      if (res.data.roles.includes(2)) {
+        try {
+          const coachRes = await api.get("/coach/coach-profile");
+          setCoachStatus(coachRes.data.status)
+        } catch (errorC) {
+          console.log("Coach profile not found yet");
+          setCoachStatus(null);
+        }
+
+      }
       return res.data;
-      
+
+
     } catch (error) {
       console.warn("Session expired or invalid");
-      localStorage.removeItem("token"); 
-      setUser(null);
+      if (error.response?.status === 401) {
+        localStorage.removeItem("token");
+        setUser(null);
+      }
     } finally {
       setLoading(false);
     }
@@ -37,7 +52,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => { fetchUser(); }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, fetchUser, logout }}>
+    <AuthContext.Provider value={{ user, loading, coachStatus, fetchUser, logout }}>
       {children}
     </AuthContext.Provider>
   );

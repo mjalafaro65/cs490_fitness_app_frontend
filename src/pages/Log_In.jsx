@@ -22,7 +22,7 @@ function Log_In() {
         });
     };
 
-    const { fetchUser } = useAuth();
+    const { fetchUser , coachStatus} = useAuth();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -45,20 +45,9 @@ function Log_In() {
                     if (!userId) {
                         // Coach exists in Auth but hasn't filled out their profile
                         return navigate("/setup");
-                    }
+                    }                
 
-                    let coachProfileStatus = null; 
-
-                  
-                    try {
-                        const response = await api.get("/coach/coach-profile");
-                        // console.log(response)
-                        coachProfileStatus=response.data.status
-                    } catch (error) {
-                        console.error("Coach profile fetch failed:", error.message);
-                    }
-
-                    if (coachProfileStatus == "approved") {
+                    if (coachStatus == "approved") {
                         return navigate("/coach/dashboard");
 
                     // if status is on switched it will navigate to client profile
