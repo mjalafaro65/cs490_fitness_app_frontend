@@ -3,10 +3,84 @@ import { useNavigate } from "react-router-dom";
 import { Link } from 'react-router-dom';
 import "../../App.css";
 import PopUp from "../../components/PopUp";
+import api from "../../axios";
 
 function CDashboard(){
   const navigate = useNavigate();
   const [isPopOpen, setPopOpen] = useState(null);
+
+  const [daily, setData] = useState({
+    daily_goal: "",
+    energy_level: "",
+    target_focus: "", 
+    water_oz: "",
+    weight_lbs: "", 
+    sleep_hours: "", 
+    mood_score: ""
+  })
+
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const response = await api.get("/client/daily-survey", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+          }
+        });
+
+        const data = response.data;
+
+        console.log("Response data:", data);
+
+        setData({
+          daily_goal: data.daily_goal || "",
+          energy_level: data.energy_level || "",
+          target_focus: data.target_focus || "",
+          water_oz: data.water_oz || "",
+          weight_lbs: data.weight_lbs || "", 
+          sleep_hours: data.sleep_hours || "",
+          mood_score: data.mood_score || ""
+        });
+
+      } catch (err) {
+        console.error("Failed to fetch user:", err.response?.data || err);
+      }
+    }
+
+    fetchUser();
+  }, []);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setData({
+      ...daily,
+      [name]:
+        name === "energy_level" || name === "water_oz" || name === "weight_lbs" || name === "sleep_hours" || name === "mood_score"
+          ? value === "" ? "" : Number(value)
+          : value
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      console.log("Sending:", daily);
+
+      const response = await api.post("/client/daily-survey", daily, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+        }
+      });
+
+      console.log("SUCCESS:", response.data);
+
+    } catch (error) {
+      console.error("Update failed:", error.response?.data || error);
+    }
+  };
 
     return (
           <div className="drawer lg:drawer-open">
@@ -16,19 +90,27 @@ function CDashboard(){
                 <div className="text-2xl font-bold mb-4">Dashboard</div>
                     <div className="flex w-full grow flex-1 gap-4">
                       <div className="card bg-base-300 rounded-box grow p-4">
-                        <h2 className="text-xs mb-2">Steps Today</h2>
+                        <h2 className="text-xs mb-2">Hours of Sleep</h2>
+                          <p className="text-xl font-bold">
+                            {daily.sleep_hours || "—"}
+                          </p>
                       </div>
                       <div className="card bg-base-300 rounded-box grow p-4">
-                        <h2 className="text-xs mb-2">Calories Today</h2>
+                        <h2 className="text-xs mb-2">Mood</h2>
+                          <p className="text-xl font-bold">
+                            {daily.mood_score || "—"}
+                          </p>
                       </div>
                       <div className="card bg-base-300 rounded-box grow p-4 flex">
                         <h2 className="text-xs mb-2">Water Intake</h2>
+                          <p className="text-xl font-bold">
+                            {daily.water_oz || "—"}
+                          </p>
                       </div>
                     </div>
                     <div className="flex justify-end gap-2">
-                      <button className="btn btn-primary btn-sm rounded-t" onClick={() => navigate("/client/initial-survey")}>Daily Wellness Log</button>
+                      <button className="btn btn-primary btn-sm rounded-t" onClick={() => setPopOpen("log")}>Daily Wellness Log</button>
                       <button className="btn btn-primary btn-sm rounded-t" onClick={() => setPopOpen("view")}>View Today's Log</button>
-                      <button className="btn btn-primary btn-sm rounded-t" onClick={() => setPopOpen("edit")}>Edit Today's Log</button>
                           
                     </div>
                   <div className="flex w-full grow flex-1 gap-4">
@@ -62,80 +144,72 @@ function CDashboard(){
     <PopUp isOpen={isPopOpen !== null} onClose={() => setPopOpen(null)}>
       {isPopOpen === "log" && (
         <>
-          <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+          <form onSubmit={handleSubmit} className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
             <h2>DAILY WELLNESS LOG</h2>
               <label className="label">
                 Daily Goal:
-                <input className = "input" type="text" name="daily_goal" />
+                <input className = "input" type="text" name="daily_goal" value={daily.daily_goal} onChange={handleChange}/>
               </label>
               <label className="label">
                 Energy Level:
-                <input className="input" type="number" name="energy_level" />
+                <input className="input" type="number" name="energy_level" value={daily.energy_level} onChange={handleChange}/>
               </label>
               <label className="label">
                 Target Focus:
-                <input className="input" type="text" name="target_focus" />
+                <input className="input" type="text" name="target_focus" value={daily.target_focus} onChange={handleChange}/>
               </label>
               <label className="label">
                 Water (in oz):
-                <input className="input" type="number" name="water_oz" />
+                <input className="input" type="number" name="water_oz" value={daily.water_oz} onChange={handleChange}/>
               </label>
               <label className="label">
                 Weight (in lbs):
-                <input className="input" type="number" name="weight_lbs" />
+                <input className="input" type="number" name="weight_lbs" value={daily.weight_lbs} onChange={handleChange}/>
               </label>
               <label className="label">
                 Hours of Sleep:
-                <input className="input" type="number" name="sleep_hours" />
+                <input className="input" type="number" name="sleep_hours" value={daily.sleep_hours} onChange={handleChange}/>
               </label>
               <label className="label">
                 Mood (0-10):
-                <input className="input" type="number" min="0" max ="10" name="mood_score" />
+                <input className="input" type="number" min="0" max ="10" name="mood_score" value={daily.mood_score} onChange={handleChange}/>
               </label>
               <button className="btn btn-primary" type="submit">Log</button>
-          </fieldset>
+          </form>
         </>
       )}
-  
+
     {isPopOpen === "view" && (
       <>
-        <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
-          <legend className = "fieldset-legend">DAILY WELLNESS LOG</legend>
-        </fieldset>
-      </>
-      )}
-
-    {isPopOpen === "edit" && (
-      <>
-          <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+          <fieldset onSubmit={handleSubmit} className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
             <h2>DAILY WELLNESS LOG</h2>
               <label className="label">
                 Daily Goal:
-                <input className = "input" type="text" name="daily_goal" />
+                <input className = "input" type="text" name="daily_goal" onChange={handleChange} value={daily.daily_goal} />
               </label>
               <label className="label">
                 Energy Level:
-                <input className="input" type="number" name="energy_level" />
+                <input className="input" type="number" name="energy_level" onChange={handleChange} value={daily.energy_level} />
               </label>
               <label className="label">
                 Target Focus:
-                <input className="input" type="text" name="target_focus" />
+                <input className="input" type="text" name="target_focus" onChange={handleChange} value={daily.target_focus} />
               </label>
               <label className="label">
                 Water (in oz):
-                <input className="input" type="number" name="water_oz" />
+                <input className="input" type="number" name="water_oz" onChange={handleChange} value={daily.water_oz} />
               </label>
               <label className="label">
                 Weight (in lbs):
-                <input className="input" type="number" name="weight_lbs" />
+                <input className="input" type="number" name="weight_lbs" onChange={handleChange} value={daily.weight_lbs} />
               </label>
               <label className="label">
                 Hours of Sleep:
-                <input className="input" type="number" name="sleep_hours" />
+                <input className="input" type="number" name="sleep_hours" onChange={handleChange} value={daily.sleep_hours} />
               </label>
               <label className="label">
                 Mood (0-10):
-                <input className="input" type="number" min="0" max ="10" name="mood_score" />
+                <input className="input" type="number" min="0" max ="10" name="mood_score" onChange={handleChange} value={daily.mood_score} />
               </label>
               <button className="btn btn-primary" type="submit">Update</button>
           </fieldset>

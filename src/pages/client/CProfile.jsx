@@ -20,6 +20,34 @@ function CProfile() {
 
   const [popOpen, setPopOpen] = useState(null); 
 
+    useEffect(() => {
+    async function fetchUser() {
+      try {
+        const response = await api.get("/auth/setup", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+          }
+        });
+
+        const data = response.data;
+
+        console.log("Response data:", data);
+
+        setUser({
+          first_name: data.date_of_birth || "",
+          last_name: data.gender || "",
+          bio: data.bio || "", 
+          profile_picture: data.profile_picture || ""
+        });
+
+      } catch (err) {
+        console.error("Failed to fetch user:", err.response?.data || err);
+      }
+    }
+
+    fetchUser();
+  }, []);
+
   useEffect(() => {
     async function fetchUser() {
       try {
@@ -107,67 +135,42 @@ function CProfile() {
                 </div>
               )}
             </div>
-
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
-
+            <div>
+              <label className="label font-semibold">Name:</label>
+              <p className="text-xl font-bold">
+                {user.first_name || user.last_name || "—"}
+              </p>
+            </div>
+            <div>
               <label className="label font-semibold">Date of Birth:</label>
-              <input
-                className="input"
-                type="date"
-                name="date_of_birth"
-                value={bioData.date_of_birth}
-                onChange={handleChange}
-                required
-              />
-
+              <p className="text-xl font-bold">
+                {bioData.date_of_birth || "—"}
+              </p>
+            </div>
+            <div>
               <label className="label font-semibold">Gender:</label>
-              <select
-                className="select"
-                name="gender"
-                value={bioData.gender}
-                onChange={handleChange}
-              >
-                <option value="">Select</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="prefer_not_to_say">Prefer not to say</option>
-                <option value="other">Other</option>
-              </select>
-
+              <p className="text-xl font-bold">
+                {bioData.gender || "—"}
+              </p>
+            </div>
+            <div>
               <label className="label font-semibold">Bio:</label>
-              <textarea
-                className="textarea h-24"
-                name="bio"
-                placeholder="Tell us about yourself!"
-                value={bioData.bio}
-                onChange={handleChange}
-              />
-
+              <p className="text-xl font-bold">
+                {bioData.bio || "—"}
+              </p>
+            </div>
+            <div>
               <label className="label font-semibold">Height:</label>
-              <input
-                className="input"
-                type="number"
-                name="height"
-                value={bioData.height}
-                onChange={handleChange}
-                required
-              />
-
+              <p className="text-xl font-bold">
+                {bioData.height || "—"}
+              </p>
+            </div>
+            <div>
               <label className="label font-semibold">Weight:</label>
-              <input
-                className="input"
-                type="number"
-                name="weight"
-                value={bioData.weight}
-                onChange={handleChange}
-                required
-              />
-
-              <button type="submit" className="btn btn-primary">
-                Update
-              </button>
-
-            </form>
+              <p className="text-xl font-bold">
+                {bioData.weight || "—"}
+              </p> 
+            </div>
           </section>
 
           <div className="flex gap-6">

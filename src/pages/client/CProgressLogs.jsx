@@ -5,6 +5,46 @@ import PopUp from "../../components/PopUp";
 
 function ProgressLogs(){
   const [isPopOpen, setPopOpen] = useState(null);
+  const [daily, setData] = useState({
+    daily_goal: "",
+    energy_level: "",
+    target_focus: "", 
+    water_oz: "",
+    weight_lbs: "", 
+    sleep_hours: "", 
+    mood_score: ""
+  })
+
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const response = await api.get("/client/daily-survey", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+          }
+        });
+
+        const data = response.data;
+
+        console.log("Response data:", data);
+
+        setData({
+          daily_goal: data.daily_goal || "",
+          energy_level: data.energy_level || "",
+          target_focus: data.target_focus || "",
+          water_oz: data.water_oz || "",
+          weight_lbs: data.weight_lbs || "", 
+          sleep_hours: data.sleep_hours || "",
+          mood_score: data.mood_score || ""
+        });
+
+      } catch (err) {
+        console.error("Failed to fetch user:", err.response?.data || err);
+      }
+    }
+
+    fetchUser();
+  }, []);
 
   return (
     <div className="drawer lg:drawer-open">
@@ -19,13 +59,22 @@ function ProgressLogs(){
           </div>
               <div className="flex w-full grow gap-4">
                 <div className="card bg-base-300 rounded-box grow p-4">
-                  <h2 className="text-xs mb-2">Steps Today</h2>
+                  <h2 className="text-xs mb-2">Hours of Sleep</h2>
+                    <p className="text-xl font-bold">
+                      {daily.sleep_hours || "—"}
+                    </p>
                 </div>
                 <div className="card bg-base-300 rounded-box grow p-4">
-                  <h2 className="text-xs mb-2">Calories Today</h2>
+                  <h2 className="text-xs mb-2">Mood</h2>
+                    <p className="text-xl font-bold">
+                      {daily.sleep_hours || "—"}
+                    </p>
                 </div>
                 <div className="card bg-base-300 rounded-box grow p-4 flex">
                   <h2 className="text-xs mb-2">Water Intake</h2>
+                    <p className="text-xl font-bold">
+                      {daily.sleep_hours || "—"}
+                    </p>
                 </div>
               </div>
             <div className="flex w-full grow gap-4">

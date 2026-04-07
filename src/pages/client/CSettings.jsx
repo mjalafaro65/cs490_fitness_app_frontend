@@ -11,25 +11,60 @@ function CSettings() {
     const navigate = useNavigate();
     const [isPopOpen, setPopOpen] = useState(null);
 
-        const [initialData, setData] = useState({
-            first_name: "",
-            last_name: "",
-            email: "",
-            password: "",
-            phone_number: "",
-            date_of_birth: "",
-            gender: "",
-            profile_photo: "",
-            bio: "",
-            height: "",
-            weight: ""
-        });
+    const [initialData, setData] = useState({
+        first_name: "",
+        last_name: "",
+        email: "",
+        password: "",
+        phone_number: "",
+        date_of_birth: "",
+        gender: "",
+        profile_photo: "",
+        bio: "",
+        height: "",
+        weight: ""
+    });
 
     const [user, setUser] = useState({
         first_name: "",
         last_name: "",
         picture: ""
     });
+
+    useEffect(() => {
+    async function fetchUser() {
+      try {
+        const response = await api.get("/client/profile", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+          }
+        });
+
+        const data = response.data;
+
+        console.log("Response data:", data);
+
+        setData({
+        first_name: data.first_name || "",
+        last_name: data.last_name || "",
+        email: data.email || "",
+        password: data.password || "",
+        phone_number: data.phone_number || "",
+        date_of_birth: data.date_of_birth || "",
+        gender: data.gender || "",
+        profile_photo: data.profile_photo || "",
+        bio: data.bio || "",
+        height: data.height || "",
+        weight: data.weight || "",
+        });
+
+      } catch (err) {
+        console.error("Failed to fetch user:", err.response?.data || err);
+      }
+    }
+
+        fetchUser();
+    }, []);
 
     const handleChange = (e) => {
         setData({
@@ -119,11 +154,19 @@ function CSettings() {
                                     onChange={handleChange}
                                     required
                                 />
-                                <label className="label font-semibold">Phone Number: </label>
+                                <label className="label font-semibold">Email: </label>
                                 <input
                                     className="input"
                                     type="email"
                                     name="Email"
+                                    onChange={handleChange}
+                                    required
+                                />
+                                <label className="label font-semibold">Phone Number: </label>
+                                <input
+                                    className="input"
+                                    type="number"
+                                    name="number"
                                     onChange={handleChange}
                                     required
                                 />
@@ -132,6 +175,38 @@ function CSettings() {
                                     className="input"
                                     type="text"
                                     name="password"
+                                    onChange={handleChange}
+                                    required
+                                />
+                                <label className="label font-semibold">Password: </label>
+                                <input
+                                    className="input"
+                                    type="email"
+                                    name="Email"
+                                    onChange={handleChange}
+                                    required
+                                />
+                                <label className="label font-semibold">Gender: </label>
+                                <input
+                                    className="input"
+                                    type="email"
+                                    name="Email"
+                                    onChange={handleChange}
+                                    required
+                                />
+                                <label className="label font-semibold">Bio: </label>
+                                <input
+                                    className="input"
+                                    type="email"
+                                    name="Email"
+                                    onChange={handleChange}
+                                    required
+                                />
+                                <label className="label font-semibold">Height: </label>
+                                <input
+                                    className="input"
+                                    type="email"
+                                    name="Email"
                                     onChange={handleChange}
                                     required
                                 />
@@ -199,6 +274,14 @@ function CSettings() {
                                         name="last_name"
                                         placeholder="Enter your last name"
                                         value={initialData.last_name}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                    <label className="label font-semibold">Password: </label>
+                                    <input
+                                        className="input"
+                                        type="text"
+                                        name="text"
                                         onChange={handleChange}
                                         required
                                     />
