@@ -94,7 +94,6 @@ function CProfile() {
 
           <section className="p-10 flex flex-col md:flex-row gap-10 items-start">
 
-            {/* Profile Picture */}
             <div className="flex-shrink-0">
               {user.picture ? (
                 <img
@@ -109,7 +108,6 @@ function CProfile() {
               )}
             </div>
 
-            {/* Form */}
             <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
 
               <label className="label font-semibold">Date of Birth:</label>
@@ -130,10 +128,10 @@ function CProfile() {
                 onChange={handleChange}
               >
                 <option value="">Select</option>
-                <option value="MALE">Male</option>
-                <option value="FEMALE">Female</option>
-                <option value="PREFER_NOT_TO_SAY">Prefer not to say</option>
-                <option value="OTHER">Other</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="prefer_not_to_say">Prefer not to say</option>
+                <option value="other">Other</option>
               </select>
 
               <label className="label font-semibold">Bio:</label>

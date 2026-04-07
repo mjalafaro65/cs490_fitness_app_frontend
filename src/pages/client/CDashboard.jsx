@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { Link } from 'react-router-dom';
 import "../../App.css";
 import PopUp from "../../components/PopUp";
-import Navbar from "../../components/Navbar";
 
 function CDashboard(){
   const navigate = useNavigate();
@@ -27,7 +26,7 @@ function CDashboard(){
                       </div>
                     </div>
                     <div className="flex justify-end gap-2">
-                      <button className="btn btn-primary btn-sm rounded-t" onClick={() => setPopOpen("log")}>Daily Wellness Log</button>
+                      <button className="btn btn-primary btn-sm rounded-t" onClick={() => navigate("/client/initial-survey")}>Daily Wellness Log</button>
                       <button className="btn btn-primary btn-sm rounded-t" onClick={() => setPopOpen("view")}>View Today's Log</button>
                       <button className="btn btn-primary btn-sm rounded-t" onClick={() => setPopOpen("edit")}>Edit Today's Log</button>
                           
