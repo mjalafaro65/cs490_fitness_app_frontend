@@ -62,7 +62,7 @@ function ProgressLogs(){
                   <h2 className="text-xs mb-2">Hours of Sleep</h2>
                     <p className="text-xl font-bold">
                       {daily.sleep_hours || "—"}
-                    </p>
+                    </p> 
                 </div>
                 <div className="card bg-base-300 rounded-box grow p-4">
                   <h2 className="text-xs mb-2">Mood</h2>
