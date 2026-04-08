@@ -17,6 +17,7 @@ export const AuthProvider = ({ children }) => {
     }
     try {
       const res = await api.get("/auth/me");
+      console.log(res.data)
       setUser(res.data);
 
       if (res.data.roles.includes(2)) {
