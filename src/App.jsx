@@ -32,7 +32,7 @@ import CoachMealLogs from "./pages/coach/CoMealLogs";
 import AdminDashboard from "./pages/admin/ADashboard";
 import AdminSettings from "./pages/admin/ASettings";
 import AdminProfile from "./pages/admin/AProfile";
-import AdminWorkoutPlans from "./pages/admin/AWorkoutPlans";
+import AWorkouts from "./pages/admin/AWorkouts";
 import AdminCoach from "./pages/admin/ACoach";
 import AdminMealLogs from "./pages/admin/AMealLogs";
 import AdminProgressLogs from "./pages/admin/AProgressLogs";  
@@ -83,7 +83,7 @@ function App() {
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="coaches" isPublic={false}  element ={<Coaches  isPublic={false}/>}/>
             <Route path="profile" element={<AdminProfile />} />
-            <Route path="workoutplans" element={<AdminWorkoutPlans />} />
+            <Route path="workouts" element={<AWorkouts />} />
             <Route path="meallogs" element={<AdminMealLogs />} />
             <Route path="progresslogs" element={<AdminProgressLogs />} />
             <Route path="settings" element={<AdminSettings />} />
