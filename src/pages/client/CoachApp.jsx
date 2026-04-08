@@ -2,6 +2,7 @@ import api from "../../axios"
 import { useNavigate } from "react-router-dom"
 import { useState, useEffect } from "react"
 import { openCloudinaryWidget } from "../../cloudinary";
+import { useAuth } from "../../AuthContext";
 
 
 
@@ -12,7 +13,7 @@ function CoachApply() {
     const [specialties, setSpecialties] = useState([]);
 
     const [profileData, setProfileData] = useState({
-        "specialty_id": 0,
+        "specialty_id": 1,
         "years_experience": 0,
         "bio": "",
         "profile_photo": "",
@@ -39,7 +40,7 @@ function CoachApply() {
 
     const addDocument = () => {
         if (documentData.length < 3) {
-            setDocumentData([...documentData, { document_type: "", document_url: "" }]);
+            setDocumentData([...documentData, { "document_type": "", "document_url": "" }]);
         }
     };
     const handleTypeChange = (index, value) => {
@@ -72,7 +73,7 @@ function CoachApply() {
         const { name, value } = e.target;
         setProfileData((prev) => ({
             ...prev,
-            [name]: (name === "years_experience"|| name ==="specialty_id") ? (parseInt(value) || 0) : value
+            [name]: (name === "years_experience" || name === "specialty_id") ? (parseInt(value) || 0) : value
         }))
 
     }
@@ -80,25 +81,34 @@ function CoachApply() {
     const handleFromSubmit = async (e) => {
         if (e) e.preventDefault();
         // setLoading(true);
+        if (profileData.specialty_id === 0) {
+            alert("Please select a specialty.");
+            return;
+        }
         try {
             console.log(profileData)
             const res = await api.post("/coach/coach-profile", profileData)
             console.log(res)
+            try {
+                console.log(documentData)
+                const res = await api.post("/coach/coach-profile/documents", documentData)
+                console.log(res)
 
-        } catch (err) {
-            console.error("Error posting Coach profile data", err.response);
+            } catch (error) {
+                console.error("Error posting document data", error.response);
+            }
+
+        } catch (error) {
+            console.error("Error posting Coach profile data", error.response);
+
         }
-
-        try {
-            console.log(documentData)
-            const res = await api.post("/coach/coach-documents", documentData)
-            console.log(res)
-
-        } catch (err) {
-            console.error("Error posting document data", err.response);
-        } finally {
+        finally {
             setLoading(false);
         }
+
+
+
+
     }
 
     return (
@@ -127,7 +137,7 @@ function CoachApply() {
                                         value={profileData.specialty_id}
                                         onChange={handleChange}
                                     >
-                                        <option value="" disabled>Select your gender</option>
+                                        <option value={0} disabled>Select your gender</option>
                                         {specialties.map((specialty) => (
                                             <option key={specialty.specialty_id} value={specialty.specialty_id}>
                                                 {specialty.name}
@@ -176,9 +186,7 @@ function CoachApply() {
                                             {profileData.profile_photo ? "Change File" : "Upload Photo for Profile Photo"}
                                         </button>
 
-                                        {profileData.profile_photo && (
-                                            <span className="text-sm text-green-200">✓ File ready to save</span>
-                                        )}
+                                        
                                     </div>
                                 </div>
                             </div>
@@ -202,13 +210,17 @@ function CoachApply() {
 
                                         <div className="flex items-center gap-2">
 
-                                            <input
-                                                type="text"
-                                                className="input input-bordered input-sm w-32 sm:w-55"
-                                                placeholder="Cert Name..."
+                                            <select
+                                                className="select select-bordered select-sm w-32 sm:w-55"
                                                 value={doc.document_type}
                                                 onChange={(e) => handleTypeChange(index, e.target.value)}
-                                            />
+                                                required
+                                            >
+                                                <option value="" disabled>Select Type...</option>
+                                                <option value="Certification">Certification</option>
+                                                <option value="ID">ID</option>
+                                                <option value="Insurance">Other</option>
+                                            </select>
 
                                             <button
                                                 type="button"

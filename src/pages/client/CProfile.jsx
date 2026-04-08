@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../App.css";
@@ -91,7 +92,7 @@ function CProfile() {
     }
   };
   const handleSwitchAccount=async (e)=> {
-    if (e) e.preventDefault();
+    e.preventDefault();
     try{
 
       await api.patch("/coach/coach-profile",{

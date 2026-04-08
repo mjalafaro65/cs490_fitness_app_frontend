@@ -3,9 +3,11 @@ import { useNavigate } from "react-router-dom";
 import "../../App.css";
 import PopUp from "../../components/PopUp";
 import api from "../../axios";
+import { useAuth } from "../../AuthContext";
 
 
 function CSettings() {
+    const { user } = useAuth()
     const navigate = useNavigate();
     const [isPopOpen, setPopOpen] = useState(null);
 
@@ -16,11 +18,11 @@ function CSettings() {
         password: ""
     });
 
-    const [user, setUser] = useState({
-        first_name: "",
-        last_name: "",
-        picture: ""
-    });
+    // const [user, setUser] = useState({
+    //     first_name: "",
+    //     last_name: "",
+    //     picture: ""
+    // });
 
     const handleChange = (e) => {
         setData({
@@ -273,53 +275,15 @@ function CSettings() {
                         </PopUp>
                     </div>
                     <div>
-                        <button className="btn bg-gray-100 hover:bg-gray-200 text-gray-800 border-2 border-gray-300 shadow-sm" onClick={() => navigate("/client/coach-apply")}>Apply to become a Coach</button>
-                        {/* <PopUp isOpen={isPopOpen === "transfer"} onClose={() => setPopOpen(null)}>
-                            <fieldset className="fieldset bg-base-200 border-base-500 rounded-box w-s border p-4">
-                                <legend className="fieldset-legend px-2 text-xl bg-base-200 rounded-box">Transfer Account</legend>
-                                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                                    <label className="label font-semibold">First Name: </label>
-                                    <input
-                                        className="input"
-                                        type="text"
-                                        name="first_name"
-                                        placeholder="Enter your first name"
-                                        value={initialData.first_name}
-                                        onChange={handleChange}
-                                        required
-                                    />
-                                    <label className="label font-semibold">Last Name: </label>
-                                    <input
-                                        className="input"
-                                        type="text"
-                                        name="last_name"
-                                        placeholder="Enter your last name"
-                                        value={initialData.last_name}
-                                        onChange={handleChange}
-                                        required
-                                    />
-                                    <label className="label font-semibold">Email: </label>
-                                    <input
-                                        className="input"
-                                        type="email"
-                                        name="email"
-                                        placeholder="Enter your email"
-                                        value={initialData.email}
-                                        onChange={handleChange}
-                                        required
-                                    />
-                                    <label className="label font-semibold">Documents:</label>
-                                    <div>
-                                        <textarea className="textarea h-24"
-                                            name="documents/credentials"
-                                            placeholder="Submit your links here"
-                                            value={initialData.bio}
-                                            onChange={handleChange}></textarea>
-                                    </div>
-                                    <button className="btn bg-blue-800 btn-neutral mt-4" type="submit">Submit</button>
-                                </form>
-                            </fieldset>
-                        </PopUp> */}
+                        {!user?.roles?.includes(2) && (
+                            <button
+                                className="btn bg-gray-100 hover:bg-gray-200 text-gray-800 border-2 border-gray-300 shadow-sm"
+                                onClick={() => navigate("/client/coach-apply")}
+                            >
+                                Apply to become a Coach
+                            </button>
+                        )}
+                        
                     </div>
                     <div className="flex justify-end gap-2">
                         <button className="btn bg-blue-800  btn-primary btn-m rounded-t" onClick={() => setPopOpen("calories")}>Delete Calories</button>
