@@ -13,7 +13,7 @@ import Messages from "./pages/Messages";
 import Notifications from "./pages/Notifications";
 import SetupPage from "./pages/SetupPage";
 import Plans from "./pages/WorkoutPlans";
-
+import Exercises from "./pages/Exercises";
 
 {/*client specific pages */}
 import ClientDashboard from "./pages/client/CDashboard";
@@ -50,6 +50,8 @@ function App() {
         <Route path="coaches" element ={<Coaches isPublic={true} />}/>
         <Route path="setup" element ={<SetupPage />}/>
         <Route path="plans" element ={<Plans isPublic={true} />}/>
+        <Route path="exercises" element ={<Exercises isPublic={true} />}/>
+        
         
 
         <Route  element={<Layout />}>
