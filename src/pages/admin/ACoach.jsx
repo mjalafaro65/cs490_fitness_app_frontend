@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import api from "../../axios";
 import "../../App.css";
 
-// takes a second to load, so fix that
+// takes a second to load, so need to fix that
 
 const SPECIALTY_TITLES = {
   1: "Weight Loss",
@@ -143,7 +143,6 @@ function ACoach() {
                 key={app.coach_profile_id}
                 className="card bg-base-300 rounded-box p-4 flex flex-col md:flex-row items-start md:items-center gap-4"
               >
-                {/* Profile Image */}
                 {app.profile_photo ? (
                   <img
                     src={app.profile_photo}

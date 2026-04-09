@@ -12,38 +12,37 @@ function CDashboard(){
   const [daily, setData] = useState({
     daily_goal: "",
     energy_level: "",
-    target_focus: "", 
+    target_focus: "",
     water_oz: "",
-    weight_lbs: "", 
-    sleep_hours: "", 
+    weight_lbs: "",
+    sleep_hours: "",
     mood_score: ""
-  })
+  });
 
   useEffect(() => {
     async function fetchUser() {
       try {
-        const response = await api.get("/client/daily-survey", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
-          }
-        });
+        const response = await api.get("/client/daily-survey");
 
         const data = response.data;
 
-        console.log("Response data:", data);
+        console.log("GET response:", data);
 
         setData({
-          daily_goal: data.daily_goal || "",
-          energy_level: data.energy_level || "",
-          target_focus: data.target_focus || "",
-          water_oz: data.water_oz || "",
-          weight_lbs: data.weight_lbs || "", 
-          sleep_hours: data.sleep_hours || "",
-          mood_score: data.mood_score || ""
+          daily_goal: data.daily_goal ?? "",
+          energy_level: data.energy_level ?? null,
+          target_focus: data.target_focus ?? null,
+          water_oz: data.water_oz ?? null,
+          weight_lbs: data.weight_lbs ?? null, 
+          sleep_hours: data.sleep_hours ?? null,
+          mood_score: data.mood_score ?? null
         });
-
+        localStorage.setItem("dailyData", JSON.stringify(data));
       } catch (err) {
         console.error("Failed to fetch user:", err.response?.data || err);
+
+        const saved = localStorage.getItem("dailyData");
+        if (saved) setData(JSON.parse(saved));
       }
     }
 
@@ -52,30 +51,38 @@ function CDashboard(){
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    setData({
-      ...daily,
+    setData((prev) => ({
+      ...prev,
       [name]:
-        name === "energy_level" || name === "water_oz" || name === "weight_lbs" || name === "sleep_hours" || name === "mood_score"
+        ["energy_level", "water_oz", "weight_lbs", "sleep_hours", "mood_score"].includes(name)
           ? value === "" ? "" : Number(value)
-          : value
-    });
-  };
+          : value,
+  }));
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       console.log("Sending:", daily);
+      await api.post("/client/daily-survey", daily);
 
-      const response = await api.post("/client/daily-survey", daily, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-        }
+      const refreshed = await api.get("/client/daily-survey");
+      const rd = refreshed.data;
+      setData({
+        daily_goal: rd.daily_goal ?? "",
+        energy_level: rd.energy_level ?? null,
+        target_focus: rd.target_focus ?? "",
+        water_oz: rd.water_oz ?? null,
+        weight_lbs: rd.weight_lbs ?? null,
+        sleep_hours: rd.sleep_hours ?? null,
+        mood_score: rd.mood_score ?? null
       });
+      localStorage.setItem("dailyData", JSON.stringify(daily));
+      setPopOpen(null); 
+      setPopOpen(null); // close popup after submit
+      console.log("Survey submitted successfully");
 
-      console.log("SUCCESS:", response.data);
 
     } catch (error) {
       console.error("Update failed:", error.response?.data || error);
@@ -152,7 +159,7 @@ function CDashboard(){
               </label>
               <label className="label">
                 Energy Level:
-                <input className="input" type="number" name="energy_level" value={daily.energy_level} onChange={handleChange}/>
+                <input className="input" type="number" name="energy_level" value={daily.energy_level ?? ""} onChange={handleChange}/>
               </label>
               <label className="label">
                 Target Focus:
@@ -160,19 +167,19 @@ function CDashboard(){
               </label>
               <label className="label">
                 Water (in oz):
-                <input className="input" type="number" name="water_oz" value={daily.water_oz} onChange={handleChange}/>
+                <input className="input" type="number" name="water_oz" value={daily.water_oz ?? ""} onChange={handleChange}/>
               </label>
               <label className="label">
                 Weight (in lbs):
-                <input className="input" type="number" name="weight_lbs" value={daily.weight_lbs} onChange={handleChange}/>
+                <input className="input" type="number" name="weight_lbs" value={daily.weight_lbs ?? ""} onChange={handleChange}/>
               </label>
               <label className="label">
                 Hours of Sleep:
-                <input className="input" type="number" name="sleep_hours" value={daily.sleep_hours} onChange={handleChange}/>
+                <input className="input" type="number" name="sleep_hours" value={daily.sleep_hours ?? ""} onChange={handleChange}/>
               </label>
               <label className="label">
                 Mood (0-10):
-                <input className="input" type="number" min="0" max ="10" name="mood_score" value={daily.mood_score} onChange={handleChange}/>
+                <input className="input" type="number" min="0" max ="10" name="mood_score" value={daily.mood_score ?? ""} onChange={handleChange}/>
               </label>
               <button className="btn btn-primary" type="submit">Log</button>
           </form>
@@ -181,38 +188,24 @@ function CDashboard(){
 
     {isPopOpen === "view" && (
       <>
-          <fieldset onSubmit={handleSubmit} className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
-            <h2>DAILY WELLNESS LOG</h2>
-              <label className="label">
-                Daily Goal:
-                <input className = "input" type="text" name="daily_goal" onChange={handleChange} value={daily.daily_goal} />
+          <form onSubmit={handleSubmit} className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+            <h2>Today's Wellness Log</h2>
+            {["daily_goal", "energy_level", "target_focus", "water_oz", "weight_lbs", "sleep_hours", "mood_score"].map((field) => (
+              <label key={field} className="label">
+                {field.replace("_", " ").replace(/\b\w/g, c => c.toUpperCase())}:
+                <input
+                  className="input"
+                  type={["energy_level", "water_oz", "weight_lbs", "sleep_hours", "mood_score"].includes(field) ? "number" : "text"}
+                  name={field}
+                  value={daily[field] ?? ""}
+                  onChange={handleChange}
+                  min={field === "mood_score" ? 0 : undefined}
+                  max={field === "mood_score" ? 10 : undefined}
+                />
               </label>
-              <label className="label">
-                Energy Level:
-                <input className="input" type="number" name="energy_level" onChange={handleChange} value={daily.energy_level} />
-              </label>
-              <label className="label">
-                Target Focus:
-                <input className="input" type="text" name="target_focus" onChange={handleChange} value={daily.target_focus} />
-              </label>
-              <label className="label">
-                Water (in oz):
-                <input className="input" type="number" name="water_oz" onChange={handleChange} value={daily.water_oz} />
-              </label>
-              <label className="label">
-                Weight (in lbs):
-                <input className="input" type="number" name="weight_lbs" onChange={handleChange} value={daily.weight_lbs} />
-              </label>
-              <label className="label">
-                Hours of Sleep:
-                <input className="input" type="number" name="sleep_hours" onChange={handleChange} value={daily.sleep_hours} />
-              </label>
-              <label className="label">
-                Mood (0-10):
-                <input className="input" type="number" min="0" max ="10" name="mood_score" onChange={handleChange} value={daily.mood_score} />
-              </label>
+            ))}
               <button className="btn btn-primary" type="submit">Update</button>
-          </fieldset>
+          </form>
         </>
       )}
     </PopUp>
