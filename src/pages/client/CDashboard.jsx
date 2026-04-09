@@ -52,7 +52,7 @@ function CDashboard() {
           sleep_hours: data.sleep_hours ?? null,
           mood_score: data.mood_score ?? null
         });
-
+        localStorage.setItem("dailyData", JSON.stringify(data));
       } catch (err) {
         console.error("Failed to fetch user:", err.response?.data || err);
       } finally {

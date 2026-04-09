@@ -5,7 +5,7 @@ import "../../App.css";
 import PopUp from "../../components/PopUp";
 import Navbar from "../../components/Navbar";
 
-function AWorkoutPlans(){
+function AWorkouts(){
   const navigate = useNavigate();
   const [isPopOpen, setPopOpen] = useState(null);
 
@@ -13,4 +13,4 @@ function AWorkoutPlans(){
         <div className="drawer lg:drawer-open">
         </div>
 )}
-export default AWorkoutPlans;
+export default AWorkouts;
