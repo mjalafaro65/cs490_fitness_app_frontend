@@ -42,7 +42,7 @@ function SetupPage() {
         try {
             console.log(profileData)
             const res = await api.post("/auth/setup", profileData);
-            console.log(res.message)
+            console.log(res)
             navigate("/client/initial-survey");
         } catch (error) {
             console.error("Upload failed:", error);

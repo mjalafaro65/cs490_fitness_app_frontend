@@ -24,11 +24,7 @@ function CProfile() {
     weight: ""
   });
 
-  const [user, setUser] = useState({
-    first_name: "",
-    last_name: "",
-    picture: ""
-  });
+ 
 
   useEffect(() => {
     const fetchUser = async () =>{
@@ -215,10 +211,7 @@ function CProfile() {
     </div>
   );
 
-        </section>
-      </div>
-    </div>
-  );
+
 }
 
 export default CProfile;
