@@ -316,6 +316,14 @@ const handleAssign = async () => {
                   </div>
                 ))
               )}
+              <div className="flex justify-center mt-2">
+                <button
+                  className="btn btn-primary bg-blue-800 btn-sm mt-2"
+                  onClick={() => setBrowsePopOpen(true)}
+                >
+                  Add Exercise
+                </button>
+              </div>
             </div>
 
             <div className="card bg-base-300 rounded-box w-1/2 p-4">
@@ -560,129 +568,126 @@ const handleAssign = async () => {
             <div className="mt-3">
               <h3 className="font-bold">Schedule Plan</h3>
 
-{/* DATE RANGE INPUTS (unchanged but we enhance them) */}
-<input
-  type="date"
-  className="input input-sm"
-  value={assignData.start_date}
-  onChange={(e) =>
-    setAssignData(prev => ({
-      ...prev,
-      start_date: e.target.value
-    }))
-  }
-/>
+          {/* DATE RANGE INPUTS (unchanged but we enhance them) */}
+          <input
+            type="date"
+            className="input input-sm"
+            value={assignData.start_date}
+            onChange={(e) =>
+              setAssignData(prev => ({
+                ...prev,
+                start_date: e.target.value
+              }))
+            }
+          />
 
-<input
-  type="date"
-  className="input input-sm"
-  value={assignData.end_date}
-  onChange={(e) =>
-    setAssignData(prev => ({
-      ...prev,
-      end_date: e.target.value
-    }))
-  }
-/>
+          <input
+            type="date"
+            className="input input-sm"
+            value={assignData.end_date}
+            onChange={(e) =>
+              setAssignData(prev => ({
+                ...prev,
+                end_date: e.target.value
+              }))
+            }
+          />
 
-{/* NEW: CALENDAR PREVIEW (ONLY SHOWS AFTER DATES SELECTED) */}
-{assignData.start_date && assignData.end_date && (() => {
-  const start = new Date(assignData.start_date);
-  const end = new Date(assignData.end_date);
+          {/* NEW: CALENDAR PREVIEW (ONLY SHOWS AFTER DATES SELECTED) */}
+          {assignData.start_date && assignData.end_date && (() => {
+            const start = new Date(assignData.start_date);
+            const end = new Date(assignData.end_date);
 
-  const days = [];
-  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-    days.push(new Date(d));
-  }
+            const days = [];
+            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+              days.push(new Date(d));
+            }
 
-  return (
-    <div className="mt-3">
-      <p className="font-bold mb-2">Click days to activate workouts</p>
+            return (
+              <div className="mt-3">
+                <p className="font-bold mb-2">Click days to activate workouts</p>
 
-      <div className="grid grid-cols-7 gap-2 text-center text-xs">
-        {days.map((day, i) => {
-          const isSelected =
-            selectedCalendarDay?.toDateString() === day.toDateString();
+                <div className="grid grid-cols-7 gap-2 text-center text-xs">
+                  {days.map((day, i) => {
+                    const isSelected =
+                      selectedCalendarDay?.toDateString() === day.toDateString();
 
-          const hasWorkout = activeDays.some(
-            (d) => d.date.toDateString() === day.toDateString()
-          );
+                    const hasWorkout = activeDays.some(
+                      (d) => d.date.toDateString() === day.toDateString()
+                    );
 
-          return (
-            <div
-              key={i}
-              onClick={() => {
-                setSelectedCalendarDay(day);
+                    return (
+                      <div
+                        key={i}
+                        onClick={() => {
+                          setSelectedCalendarDay(day);
 
-                const matchedDay = selectedPlan?.days?.find(
-                  (d) => Number(d.weekday) === day.getDay()
-                );
+                          const matchedDay = selectedPlan?.days?.find(
+                            (d) => Number(d.weekday) === day.getDay()
+                          );
 
-                setExerciseDayContext(matchedDay || null);
-              }}
-              className={`h-10 flex items-center justify-center rounded cursor-pointer
-                ${isSelected ? "bg-primary text-white"
-                  : hasWorkout ? "bg-secondary text-white"
-                  : "bg-base-200"}`}
-            >
-              {day.getDate()}
+                          setExerciseDayContext(matchedDay || null);
+                        }}
+                        className={`h-10 flex items-center justify-center rounded cursor-pointer
+                          ${isSelected ? "bg-primary text-white"
+                            : hasWorkout ? "bg-secondary text-white"
+                            : "bg-base-200"}`}
+                      >
+                        {day.getDate()}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* BUTTON UNCHANGED */}
+          <button
+            className="btn btn-primary bg-blue-800 btn-sm mt-2"
+            onClick={handleAssign}
+          >
+            Assign Plan
+          </button>
+                      </div>
+
+                    </div>
+                  )}
+                </PopUp>
+                {isBrowsePopOpen && (
+            <LargeModal
+            open={isBrowsePopOpen}
+            onClose={() => setBrowsePopOpen(false)}
+          >
+            <div className="w-full h-full flex flex-col">
+
+              <BrowseExercises
+                planId={selectedPlan?.plan_id}
+                dayId={assigningDay?.day_id}
+                onExerciseAdded={(exercise) => {
+            setSelectedPlan((prev) => {
+              const updatedDays = prev.days.map((day) => {
+                if (day.day_id === assigningDay?.day_id) {
+                  return {
+                    ...day,
+                    exercises: [...(day.exercises || []), exercise],
+                  };
+                }
+                return day;
+              });
+
+              return { ...prev, days: updatedDays };
+            });
+
+            setBrowsePopOpen(false);
+            setAssigningDay(null);
+          }}
+                onClose={() => setBrowsePopOpen(false)}
+              />
             </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-})()}
-
-{/* BUTTON UNCHANGED */}
-<button
-  className="btn btn-primary bg-blue-800 btn-sm mt-2"
-  onClick={handleAssign}
->
-  Assign Plan
-</button>
-            </div>
-
-          </div>
-        )}
-      </PopUp>
-      {isBrowsePopOpen && (
-  <LargeModal
-  open={isBrowsePopOpen}
-  onClose={() => setBrowsePopOpen(false)}
->
-  <div className="w-full h-full flex flex-col">
-    <h2 className="text-xl font-bold mb-4">
-      Add Exercise {exerciseDayContext ? `(${exerciseDayContext.day_label})` : ""}
-    </h2>
-
-    <BrowseExercises
-      planId={selectedPlan?.plan_id}
-      dayId={assigningDay?.day_id}
-      onExerciseAdded={(exercise) => {
-  setSelectedPlan((prev) => {
-    const updatedDays = prev.days.map((day) => {
-      if (day.day_id === assigningDay?.day_id) {
-        return {
-          ...day,
-          exercises: [...(day.exercises || []), exercise],
-        };
-      }
-      return day;
-    });
-
-    return { ...prev, days: updatedDays };
-  });
-
-  setBrowsePopOpen(false);
-  setAssigningDay(null);
-}}
-      onClose={() => setBrowsePopOpen(false)}
-    />
-  </div>
-</LargeModal>
-)}
-    </div>
+          </LargeModal>
+          )}
+              </div>
     
   );
 }
