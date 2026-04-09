@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import "../../App.css";
 import PopUp from "../../components/PopUp";
 import api from "../../axios";
-import WorkoutCalendar from "../../components/Calendar";
+import BrowseExercises from "../Exercises";
 
 //put calender in here-- have to import a package to get 
 
@@ -13,6 +13,9 @@ function ClientWorkoutPlans(){
 
   const [plans, setPlans] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
+
+  const [isBrowsePopOpen, setBrowsePopOpen] = useState(false);
+  const [exerciseToAdd, setExerciseToAdd] = useState(null); 
 
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [editData, setEditData] = useState({
@@ -504,6 +507,12 @@ function ClientWorkoutPlans(){
                   </div>
                 ))
               )}
+              <button
+                className="btn btn-primary btn-sm mt-2"
+                onClick={() => setBrowsePopOpen(true)}
+              >
+                Add Exercise
+              </button>
             </div>
 
             <div className="mt-3">
@@ -538,7 +547,39 @@ function ClientWorkoutPlans(){
           </div>
         )}
       </PopUp>
+      {isBrowsePopOpen && (
+  <PopUp
+    isOpen={isBrowsePopOpen}
+    onClose={() => setBrowsePopOpen(false)}
+  >
+    <div className="w-[600px] max-h-[80vh] overflow-y-auto">
+      <BrowseExercises
+        planId={selectedPlan?.plan_id}
+        dayId={selectedPlan?.days?.[0]?.day_id}
+        onExerciseAdded={(exercise) => {
+          setSelectedPlan((prev) => {
+            const updatedDays = prev.days.map((day) => {
+              if (day.day_id === selectedPlan.days?.[0]?.day_id) {
+                return {
+                  ...day,
+                  exercises: [...(day.exercises || []), exercise],
+                };
+              }
+              return day;
+            });
+
+            return { ...prev, days: updatedDays };
+          });
+
+          setBrowsePopOpen(false);
+        }}
+        onClose={() => setBrowsePopOpen(false)}
+      />
     </div>
+  </PopUp>
+)}
+    </div>
+    
   );
 }
 
