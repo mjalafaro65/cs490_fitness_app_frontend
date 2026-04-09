@@ -5,6 +5,7 @@ import PopUp from "../../components/PopUp";
 import api from "../../axios";
 import { useAuth } from "../../AuthContext";
 
+//change the daily wellness thing to make it right
 
 function CSettings() {
     const { user } = useAuth()
@@ -15,7 +16,14 @@ function CSettings() {
         first_name: "",
         last_name: "",
         email: "",
-        password: ""
+        password: "",
+        phone_number: "",
+        date_of_birth: "",
+        gender: "",
+        profile_photo: "",
+        bio: "",
+        height: "",
+        weight: ""
     });
 
     // const [user, setUser] = useState({
@@ -23,6 +31,41 @@ function CSettings() {
     //     last_name: "",
     //     picture: ""
     // });
+
+    useEffect(() => {
+    async function fetchUser() {
+      try {
+        const response = await api.get("/client/profile", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+          }
+        });
+
+        const data = response.data;
+
+        console.log("Response data:", data);
+
+        setData({
+        first_name: data.first_name || "",
+        last_name: data.last_name || "",
+        email: data.email || "",
+        password: data.password || "",
+        phone_number: data.phone_number || "",
+        date_of_birth: data.date_of_birth || "",
+        gender: data.gender || "",
+        profile_photo: data.profile_photo || "",
+        bio: data.bio || "",
+        height: data.height || "",
+        weight: data.weight || "",
+        });
+
+      } catch (err) {
+        console.error("Failed to fetch user:", err.response?.data || err);
+      }
+    }
+
+        fetchUser();
+    }, []);
 
     const handleChange = (e) => {
         setData({
@@ -61,13 +104,13 @@ function CSettings() {
     };
 
     //handle deletion of specific data
-    const handleDeleteRecord = async (type) => {
+    const handleDeleteRecord = async () => {
         try {
-            await api.delete(`/client/delete-today/${type}`);
-            alert(`${type} records deleted.`);
+            const response = await api.patch("/client/delete-daily");
+            console.log("Daily record reset:", response.data);
             setPopOpen(null);
         } catch (error) {
-            alert(`Failed to delete ${type} records.`);
+            console.error("Failed to reset daily record:", error.response?.data || error);
         }
     };
 
@@ -177,7 +220,8 @@ function CSettings() {
                         </PopUp>
                     </div>
                     <div>
-                        <button className="btn bg-blue-800 btn-primary" onClick={() => setPopOpen("retake_survey")}>RETAKE INITIAL SURVEY</button>
+                        <button className="btn bg-blue-800 btn-primary" onClick={() => navigate("/setup")}>RETAKE INITIAL SURVEY</button>
+                                            {/*can i just do this instead?*/}
                         <PopUp isOpen={isPopOpen === "retake_survey"} onClose={() => setPopOpen(null)}>
                             <fieldset className="fieldset bg-base-200 border-base-500 rounded-box w-s border p-4">
                                 <legend className="fieldset-legend px-2 text-xl bg-base-200 rounded-box">Retake Initial Survey</legend>
@@ -199,6 +243,14 @@ function CSettings() {
                                         name="last_name"
                                         placeholder="Enter your last name"
                                         value={initialData.last_name}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                    <label className="label font-semibold">Password: </label>
+                                    <input
+                                        className="input"
+                                        type="text"
+                                        name="text"
                                         onChange={handleChange}
                                         required
                                     />
@@ -285,136 +337,40 @@ function CSettings() {
                         )}
                         
                     </div>
-                    <div className="flex justify-end gap-2">
-                        <button className="btn bg-blue-800  btn-primary btn-m rounded-t" onClick={() => setPopOpen("calories")}>Delete Calories</button>
-                        <PopUp isOpen={isPopOpen === "calores"} onClose={() => setPopOpen(null)}>
+                    <div className="flex justify-end mt-4">
+                        <button
+                            className="btn bg-blue-800 btn-primary btn-m rounded-t mr-2 mb-2"
+                            onClick={() => setPopOpen("daily")}
+                        >
+                            Delete Today's Records
+                        </button>
+                        <PopUp isOpen={isPopOpen === "daily"} onClose={() => setPopOpen(null)}>
                             <fieldset className="fieldset bg-base-200 border-base-500 rounded-box w-s border p-4">
-                                <legend className="fieldset-legend px-2 text-xl bg-base-200 rounded-box">Delete Today's Records?</legend>
-                                <button className="btn bg-blue-800 btn-secondary mt-4" onSubmit={handleSubmit}>Yes, DELETE</button>
-                                <button className="btn bg-blue-800  btn-neutral mt-4" onSubmit={handleSubmit}>Cancel</button>
+                            <legend className="fieldset-legend px-2 text-xl bg-base-200 rounded-box">
+                                Delete Today's Records?
+                            </legend>
+                            <p className="text-gray-700 my-2">
+                                Are you sure you want to delete all your daily wellness records? This action cannot be undone.
+                            </p>
+                            <div className="flex gap-4 mt-4">
+                                <button
+                                    className="btn bg-blue-800 btn-neutral"
+                                    type="button"
+                                    onClick={() => handleDeleteRecord()}
+                                >
+                                    Yes, DELETE
+                                </button>
+                                <button
+                                    className="btn bg-blue-800 btn-neutral"
+                                    type="button"
+                                    onClick={() => setPopOpen(null)}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
                             </fieldset>
                         </PopUp>
-                        <button className="btn bg-blue-800  btn-primary btn-m rounded-t" onClick={() => setPopOpen("steps")}>Delete Steps</button>
-                        <PopUp isOpen={isPopOpen === "steps"} onClose={() => setPopOpen(null)}>
-                            <fieldset className="fieldset bg-base-200 border-base-500 rounded-box w-s border p-4">
-                                <legend className="fieldset-legend px-2 text-xl bg-base-200 rounded-box">Delete Today's Records?</legend>
-                                <button className="btn bg-blue-800btn-secondary mt-4" onSubmit={handleSubmit}>Yes, DELETE</button>
-                                <button className="btn bg-blue-800 btn-neutral mt-4" onSubmit={handleSubmit}>Cancel</button>
-                            </fieldset>
-                        </PopUp>
-                        <button className="btn bg-blue-800 btn-primary btn-m rounded-t" onClick={() => setPopOpen("water")}>Delete Water Intake</button>
-                        <PopUp isOpen={isPopOpen === "water"} onClose={() => setPopOpen(null)}>
-                            <fieldset className="fieldset bg-base-200 border-base-500 rounded-box w-s border p-4">
-                                <legend className="fieldset-legend px-2 text-xl bg-base-200 rounded-box">Delete Today's Records?</legend>
-                                <button className="btn bg-blue-800 btn-secondary mt-4" onSubmit={handleSubmit}>Yes, DELETE</button>
-                                <button className="btn bg-blue-800 btn-neutral mt-4" onSubmit={handleSubmit}>Cancel</button>
-                            </fieldset>
-                        </PopUp>
-                        <button className="btn bg-blue-800  btn-primary btn-m rounded-t" onClick={() => setPopOpen("workout")}>Delete Workout</button>
-                        <PopUp isOpen={isPopOpen === "workout"} onClose={() => setPopOpen(null)}>
-                            <fieldset className="fieldset bg-base-200 border-base-500 rounded-box w-s border p-4">
-                                <legend className="fieldset-legend px-2 text-xl bg-base-200 rounded-box">Delete Today's Records?</legend>
-                                <button className="btn bg-blue-800  btn-secondary mt-4" onSubmit={handleSubmit}>Yes, DELETE</button>
-                                <button className="btn bg-blue-800 btn-neutral mt-4" onSubmit={handleSubmit}>Cancel</button>
-                            </fieldset>
-                        </PopUp>
-                    </div>
-                    <PopUp isOpen={isPopOpen === "calories"} onClose={() => setPopOpen(null)}>
-                        <fieldset className="fieldset bg-base-200 border-base-500 rounded-box w-s border p-4">
-                            <legend className="fieldset-legend px-2 text-xl bg-base-200 rounded-box">Delete Calories</legend>
-                            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                                <label className="label font-semibold">First Name: </label>
-                                <input
-                                    className="input"
-                                    type="text"
-                                    name="first_name"
-                                    placeholder="Enter your first name"
-                                    value={initialData.first_name}
-                                    onChange={handleChange}
-                                    required
-                                />
-                                <label className="label font-semibold">Last Name: </label>
-                                <input
-                                    className="input"
-                                    type="text"
-                                    name="last_name"
-                                    placeholder="Enter your last name"
-                                    value={initialData.last_name}
-                                    onChange={handleChange}
-                                    required
-                                />
-                                <label className="label font-semibold">Phone Number: </label>
-                                <input
-                                    className="input"
-                                    type="text"
-                                    name="phone_number"
-                                    placeholder="Enter your phone number"
-                                    value={initialData.phone_number}
-                                    onChange={handleChange}
-                                    required
-                                />
-                                <label className="label font-semibold">Date of Birth: </label>
-                                <input
-                                    className="input"
-                                    type="date"
-                                    name="date_of_birth"
-                                    placeholder="01-01-2001"
-                                    value={initialData.date_of_birth}
-                                    onChange={handleChange}
-                                    required
-                                />
-                                <label className="label font-semibold">Gender: </label>
-                                <select className="select" id="gender" name="gender" value={initialData.gender} onChange={handleChange}>
-                                    <option value="">Select</option>
-                                    <option value="female">Female</option>
-                                    <option value="male">Male</option>
-                                    <option value="prefer_not_to_say">Prefer not to say</option>
-                                    <option value="other">Other</option>
-                                    <option value="null">None</option>
-                                </select>
-                                <label className="label font-semibold">Profile Photo: </label>
-                                <input
-                                    className="input"
-                                    type="url"
-                                    name="profile_photo"
-                                    placeholder="Enter a URL here"
-                                    value={initialData.profile_photo}
-                                    onChange={handleChange}
-                                />
-                                <label className="label font-semibold">Bio:</label>
-                                <div>
-                                    <textarea className="textarea h-24"
-                                        name="bio"
-                                        placeholder="Tell us about yourself!"
-                                        value={initialData.bio}
-                                        onChange={handleChange}></textarea>
-                                    <div className="label">Optional (you can always edit this later!)</div>
-                                </div>
-                                <label className="label font-semibold">Height: </label>
-                                <input
-                                    className="input"
-                                    type="number"
-                                    name="height"
-                                    placeholder=""
-                                    value={initialData.height}
-                                    onChange={handleChange}
-                                />
-                                <label className="label font-semibold">Weight: </label>
-                                <input
-                                    className="input"
-                                    type="number"
-                                    name="weight"
-                                    min="0"
-                                    max="10000"
-                                    step="1"
-                                    placeholder=""
-                                    value={initialData.weight}
-                                    onChange={handleChange}
-                                />
-                                <button className="btn bg-blue-800  btn-neutral mt-4" type="submit">Get Started!</button>
-                            </form>
-                        </fieldset>
-                    </PopUp>
+                        </div>
                 </section>
             </div>
         </div>
@@ -602,4 +558,5 @@ function CSettings() {
     // );
 
 }
+
 export default CSettings;

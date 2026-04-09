@@ -37,7 +37,7 @@ const ProtectedRoute = ({ allowedRoles }) => {
 
     if (!hasAccess) {
         console.warn("Access Denied. User roles:", user.roles, "Required:", allowedRoles);
-        return <Navigate to="/landing" replace />;
+        return <Navigate to="/" replace />;
     }
 
     return <Outlet context={{ user }} />;

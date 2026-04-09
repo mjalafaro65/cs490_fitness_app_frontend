@@ -1,8 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import "../../App.css";
-import PopUp from "../../components/PopUp";
 import api from "../../axios";
 import { useAuth } from "../../AuthContext";
 //idk if we want 
@@ -12,7 +10,7 @@ function CProfile() {
   const { fetchUser,coachStatus} = useAuth();
   const navigate=useNavigate()
 
-  const [userData, setUserData] = useState({
+  const [user, setUser] = useState({
     first_name: "",
     last_name: "",
     subscription_plan: ""
@@ -217,5 +215,10 @@ function CProfile() {
     </div>
   );
 
+        </section>
+      </div>
+    </div>
+  );
 }
+
 export default CProfile;
