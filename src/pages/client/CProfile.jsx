@@ -35,7 +35,7 @@ function CProfile() {
         console.log("Response data:", response.data);
         setData({
           date_of_birth: data.date_of_birth || "",
-          gender: data.gender || "",
+          gender: data.gender ? data.gender.split(".")[1] : "",
           bio: data.bio || "",
           height: data.height || "",
           weight: data.weight || "",
