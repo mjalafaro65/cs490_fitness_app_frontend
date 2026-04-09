@@ -64,28 +64,6 @@ function CProfile() {
     fetchUser();
   }, []);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setData({
-      ...bioData,
-      [name]:
-        name === "height" || name === "weight"
-          ? Number(value)
-          : value
-    });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-      const response = await api.put("/client/profile", bioData);
-      console.log("STATUS:", response.status);
-    }
-    catch (error) {
-      console.error("Update failed:", error.response?.data);
-    }
-  };
   const handleSwitchAccount=async (e)=> {
     e.preventDefault();
     try{
@@ -110,72 +88,49 @@ function CProfile() {
         <section className="p-6 flex flex-col gap-6">
           <div className="text-2xl font-bold mb-2">Profile</div>
           <section className="p-10 flex flex-col md:flex-row gap-30 items-start">
-            <div className="flex-shrink-0">
-              {bioData.pfp_url ? (
-                <div className="w-32 h-32 rounded-full border-2 border-gray-300 bg-white overflow-hidden flex items-center justify-center">
-                  <img
-                    src={bioData.pfp_url}
-                    alt="Profile"
-                    className="min-w-full min-h-full object-cover scale-155"
-                  />
-                </div>
-              ) : (
-                <div className="w-32 h-32 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-bold">
-                  {user.first_name?.[0] || "?"}
-                </div>
-              )}
+            <div className="flex-shrink-0 ">
+                {user?.picture ? (
+                    <img
+                        src={user.picture}
+                        alt="Profile"
+                        className="w-32 h-32  rounded-full  object-cover border-2 border-gray-300  "
+                    />
+                ) : (
+                    <div className="w-50 h-50 bg-blue-800  rounded-full  text-primary-content flex items-center justify-center text-4xl font-bold uppercase border-4 border-base-100 shadow-lg">
+                        {user?.first_name?.[0]?.toUpperCase() || "?"}
+                    </div>
+                )}
             </div>
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
-              <fieldset className="fieldset rounded-box w-full flex-1">
-                <label className="label font-semibold">Date of Birth: </label>
-                <input
-                  className="input"
-                  type="date"
-                  name="date_of_birth"
-                  value={bioData.date_of_birth}
-                  onChange={handleChange}
-                  required
-                />
-                <fieldset className="fieldset rounded-box w-full flex-1">
-                  <label className="label font-semibold">Gender: </label>
-                  <select className="select" id="gender" name="gender" value={bioData.gender} onChange={handleChange}>
-                    <option value="">Select</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="prefer_not_to_say">Prefer not to say</option>
-                    <option value="other">Other</option>
-                  </select>
-                </fieldset>
-                <label className="label font-semibold">Bio: </label>
-                <textarea className="textarea h-24"
-                  name="bio"
-                  placeholder="Tell us about yourself!"
-                  value={bioData.bio}
-                  onChange={handleChange}>
-                </textarea>
-                <label className="label font-semibold">Height: </label>
-                <input
-                  className="input"
-                  type="number"
-                  name="height"
-                  value={bioData.height}
-                  onChange={handleChange}
-                  required
-                />
-                <label className="label font-semibold">Weight: </label>
-                <input
-                  className="input"
-                  type="number"
-                  name="weight"
-                  value={bioData.weight}
-                  onChange={handleChange}
-                  required
-                />
-                <div>
-                  <button type="submit" className="btn btn-primary bg-blue-800 btn-m rounded-t">Update</button>
-                </div>
-              </fieldset>
-            </form>
+
+
+            <div className="ml-6 flex flex-col gap-3">
+              <div>
+                <label className="label font-semibold">Name:</label>
+                <p className="text-xl font-bold">
+                  {user.first_name || user.last_name || "—"}
+                </p>
+              </div>
+              <div>
+                <label className="label font-semibold">Date of Birth:</label>
+                <p className="text-xl font-bold">{bioData.date_of_birth || "—"}</p>
+              </div>
+              <div>
+                <label className="label font-semibold">Gender:</label>
+                <p className="text-xl font-bold">{bioData.gender || "—"}</p>
+              </div>
+              <div>
+                <label className="label font-semibold">Bio:</label>
+                <p className="text-xl font-bold">{bioData.bio || "—"}</p>
+              </div>
+              <div>
+                <label className="label font-semibold">Height:</label>
+                <p className="text-xl font-bold">{bioData.height || "—"}</p>
+              </div>
+              <div>
+                <label className="label font-semibold">Weight:</label>
+                <p className="text-xl font-bold">{bioData.weight || "—"}</p>
+              </div>
+            </div>
           </section>
           <div className="flex gap-6">
             
@@ -194,7 +149,7 @@ function CProfile() {
 
                 <button
                   onClick={handleSwitchAccount}
-                  className="btn btn-outline btn-primary btn-sm"
+                  className="btn btn-outline btn-primary bg-blue-800 btn-sm"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="size-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
