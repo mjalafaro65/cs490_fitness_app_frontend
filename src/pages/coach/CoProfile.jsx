@@ -12,6 +12,7 @@ function Profile() {
   const [documents, setDocuments] = useState([]);
   const [newDocType, setNewDocType] = useState("");
   const [newDocUrl, setNewDocUrl] = useState("");
+
   const [fetchData, setData] = useState({
     specialty: "",
     years_experience: "",
@@ -31,7 +32,6 @@ function Profile() {
       try {
         const response = await api.get("/coach/coach-profile");
         console.log("Response data:", response.data);
-        console.log(JSON.stringify(bioData, null, 2));
       } catch (err) {
         console.error("Failed to fetch user:", err);
         if (err.response) {

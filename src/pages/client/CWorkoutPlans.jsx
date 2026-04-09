@@ -6,7 +6,7 @@ import WorkoutCalendar from "../../components/Calendar";
 
 //put calender in here-- have to import a package to get 
 
-function ClientWorkoutPlans(){
+function ClientWorkoutPlans() {
   const [isPopOpen, setPopOpen] = useState(null);
 
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -15,10 +15,12 @@ function ClientWorkoutPlans(){
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   const [currentWeight, setCurrentWeight] = useState(null);
+  const [exer, setExer] = useState([])
+
 
   const [newPlan, setNewPlan] = useState({
-    name: "", 
-    description: "", 
+    name: "",
+    description: "",
     is_public: false,
   });
 
@@ -50,23 +52,27 @@ function ClientWorkoutPlans(){
     }
   };
 
+
   useEffect(() => {
-    fetchExer();
+    const fetchDailySurvey = async () => {
+      try {
+        const res = await api.get("/client/daily-survey");
+        setCurrentWeight(res.data.weight_lbs || null);
+      } catch (err) {
+        console.error("No survey today or fetch failed:", err.response?.data || err);
+        setCurrentWeight(null);
+      }
+    };
+
+    fetchDailySurvey();
+
+    const loadInitialData = async () => {
+      await fetchPlans();
+      await fetchExer();
+    };
+
+    loadInitialData();
   }, []);
-
-  useEffect(() => {
-  const fetchDailySurvey = async () => {
-    try {
-      const res = await api.get("/client/daily-survey");
-      setCurrentWeight(res.data.weight_lbs || null); 
-    } catch (err) {
-      console.error("No survey today or fetch failed:", err.response?.data || err);
-      setCurrentWeight(null); 
-    }
-  };
-
-  fetchDailySurvey();
-}, []);
 
   const fetchExer = async () => {
     try {
@@ -144,20 +150,20 @@ function ClientWorkoutPlans(){
       <div className="drawer-content">
         <section className="p-6 flex flex-col gap-6">
           <div className="text-2xl font-bold mb-4">My Workout Plans</div>
-              
-            <div className="flex w-full grow flex-1 gap-4">
-              <div className="card bg-base-300 rounded-box grow p-4">
-                <h2 className="text-lg font-bold mb-2">Current Weight</h2>
-                <p className="text-m">
-                  {currentWeight !== null ? `${currentWeight} lbs` : "No data yet"}
-                </p>
-              </div>
-              <div className="card bg-base-300 rounded-box grow p-4">
-                <h2 className="text-lg font-bold mb-2">Goal Weight</h2>
-              </div>
-            </div>
 
-              {/* Plan list */}
+          <div className="flex w-full grow flex-1 gap-4">
+            <div className="card bg-base-300 rounded-box grow p-4">
+              <h2 className="text-lg font-bold mb-2">Current Weight</h2>
+              <p className="text-m">
+                {currentWeight !== null ? `${currentWeight} lbs` : "No data yet"}
+              </p>
+            </div>
+            <div className="card bg-base-300 rounded-box grow p-4">
+              <h2 className="text-lg font-bold mb-2">Goal Weight</h2>
+            </div>
+          </div>
+
+          {/* Plan list */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {plans.map(plan => (
               <div key={plan.plan_id} className="card bg-base-300 p-4 rounded-box">
@@ -267,7 +273,7 @@ function ClientWorkoutPlans(){
           <div className="flex w-full h-60 flex-1 gap-4">
             <div className="card bg-base-300 rounded-box grow p-4">
               <h2 className="text-lg font-bold mb-2">My Workout Plans</h2>
-                 {plans.length === 0 ? (
+              {plans.length === 0 ? (
                 <span className="text-sm opacity-70">
                   No plans yet
                 </span>
