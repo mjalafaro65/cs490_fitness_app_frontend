@@ -1,13 +1,18 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import { useNavigate } from "react-router-dom";
+import api from "../axios";
+import { useEffect, useState } from "react";
 
 
 function Navbar() {
-    const { user, loading } = useAuth();
+    const { user, loading, coachStatus } = useAuth();
     const navigate = useNavigate();
 
+
+
     if (loading) return null;
+
 
     const handleLogout = () => {
         localStorage.removeItem("token");
@@ -130,10 +135,12 @@ function Navbar() {
 
     let allPages = [];
 
+
+
     if (user?.roles?.includes(3)) {
         allPages = [...adminPages, ...pages];
     }
-    else if (user?.roles?.includes(2)) {
+    else if (user?.roles?.includes(2) && coachStatus == "approved") {
         allPages = [...coachPages, ...pages];
     }
     else if (user?.roles?.includes(1)) {
