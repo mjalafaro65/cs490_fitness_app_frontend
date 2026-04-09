@@ -109,8 +109,8 @@ function CDashboard(){
                       </div>
                     </div>
                     <div className="flex justify-end gap-2">
-                      <button className="btn btn-primary btn-sm rounded-t" onClick={() => setPopOpen("log")}>Daily Wellness Log</button>
-                      <button className="btn btn-primary btn-sm rounded-t" onClick={() => setPopOpen("view")}>View Today's Log</button>
+                      <button className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={() => setPopOpen("log")}>Daily Wellness Log</button>
+                      <button className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={() => setPopOpen("view")}>View Today's Log</button>
                           
                     </div>
                   <div className="flex w-full grow flex-1 gap-4">
@@ -129,7 +129,7 @@ function CDashboard(){
                     <h2 className="text-lg font-bold mb-2">My Coach</h2>
                     <span className="text-sm opacity-70 mb-3">No coach assigned</span>
                     <div className="mt-auto flex justify-center">
-                      <button className="btn btn-primary btn-sm" onClick={() => navigate("/client/coaches")} 
+                      <button className="btn btn-primary bg-blue-800 btn-sm" onClick={() => navigate("/client/coaches")} 
                         >Browse Coaches</button>
                     </div>
                   </div>
@@ -174,7 +174,7 @@ function CDashboard(){
                 Mood (0-10):
                 <input className="input" type="number" min="0" max ="10" name="mood_score" value={daily.mood_score} onChange={handleChange}/>
               </label>
-              <button className="btn btn-primary" type="submit">Log</button>
+              <button className="btn btn-primary bg-blue-800" type="submit">Log</button>
           </form>
         </>
       )}
@@ -211,7 +211,7 @@ function CDashboard(){
                 Mood (0-10):
                 <input className="input" type="number" min="0" max ="10" name="mood_score" onChange={handleChange} value={daily.mood_score} />
               </label>
-              <button className="btn btn-primary" type="submit">Update</button>
+              <button className="btn btn-primary bg-blue-800" type="submit">Update</button>
           </fieldset>
         </>
       )}

@@ -171,7 +171,7 @@ function Messages(){
                       {!msg.is_read && (
                         <button
                           onClick={() => markMessageRead(msg.message_id)}
-                          className="ml-2 text-xs text-blue-500"
+                          className="ml-2 text-xs bg-blue-800"
                         >
                           Mark as read
                         </button>

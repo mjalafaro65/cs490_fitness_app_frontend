@@ -35,9 +35,9 @@ function MealLogs(){
         <section className="p-6 flex flex-col gap-6">
           <div className="text-2xl font-bold mb-4">My Meal Plans</div>
               <div className="flex justify-end gap-2">
-                <button className="btn btn-primary btn-sm rounded-t" onClick={() => setPopOpen("log")}>Log Meals</button>
-                <button className="btn btn-primary btn-sm rounded-t" onClick={() => setPopOpen("browse")}>Browse Meals</button>
-                <button className="btn btn-primary btn-sm rounded-t" onClick={() => setPopOpen("history")}>Meal History</button> 
+                <button className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={() => setPopOpen("log")}>Log Meals</button>
+                <button className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={() => setPopOpen("browse")}>Browse Meals</button>
+                <button className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={() => setPopOpen("history")}>Meal History</button> 
               </div>
             <div className="flex w-full grow flex-1 gap-4">
             <div className="card bg-base-300 rounded-box grow p-4">
@@ -49,7 +49,7 @@ function MealLogs(){
               <h2 className="text-lg font-bold mb-2">Create New Meal Plan</h2>
                 <span className="text-sm opacity-70 mb-3">Nothing to see</span>
                 <div className="mt-auto flex justify-center">
-                  <button className="btn btn-primary btn-sm" onClick={() => setPopOpen("create")}>Create New</button>
+                  <button className="btn btn-primary bg-blue-800 btn-sm" onClick={() => setPopOpen("create")}>Create New</button>
                 </div>
             </div>
             <div className="card bg-base-300 rounded-box grow p-4">
@@ -81,7 +81,7 @@ function MealLogs(){
                 Water (in oz):
                 <input className="input" type="number" name="water_oz" />
               </label>
-              <button className="btn btn-primary" type="submit">Update</button>
+              <button className="btn btn-primary bg-blue-800" type="submit">Update</button>
           </fieldset>
         </>
       )}
@@ -113,7 +113,7 @@ function MealLogs(){
                 Hours of Sleep:
                 <input className="input" type="number" name="sleep_hours" />
               </label>
-              <button className="btn btn-primary" type="submit">Create</button>
+              <button className="btn btn-primary bg-blue-800" type="submit">Create</button>
           </fieldset>
         </>
       )}

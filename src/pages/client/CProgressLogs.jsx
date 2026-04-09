@@ -53,9 +53,9 @@ function ProgressLogs(){
         <section className="p-6 flex flex-col gap-6">
           <div className="text-2xl font-bold mb-4">My Progress/Analystics</div>
           <div className="flex justify-end gap-2">
-            <button className="btn btn-primary btn-sm rounded-t" onClick={() => setPopOpen("create")}>Create New Goal</button>
-            <button className="btn btn-primary btn-sm rounded-t" onClick={() => setPopOpen("editGoal")}>Edit Goals</button>
-            <button className="btn btn-primary btn-sm rounded-t" onClick={() => setPopOpen("editAct")}>Edit Activity</button> 
+            <button className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={() => setPopOpen("create")}>Create New Goal</button>
+            <button className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={() => setPopOpen("editGoal")}>Edit Goals</button>
+            <button className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={() => setPopOpen("editAct")}>Edit Activity</button> 
           </div>
               <div className="flex w-full grow gap-4">
                 <div className="card bg-base-300 rounded-box grow p-4">
@@ -96,7 +96,7 @@ function ProgressLogs(){
               <h2 className="text-lg font-bold mb-2">Today's Activity</h2>
                 <span className="text-sm opacity-70 mb-3">Nothing logged for today</span>
                 <div className="mt-auto flex justify-center">
-                  <button className="btn btn-primary btn-sm" onClick={() => setPopOpen("log")}>Log Activity</button>
+                  <button className="btn btn-primary bg-blue-800 btn-sm" onClick={() => setPopOpen("log")}>Log Activity</button>
                 </div>
             </div>
           </div>
@@ -132,7 +132,7 @@ function ProgressLogs(){
                 Hours of Sleep:
                 <input className="input" type="number" name="sleep_hours" />
               </label>
-              <button className="btn btn-primary" type="submit">Create</button>
+              <button className="btn btn-primary bg-blue-800" type="submit">Create</button>
           </fieldset>
         </>
       )}
@@ -157,7 +157,7 @@ function ProgressLogs(){
                 Water (in oz):
                 <input className="input" type="number" name="water_oz" />
               </label>
-              <button className="btn btn-primary" type="submit">Update</button>
+              <button className="btn btn-primary bg-blue-800" type="submit">Update</button>
         </fieldset>
       </>
       )}
@@ -182,7 +182,7 @@ function ProgressLogs(){
                 Water (in oz):
                 <input className="input" type="number" name="water_oz" />
               </label>
-              <button className="btn btn-primary" type="submit">Update</button>
+              <button className="btn btn-primary bg-blue-800" type="submit">Update</button>
           </fieldset>
         </>
       )}

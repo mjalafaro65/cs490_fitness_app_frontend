@@ -31,20 +31,20 @@ function ClientWorkoutPlans(){
               <h2 className="text-lg font-bold mb-2">My Workout Plans</h2>
                 <span className="text-sm opacity-70 mb-3">Nothing exercises currently set</span>
                 <div className="mt-auto flex justify-center">
-                  <button className="btn btn-primary btn-sm">Browse Plans</button>
+                  <button className="btn btn-primary bg-blue-800 btn-sm">Browse Plans</button>
                 </div>
             </div>
             <div className="card bg-base-300 rounded-box grow p-4">
               <h2 className="text-lg font-bold mb-2">Create New Workout Plan</h2>
                 <div className="mt-auto flex justify-center">
-                  <button className="btn btn-primary btn-sm" onClick={() => setPopOpen("create")}>Create New</button>
+                  <button className="btn btn-primary bg-blue-800 btn-sm" onClick={() => setPopOpen("create")}>Create New</button>
                 </div>
             </div>
             <div className="card bg-base-300 w-1/4 rounded-box grow p-4">
               <h2 className="text-lg font-bold mb-2">Edit Workout Plans</h2>
               <span className="text-sm opacity-70 mb-3">No currently existing plans</span>
                 <div className="mt-auto flex justify-center">
-                  <button className="btn btn-primary btn-sm" onClick={() => setPopOpen("editPlan")}>Edit Plans</button>
+                  <button className="btn btn-primary bg-blue-800 btn-sm" onClick={() => setPopOpen("editPlan")}>Edit Plans</button>
                 </div>
             </div>
           </div>
