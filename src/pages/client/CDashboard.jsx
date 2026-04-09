@@ -9,12 +9,12 @@ function CDashboard() {
   const navigate = useNavigate();
   const [isPopOpen, setPopOpen] = useState(null);
   const [isUpdated, setIsUpdated] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const [daily, setData] = useState({
     water_oz: "",
     weight_lbs: "",
     sleep_hours: "",
-    mood_score: ""
   });
 
   const [dailyA, setDataA] = useState({
@@ -30,11 +30,13 @@ function CDashboard() {
   useEffect(() => {
     async function fetchUser() {
       try {
-        const response = await api.get("/client/daily-survey");
+       
+        const response=await  api.get("/client/daily-survey");
+        const response2=await api.get("/client/survey-status");
 
-        const response2 = await api.get("/client/survey-status");
 
-        setIsUpdated(response2.data.updated)
+        const statusData=response2.data
+        setIsUpdated(!statusData.updated);
 
         const data = response.data;
         const data2 = response2.data;
@@ -53,6 +55,8 @@ function CDashboard() {
 
       } catch (err) {
         console.error("Failed to fetch user:", err.response?.data || err);
+      } finally {
+        setLoading(false);
       }
     }
 
@@ -76,6 +80,7 @@ function CDashboard() {
     try {
       console.log("Sending:", daily);
       await api.post("/client/daily-survey", daily);
+      setIsUpdated(true)
       setPopOpen(null);
       console.log("Survey submitted successfully");
 
@@ -83,6 +88,7 @@ function CDashboard() {
     } catch (error) {
       console.error("Update failed:", error.response?.data || error);
     }
+
   };
 
   return (
@@ -112,9 +118,14 @@ function CDashboard() {
             </div>
           </div>
           <div className="flex justify-end gap-2">
-            {
-              isUpdated && (<button className="btn btn-primary btn-sm rounded-t" onClick={() => setPopOpen("log")}>Daily Wellness Log</button>)
-            }
+            {!loading && !isUpdated && (
+              <button
+                className="btn btn-primary btn-sm rounded-t"
+                onClick={() => setPopOpen("log")}
+              >
+                Daily Wellness Log
+              </button>
+            )}
 
             <button className="btn btn-primary btn-sm rounded-t" onClick={() => setPopOpen("view")}>View Today's Log</button>
 
@@ -163,10 +174,6 @@ function CDashboard() {
               <label className="label">
                 Hours of Sleep:
                 <input className="input" type="number" name="sleep_hours" value={daily.sleep_hours ?? ""} onChange={handleChange} />
-              </label>
-              <label className="label">
-                Mood (0-10):
-                <input className="input" type="number" min="0" max="10" name="mood_score" value={daily.mood_score ?? ""} onChange={handleChange} />
               </label>
               <button className="btn btn-primary" type="submit">Log</button>
             </form>

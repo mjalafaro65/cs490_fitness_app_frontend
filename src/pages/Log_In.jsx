@@ -71,7 +71,7 @@ function Log_In() {
         <div>
             <nav className="navbar bg-base-100">
                 <div className="navbar-start">
-                    <Link to="/landing" className="btn btn-ghost text-3xl font-semibold">FitNet</Link>
+                    <Link to="/" className="btn btn-ghost text-3xl font-semibold">FitNet</Link>
                 </div>
             </nav>
             <div className="flex items-center justify-center min-h-screen bg-blue-600">

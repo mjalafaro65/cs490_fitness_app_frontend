@@ -25,7 +25,7 @@ function Initial_Survey() {
             }
 
             try {
-                const response = await api.get("//client/survey-status");
+                const response = await api.get("/client/survey-status");
                 if (response.data.completed) {
                     navigate("/client/dashboard");
                 } else {
