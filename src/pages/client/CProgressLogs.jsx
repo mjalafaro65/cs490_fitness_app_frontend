@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "../../App.css";
 import PopUp from "../../components/PopUp";
+import api from "../../axios";
 
 function ProgressLogs(){
   const [isPopOpen, setPopOpen] = useState(null);
@@ -59,35 +60,24 @@ function ProgressLogs(){
           </div>
               <div className="flex w-full grow gap-4">
                 <div className="card bg-base-300 rounded-box grow p-4">
-                  <h2 className="text-xs mb-2">Hours of Sleep</h2>
+                  <h2 className="text-m font-bold mb-2">Hours of Sleep</h2>
                     <p className="text-xl font-bold">
                       {daily.sleep_hours || "—"}
                     </p> 
                 </div>
                 <div className="card bg-base-300 rounded-box grow p-4">
-                  <h2 className="text-xs mb-2">Mood</h2>
+                  <h2 className="text-m font-bold mb-2">Mood</h2>
                     <p className="text-xl font-bold">
-                      {daily.sleep_hours || "—"}
+                      {daily.mood_score || "—"}
                     </p>
                 </div>
                 <div className="card bg-base-300 rounded-box grow p-4 flex">
-                  <h2 className="text-xs mb-2">Water Intake</h2>
+                  <h2 className="text-m font-bold mb-2">Water Intake</h2>
                     <p className="text-xl font-bold">
-                      {daily.sleep_hours || "—"}
+                      {daily.water_oz || "—"}
                     </p>
                 </div>
               </div>
-            <div className="flex w-full grow gap-4">
-            <div className="card bg-base-300 rounded-box grow p-4">
-              <h2 className="text-lg font-bold mb-2">Water Intake</h2>
-            </div>
-            <div className="card bg-base-300 rounded-box grow p-4">
-              <h2 className="text-lg font-bold mb-2">Mood</h2>
-            </div>
-            <div className="card bg-base-300 rounded-box grow p-4">
-              <h2 className="text-lg font-bold mb-2">Steps</h2>
-            </div>
-            </div>
           <div className="flex w-full h-60 gap-4">
             <div className="card bg-base-300 rounded-box flex-1 grow p-4">
               <h2 className="text-lg font-bold mb-2">Weight Tracking</h2>

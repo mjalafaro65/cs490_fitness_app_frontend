@@ -8,8 +8,16 @@ import api from "../../axios";
 function CDashboard(){
   const navigate = useNavigate();
   const [isPopOpen, setPopOpen] = useState(null);
+  const [isUpdated, setIsUpdated] = useState(false);
 
   const [daily, setData] = useState({
+    water_oz: "",
+    weight_lbs: "",
+    sleep_hours: "",
+    mood_score: ""
+  });
+
+  const [dailyA, setDataA] = useState({
     daily_goal: "",
     energy_level: "",
     target_focus: "", 
@@ -22,15 +30,16 @@ function CDashboard(){
   useEffect(() => {
     async function fetchUser() {
       try {
-        const response = await api.get("/client/daily-survey", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
-          }
-        });
+        const response = await api.get("/client/daily-survey");
+
+        const response2 = await api.get("/client/survey-status");
+
+        setIsUpdated(response2.data.updated)
 
         const data = response.data;
+        const data2 = response2.data;
 
-        console.log("Response data:", data);
+        console.log("GET response:", data, " ", data2);
 
         setData({
           daily_goal: data.daily_goal || "",
@@ -52,14 +61,13 @@ function CDashboard(){
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    setData({
-      ...daily,
+    setData((prev) => ({
+      ...prev,
       [name]:
-        name === "energy_level" || name === "water_oz" || name === "weight_lbs" || name === "sleep_hours" || name === "mood_score"
+        ["water_oz", "weight_lbs", "sleep_hours", "mood_score"].includes(name)
           ? value === "" ? "" : Number(value)
-          : value
-    });
+          : value,
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -67,15 +75,10 @@ function CDashboard(){
 
     try {
       console.log("Sending:", daily);
+      await api.post("/client/daily-survey", daily);
+      setPopOpen(null);
+      console.log("Survey submitted successfully");
 
-      const response = await api.post("/client/daily-survey", daily, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-        }
-      });
-
-      console.log("SUCCESS:", response.data);
 
     } catch (error) {
       console.error("Update failed:", error.response?.data || error);
@@ -142,80 +145,56 @@ function CDashboard(){
             </div>
 
     <PopUp isOpen={isPopOpen !== null} onClose={() => setPopOpen(null)}>
-      {isPopOpen === "log" && (
-        <>
-          <form onSubmit={handleSubmit} className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
-            <h2>DAILY WELLNESS LOG</h2>
-              <label className="label">
-                Daily Goal:
-                <input className = "input" type="text" name="daily_goal" value={daily.daily_goal} onChange={handleChange}/>
-              </label>
-              <label className="label">
-                Energy Level:
-                <input className="input" type="number" name="energy_level" value={daily.energy_level} onChange={handleChange}/>
-              </label>
-              <label className="label">
-                Target Focus:
-                <input className="input" type="text" name="target_focus" value={daily.target_focus} onChange={handleChange}/>
-              </label>
+        {isPopOpen === "log" && (
+          <>
+            <form onSubmit={handleSubmit} className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+              <h2>DAILY WELLNESS LOG</h2>
               <label className="label">
                 Water (in oz):
-                <input className="input" type="number" name="water_oz" value={daily.water_oz} onChange={handleChange}/>
+                <input className="input" type="number" name="water_oz" value={daily.water_oz ?? ""} onChange={handleChange} />
               </label>
               <label className="label">
                 Weight (in lbs):
-                <input className="input" type="number" name="weight_lbs" value={daily.weight_lbs} onChange={handleChange}/>
+                <input className="input" type="number" name="weight_lbs" value={daily.weight_lbs ?? ""} onChange={handleChange} />
               </label>
               <label className="label">
                 Hours of Sleep:
-                <input className="input" type="number" name="sleep_hours" value={daily.sleep_hours} onChange={handleChange}/>
+                <input className="input" type="number" name="sleep_hours" value={daily.sleep_hours ?? ""} onChange={handleChange} />
               </label>
               <label className="label">
                 Mood (0-10):
-                <input className="input" type="number" min="0" max ="10" name="mood_score" value={daily.mood_score} onChange={handleChange}/>
+                <input className="input" type="number" min="0" max="10" name="mood_score" value={daily.mood_score ?? ""} onChange={handleChange} />
               </label>
-              <button className="btn btn-primary bg-blue-800" type="submit">Log</button>
-          </form>
-        </>
-      )}
+              <button className="btn btn-primary" type="submit">Log</button>
+            </form>
+          </>
+        )}
 
-    {isPopOpen === "view" && (
-      <>
-          <fieldset onSubmit={handleSubmit} className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
-            <h2>DAILY WELLNESS LOG</h2>
-              <label className="label">
-                Daily Goal:
-                <input className = "input" type="text" name="daily_goal" onChange={handleChange} value={daily.daily_goal} />
-              </label>
-              <label className="label">
-                Energy Level:
-                <input className="input" type="number" name="energy_level" onChange={handleChange} value={daily.energy_level} />
-              </label>
-              <label className="label">
-                Target Focus:
-                <input className="input" type="text" name="target_focus" onChange={handleChange} value={daily.target_focus} />
-              </label>
-              <label className="label">
-                Water (in oz):
-                <input className="input" type="number" name="water_oz" onChange={handleChange} value={daily.water_oz} />
-              </label>
-              <label className="label">
-                Weight (in lbs):
-                <input className="input" type="number" name="weight_lbs" onChange={handleChange} value={daily.weight_lbs} />
-              </label>
-              <label className="label">
-                Hours of Sleep:
-                <input className="input" type="number" name="sleep_hours" onChange={handleChange} value={daily.sleep_hours} />
-              </label>
-              <label className="label">
-                Mood (0-10):
-                <input className="input" type="number" min="0" max ="10" name="mood_score" onChange={handleChange} value={daily.mood_score} />
-              </label>
-              <button className="btn btn-primary bg-blue-800" type="submit">Update</button>
-          </fieldset>
-        </>
-      )}
-    </PopUp>
+        {isPopOpen === "view" && (
+          <>
+            <div className="card bg-base-200 border-base-300 border p-6 rounded-box w-full max-w-xs">
+              <h2 className="text-xl font-bold mb-4">Today's Wellness Log</h2>
+
+              <div className="space-y-3">
+                {["daily_goal", "energy_level", "target_focus", "water_oz", "weight_lbs", "sleep_hours", "mood_score"].map((field) => (
+                  <div key={field} className="flex justify-between border-b border-base-300 pb-1">
+                    <span className="font-semibold text-base-content/70">
+                      {field.replace("_", " ").replace(/\b\w/g, c => c.toUpperCase())}:
+                    </span>
+                    <span className="text-primary font-medium">
+                      {daily[field] ?? "N/A"}
+                      {/* Optional: Add units for clarity */}
+                      {field === "water_oz" && " oz"}
+                      {field === "weight_lbs" && " lbs"}
+                      {field === "sleep_hours" && " hrs"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+      </PopUp>
   </div>
 )}
 export default CDashboard;
