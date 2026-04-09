@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import "../../App.css";
 import PopUp from "../../components/PopUp";
 import api from "../../axios";
+import WorkoutCalendar from "../../components/Calendar";
 
 //put calender in here-- have to import a package to get 
 

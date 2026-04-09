@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../axios.jsx";
+import { useAuth } from "../AuthContext.jsx";
 
 function SetupPage() {
+    const {fetchUser}=useAuth()
     const [profileData, setProfileData] = useState({
         "first_name": "",
         "last_name": "",
@@ -42,7 +44,8 @@ function SetupPage() {
         try {
             console.log(profileData)
             const res = await api.post("/auth/setup", profileData);
-            console.log(res.message)
+            console.log(res)
+            await fetchUser()
             navigate("/client/initial-survey");
         } catch (error) {
             console.error("Upload failed:", error);

@@ -4,6 +4,7 @@ import "../../App.css";
 import api from "../../axios";
 import { useAuth } from "../../AuthContext";
 import { useNavigate } from "react-router-dom";
+//idk if we want 
 
 function CProfile() {
 
@@ -23,6 +24,8 @@ function CProfile() {
     height: "",
     weight: ""
   });
+
+ 
 
   useEffect(() => {
     const fetchUser = async () =>{
@@ -130,6 +133,7 @@ function CProfile() {
             </div>
           </section>
           <div className="flex gap-6">
+            
             <button className="btn btn-primary bg-blue-800 btn-m rounded-t" onClick={() => setPopOpen("invoices")}>Invoices</button>
             <button className="btn btn-primary bg-blue-800 btn-m rounded-t" onClick={() => setPopOpen("reports")}>View Reports</button>
           </div>

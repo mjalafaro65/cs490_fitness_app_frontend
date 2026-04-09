@@ -9,6 +9,7 @@ import VisitorNavbar from "../components/VisitorNavbar.jsx";
 const Coaches = ({ isPublic }) => {
 
   const [coaches, setCoaches] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -28,7 +29,13 @@ const Coaches = ({ isPublic }) => {
 
   if (loading) return <div className="p-4">Loading coaches...</div>
 
-    const isNotLoggedIn = !localStorage.getItem("token")
+    const isNotLoggedIn = !localStorage.getItem("token");
+
+    const filteredCoaches = coaches.filter((coach) =>
+      `${coach.first_name} ${coach.last_name}`
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
+    );
   return (
 
     <div >
@@ -52,8 +59,20 @@ const Coaches = ({ isPublic }) => {
       <h1 className=" p-8 text-4xl font-bold mb-4">
         {isNotLoggedIn ? "Our Expert Coaches" : "Find Your New Trainer"}
       </h1>
+      <div className="px-16 mb-4">
+        <input
+          type="text"
+          placeholder="Search coaches..."
+          className="input input-bordered w-full"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+      {filteredCoaches.length === 0 && (
+        <p className="px-16 text-gray-500">No coaches found.</p>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-14 pl-16 pr-16">
-        {coaches.map((coach) => (
+      {filteredCoaches.map((coach) => (
           <div key={coach.coach_profile_id} className="card bg-base-100 shadow-xl border border-base-300 h-52 overflow-hidden relative flex flex-col">
 
             {/* 1. SAVE BUTTON (Top Right) */}
@@ -67,16 +86,16 @@ const Coaches = ({ isPublic }) => {
             <div className="flex flex-row items-center p-4 flex-grow">
               {/* Image on Left */}
               <div className="w-1/3 flex justify-center">
-                <img
-                  src={coach.image}
-                  alt={coach.name}
-                  className="w-20 h-20 object-cover rounded-full shadow-md"
-                />
+              <div className="w-20 h-20 rounded-full shadow-md bg-gray-200 flex items-center justify-center text-sm font-semibold">
+                {coach.first_name?.[0]}{coach.last_name?.[0]}
+              </div>
               </div>
 
               {/* Name and Bio on Right */}
               <div className="w-2/3 pl-4 pr-6">
-                <h2 className="card-title text-left text-lg leading-tight">{coach.name}</h2>
+              <h2 className="card-title text-left text-lg leading-tight">
+                {coach.first_name} {coach.last_name}
+              </h2>
                 <p className="text-left text-xs line-clamp-3 text-gray-600 mt-1">
                   {coach.bio}
                 </p>

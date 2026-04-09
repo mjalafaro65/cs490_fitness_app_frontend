@@ -1,40 +1,41 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Link } from 'react-router-dom';
 import "../../App.css";
 import PopUp from "../../components/PopUp";
 import api from "../../axios";
 
-function CDashboard(){
+function CDashboard() {
   const navigate = useNavigate();
   const [isPopOpen, setPopOpen] = useState(null);
   const [isUpdated, setIsUpdated] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const [daily, setData] = useState({
+    water_oz: "",
+    weight_lbs: "",
+    sleep_hours: "",
+  });
+
+  const [dailyA, setDataA] = useState({
+    daily_goal: "",
+    energy_level: "",
+    target_focus: "",
     water_oz: "",
     weight_lbs: "",
     sleep_hours: "",
     mood_score: ""
   });
 
-  const [dailyA, setDataA] = useState({
-    daily_goal: "",
-    energy_level: "",
-    target_focus: "", 
-    water_oz: "",
-    weight_lbs: "", 
-    sleep_hours: "", 
-    mood_score: ""
-  })
-
   useEffect(() => {
     async function fetchUser() {
       try {
-        const response = await api.get("/client/daily-survey");
+       
+        const response=await  api.get("/client/daily-survey");
+        const response2=await api.get("/client/survey-status");
 
-        const response2 = await api.get("/client/survey-status");
 
-        setIsUpdated(response2.data.updated)
+        const statusData=response2.data
+        setIsUpdated(!statusData.updated);
 
         const data = response.data;
         const data2 = response2.data;
@@ -42,17 +43,19 @@ function CDashboard(){
         console.log("GET response:", data, " ", data2);
 
         setData({
-          daily_goal: data.daily_goal || "",
-          energy_level: data.energy_level || "",
-          target_focus: data.target_focus || "",
-          water_oz: data.water_oz || "",
-          weight_lbs: data.weight_lbs || "", 
-          sleep_hours: data.sleep_hours || "",
-          mood_score: data.mood_score || ""
+          daily_goal: data.daily_goal ?? null,
+          energy_level: data.energy_level ?? null,
+          target_focus: data.target_focus ?? null,
+          water_oz: data.water_oz ?? null,
+          weight_lbs: data.weight_lbs ?? null,
+          sleep_hours: data.sleep_hours ?? null,
+          mood_score: data.mood_score ?? null
         });
-
+        localStorage.setItem("dailyData", JSON.stringify(data));
       } catch (err) {
         console.error("Failed to fetch user:", err.response?.data || err);
+      } finally {
+        setLoading(false);
       }
     }
 
@@ -76,6 +79,7 @@ function CDashboard(){
     try {
       console.log("Sending:", daily);
       await api.post("/client/daily-survey", daily);
+      setIsUpdated(true)
       setPopOpen(null);
       console.log("Survey submitted successfully");
 
@@ -83,68 +87,77 @@ function CDashboard(){
     } catch (error) {
       console.error("Update failed:", error.response?.data || error);
     }
+
   };
 
-    return (
-          <div className="drawer lg:drawer-open">
-            <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
-            <div className="drawer-content">
-              <section className="p-6 flex flex-col gap-6">
-                <div className="text-2xl font-bold mb-4">Dashboard</div>
-                    <div className="flex w-full grow flex-1 gap-4">
-                      <div className="card bg-base-300 rounded-box grow p-4">
-                        <h2 className="text-xs mb-2">Hours of Sleep</h2>
-                          <p className="text-xl font-bold">
-                            {daily.sleep_hours || "—"}
-                          </p>
-                      </div>
-                      <div className="card bg-base-300 rounded-box grow p-4">
-                        <h2 className="text-xs mb-2">Mood</h2>
-                          <p className="text-xl font-bold">
-                            {daily.mood_score || "—"}
-                          </p>
-                      </div>
-                      <div className="card bg-base-300 rounded-box grow p-4 flex">
-                        <h2 className="text-xs mb-2">Water Intake</h2>
-                          <p className="text-xl font-bold">
-                            {daily.water_oz || "—"}
-                          </p>
-                      </div>
-                    </div>
-                    <div className="flex justify-end gap-2">
-                      <button className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={() => setPopOpen("log")}>Daily Wellness Log</button>
-                      <button className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={() => setPopOpen("view")}>View Today's Log</button>
-                          
-                    </div>
-                  <div className="flex w-full grow flex-1 gap-4">
-                  <div className="card bg-base-300 rounded-box grow p-4">
-                    <h2 className="text-lg font-bold mb-2">Graph 1</h2>
-                  </div>
-                  <div className="card bg-base-300 rounded-box grow p-4">
-                    <h2 className="text-lg font-bold mb-2">Graph 2</h2>
-                  </div>
-                  <div className="card bg-base-300 rounded-box grow p-4">
-                    <h2 className="text-lg font-bold mb-2">Graph 3</h2>
-                  </div>
-                  </div>
-                <div className="flex w-full h-60 flex-1 gap-4">
-                  <div className="card bg-base-300 rounded-box flex-1 grow p-4">
-                    <h2 className="text-lg font-bold mb-2">My Coach</h2>
-                    <span className="text-sm opacity-70 mb-3">No coach assigned</span>
-                    <div className="mt-auto flex justify-center">
-                      <button className="btn btn-primary bg-blue-800 btn-sm" onClick={() => navigate("/client/coaches")} 
-                        >Browse Coaches</button>
-                    </div>
-                  </div>
-                  <div className="card bg-base-300 rounded-box grow p-4">
-                    <h2 className="text-lg font-bold mb-2">Upcoming Workout</h2>
-                                        <span className="text-sm opacity-70 mb-3">No work outs assigned Today</span>
-                  </div>
-                </div>
-              </section>
+  return (
+    <div className="drawer lg:drawer-open">
+      <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
+      <div className="drawer-content">
+        <section className="p-6 flex flex-col gap-6">
+          <div className="text-2xl font-bold mb-4">Dashboard</div>
+          <div className="flex w-full grow flex-1 gap-4">
+            <div className="card bg-base-300 rounded-box grow p-4">
+              <h2 className="text-xs mb-2">Hours of Sleep</h2>
+              <p className="text-xl font-bold">
+                {daily.sleep_hours || "—"}
+              </p>
             </div>
+            <div className="card bg-base-300 rounded-box grow p-4">
+              <h2 className="text-xs mb-2">Mood</h2>
+              <p className="text-xl font-bold">
+                {daily.mood_score || "—"}
+              </p>
+            </div>
+            <div className="card bg-base-300 rounded-box grow p-4 flex">
+              <h2 className="text-xs mb-2">Water Intake</h2>
+              <p className="text-xl font-bold">
+                {daily.water_oz || "—"}
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            {/* {!loading && !isUpdated && ( */}
+              <button
+                className="btn btn-primary btn-sm rounded-t"
+                onClick={() => setPopOpen("log")}
+              >
+                Daily Wellness Log
+              </button>
+            {/* )} */}
 
-    <PopUp isOpen={isPopOpen !== null} onClose={() => setPopOpen(null)}>
+            <button className="btn btn-primary btn-sm rounded-t" onClick={() => setPopOpen("view")}>View Today's Log</button>
+
+          </div>
+          <div className="flex w-full grow flex-1 gap-4">
+            <div className="card bg-base-300 rounded-box grow p-4">
+              <h2 className="text-lg font-bold mb-2">Graph 1</h2>
+            </div>
+            <div className="card bg-base-300 rounded-box grow p-4">
+              <h2 className="text-lg font-bold mb-2">Graph 2</h2>
+            </div>
+            <div className="card bg-base-300 rounded-box grow p-4">
+              <h2 className="text-lg font-bold mb-2">Graph 3</h2>
+            </div>
+          </div>
+          <div className="flex w-full h-60 flex-1 gap-4">
+            <div className="card bg-base-300 rounded-box flex-1 grow p-4">
+              <h2 className="text-lg font-bold mb-2">My Coach</h2>
+              <span className="text-sm opacity-70 mb-3">No coach assigned</span>
+              <div className="mt-auto flex justify-center">
+                <button className="btn btn-primary btn-sm" onClick={() => navigate("/client/coaches")}
+                >Browse Coaches</button>
+              </div>
+            </div>
+            <div className="card bg-base-300 rounded-box grow p-4">
+              <h2 className="text-lg font-bold mb-2">Upcoming Workout</h2>
+              <span className="text-sm opacity-70 mb-3">No work outs assigned Today</span>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <PopUp isOpen={isPopOpen !== null} onClose={() => setPopOpen(null)}>
         {isPopOpen === "log" && (
           <>
             <form onSubmit={handleSubmit} className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
@@ -160,10 +173,6 @@ function CDashboard(){
               <label className="label">
                 Hours of Sleep:
                 <input className="input" type="number" name="sleep_hours" value={daily.sleep_hours ?? ""} onChange={handleChange} />
-              </label>
-              <label className="label">
-                Mood (0-10):
-                <input className="input" type="number" min="0" max="10" name="mood_score" value={daily.mood_score ?? ""} onChange={handleChange} />
               </label>
               <button className="btn btn-primary" type="submit">Log</button>
             </form>
@@ -195,6 +204,7 @@ function CDashboard(){
           </>
         )}
       </PopUp>
-  </div>
-)}
+    </div>
+  )
+}
 export default CDashboard;

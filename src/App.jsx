@@ -12,6 +12,7 @@ import Coaches from "./pages/Coaches";
 import Messages from "./pages/Messages";
 import Notifications from "./pages/Notifications";
 import SetupPage from "./pages/SetupPage";
+import Plans from "./pages/WorkoutPlans";
 
 
 {/*client specific pages */}
@@ -33,7 +34,7 @@ import CoachMealLogs from "./pages/coach/CoMealLogs";
 import AdminDashboard from "./pages/admin/ADashboard";
 import AdminSettings from "./pages/admin/ASettings";
 import AdminProfile from "./pages/admin/AProfile";
-import AdminWorkoutPlans from "./pages/admin/AWorkoutPlans";
+import AWorkouts from "./pages/admin/AWorkouts";
 import AdminCoach from "./pages/admin/ACoach";
 import AdminMealLogs from "./pages/admin/AMealLogs";
 import AdminProgressLogs from "./pages/admin/AProgressLogs";  
@@ -48,6 +49,7 @@ function App() {
         <Route path="login" element ={<Log_In />}/>
         <Route path="coaches" element ={<Coaches isPublic={true} />}/>
         <Route path="setup" element ={<SetupPage />}/>
+        <Route path="plans" element ={<Plans isPublic={true} />}/>
         
 
         <Route  element={<Layout />}>
@@ -85,7 +87,7 @@ function App() {
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="coaches" isPublic={false}  element ={<Coaches  isPublic={false}/>}/>
             <Route path="profile" element={<AdminProfile />} />
-            <Route path="workoutplans" element={<AdminWorkoutPlans />} />
+            <Route path="workouts" element={<AWorkouts />} />
             <Route path="meallogs" element={<AdminMealLogs />} />
             <Route path="progresslogs" element={<AdminProgressLogs />} />
             <Route path="settings" element={<AdminSettings />} />

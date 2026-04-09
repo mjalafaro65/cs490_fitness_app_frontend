@@ -47,6 +47,16 @@ function ProgressLogs(){
     fetchUser();
   }, []);
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try{
+      await api.post("/client/daily-survey", daily);
+      alert("Saved!");
+    } catch(err){
+      console.error("Failed to save survey:", err.response?.data || err)
+    }
+  };
+
   return (
     <div className="drawer lg:drawer-open">
       <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
@@ -96,34 +106,34 @@ function ProgressLogs(){
     <PopUp isOpen={isPopOpen !== null} onClose={() => setPopOpen(null)}>
       {isPopOpen === "create" && (
         <>
-          <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+          <form className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
             <h2>Create a New Goal</h2>
               <label className="label">
                 Daily Goal:
-                <input className = "input" type="text" name="daily_goal" />
+                <input className = "input" type="text" name="daily_goal" value={daily.daily_goal} onChange={(e) => setData({...daily, daily_goal: e.target.value})}/>
               </label>
               <label className="label">
                 Energy Level:
-                <input className="input" type="number" name="energy_level" />
+                <input className="input" type="number" name="energy_level" value={daily.energy_level} onChange={(e) => setData({...daily, energy_level: e.target.value})} />
               </label>
               <label className="label">
                 Target Focus:
-                <input className="input" type="text" name="target_focus" />
+                <input className="input" type="text" name="target_focus" value={daily.target_focus} onChange={(e) => setData({...daily, target_focus: e.target.value})} />
               </label>
               <label className="label">
                 Water (in oz):
-                <input className="input" type="number" name="water_oz" />
+                <input className="input" type="number" name="water_oz" value={daily.water_oz} onChange={(e) => setData({...daily, water_oz: e.target.value})}/>
               </label>
               <label className="label">
                 Weight (in lbs):
-                <input className="input" type="number" name="weight_lbs" />
+                <input className="input" type="number" name="weight_lbs" value={daily.weight_lbs} onChange={(e) => setData({...daily, weight_lbs: e.target.value})}/>
               </label>
               <label className="label">
                 Hours of Sleep:
-                <input className="input" type="number" name="sleep_hours" />
+                <input className="input" type="number" name="sleep_hours" value={daily.sleep_hours} onChange={(e) => setData({...daily, sleep_hours: e.target.value})} />
               </label>
-              <button className="btn btn-primary bg-blue-800" type="submit">Create</button>
-          </fieldset>
+              <button className="btn btn-primary" type="submit">Create</button>
+          </form>
         </>
       )}
   
