@@ -3,11 +3,12 @@ import { useNavigate } from "react-router-dom";
 import "../../App.css";
 import PopUp from "../../components/PopUp";
 import api from "../../axios";
-import { Link } from "react-router-dom";
+import { useAuth } from "../../AuthContext";
 
 //change the daily wellness thing to make it right
 
 function CSettings() {
+    const { user } = useAuth();
     const navigate = useNavigate();
     const [isPopOpen, setPopOpen] = useState(null);
 
@@ -25,20 +26,16 @@ function CSettings() {
         weight: ""
     });
 
-    const [user, setUser] = useState({
-        first_name: "",
-        last_name: "",
-        picture: ""
-    });
+    //const [user, setUser] = useState({
+    //    first_name: "",
+    //    last_name: "",
+    //    picture: ""
+    //});
 
     useEffect(() => {
     async function fetchUser() {
       try {
-        const response = await api.get("/client/profile", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
-          }
-        });
+        const response = await api.get("/client/profile");
 
         const data = response.data;
 
@@ -358,53 +355,15 @@ function CSettings() {
                         </PopUp>
                     </div>
                     <div>
-                        <button className="btn bg-blue-800 btn-primary" onClick={() => setPopOpen("transfer")}>Transfer Account</button>
-                        <PopUp isOpen={isPopOpen === "transfer"} onClose={() => setPopOpen(null)}>
-                            <fieldset className="fieldset bg-base-200 border-base-500 rounded-box w-s border p-4">
-                                <legend className="fieldset-legend px-2 text-xl bg-base-200 rounded-box">Transfer Account</legend>
-                                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                                    <label className="label font-semibold">First Name: </label>
-                                    <input
-                                        className="input"
-                                        type="text"
-                                        name="first_name"
-                                        placeholder="Enter your first name"
-                                        value={initialData.first_name}
-                                        onChange={handleChange}
-                                        required
-                                    />
-                                    <label className="label font-semibold">Last Name: </label>
-                                    <input
-                                        className="input"
-                                        type="text"
-                                        name="last_name"
-                                        placeholder="Enter your last name"
-                                        value={initialData.last_name}
-                                        onChange={handleChange}
-                                        required
-                                    />
-                                    <label className="label font-semibold">Email: </label>
-                                    <input
-                                        className="input"
-                                        type="email"
-                                        name="email"
-                                        placeholder="Enter your email"
-                                        value={initialData.email}
-                                        onChange={handleChange}
-                                        required
-                                    />
-                                    <label className="label font-semibold">Documents:</label>
-                                    <div>
-                                        <textarea className="textarea h-24"
-                                            name="documents/credentials"
-                                            placeholder="Submit your links here"
-                                            value={initialData.bio}
-                                            onChange={handleChange}></textarea>
-                                    </div>
-                                    <button className="btn bg-blue-800 btn-neutral mt-4" type="submit">Submit</button>
-                                </form>
-                            </fieldset>
-                        </PopUp>
+                        {!user?.roles?.includes(2) && (
+                            <button
+                                className="btn bg-gray-100 hover:bg-gray-200 text-gray-800 border-2 border-gray-300 shadow-sm"
+                                onClick={() => navigate("/client/coach-apply")}
+                            >
+                                Apply to become a Coach
+                            </button>
+                        )}
+                        
                     </div>
                     <div className="flex justify-end mt-4">
                         <button
@@ -444,6 +403,184 @@ function CSettings() {
             </div>
         </div>
     );
+        // return (
+    //     <div className="drawer lg:drawer-open bg-base-100">
+    //         <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
+    //         <div className="drawer-content p-6 max-w-4xl mx-auto">
+    //             <h1 className="text-3xl font-bold mb-8">Account Settings</h1>
+
+    //             {/* profile info */}
+    //             <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
+    //                 <div className="flex flex-col md:flex-row gap-8 items-start">
+    //                     {/* avatar  */}
+    //                     <div className="flex flex-col items-center gap-4">
+    //                         {user.picture ? (
+    //                             <img src={user.picture} alt="Profile" className="w-32 h-32 rounded-full object-cover border-4 border-blue-50" />
+    //                         ) : (
+    //                             <div className="w-32 h-32 bg-blue-800 rounded-full text-white flex items-center justify-center text-4xl font-bold uppercase shadow-inner">
+    //                                 {user.first_name?.[0] || "?"}
+    //                             </div>
+    //                         )}
+    //                         <button className="btn btn-ghost btn-sm">Change Photo</button>
+    //                     </div>
+
+    //                     {/* form/info */}
+    //                     <form onSubmit={handleSubmit} className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+
+    //                         <div className="form-control">
+    //                             <label className="label font-semibold">First Name</label>
+    //                             <input className="input input-bordered" name="first_name" value={initialData.first_name} onChange={handleChange} required />
+    //                         </div>
+    //                         <div className="form-control">
+    //                             <label className="label font-semibold">Last Name</label>
+    //                             <input className="input input-bordered" name="last_name" value={initialData.last_name} onChange={handleChange} required />
+    //                         </div>
+    //                         <div className="form-control md:col-span-2">
+    //                             <label className="label font-semibold">Bio</label>
+    //                             <textarea className="textarea textarea-bordered" name="bio" value={initialData.bio} onChange={handleChange} />
+    //                         </div>
+    //                         <div className="md:col-span-2">
+    //                             <button className="btn bg-blue-800 text-white w-full md:w-auto px-10" type="submit">Save Changes</button>
+    //                         </div>
+
+    //                     </form>
+    //                 </div>
+    //             </section>
+
+    //             {/* coach apply and survey actions*/}
+    //             <section className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+    //                 <div className="p-6 bg-slate-50 rounded-xl border border-slate-200">
+    //                     <h3 className="font-bold text-lg mb-2">Coach Application</h3>
+    //                     <p className="text-sm text-gray-600 mb-4">Want to help others? Transition your account to a coaching profile.</p>
+    //                     <button className="btn bg-gray-100 hover:bg-gray-200 text-gray-800 border-gray-300 w-full" onClick={() => navigate("/client/coach-apply")}>
+    //                         Apply to become a Coach
+    //                     </button>
+    //                 </div>
+
+    //                 <div className="p-6 bg-blue-50 rounded-xl border border-blue-100">
+    //                     <h3 className="font-bold text-lg mb-2">Health Survey</h3>
+    //                     <p className="text-sm text-gray-600 mb-4">Update your fitness goals, height, or weight by retaking the survey.</p>
+    //                     <button className="btn bg-blue-800 text-white w-full" onClick={() => setPopOpen("retake_survey")}>
+    //                         Retake Initial Survey
+    //                     </button>
+    //                 </div>
+    //             </section>
+
+    //             {/* danger zone */}
+    //             <section className="p-6 rounded-xl border-2 border-black bg-transparent text-black bg-black">
+    //                 <h3 className="text-black font-bold text-lg mb-4 flex items-center gap-2">
+    //                     <span className="badge  badge-sm  text-black bg-black"></span> Danger Zone
+    //                 </h3>
+
+    //                 <div className="flex flex-wrap gap-2 mb-6">
+    //                     {['calories', 'steps', 'water', 'workout'].map((type) => (
+    //                         <button
+    //                             key={type}
+    //                             className="btn btn-outline btn-sm capitalize"
+    //                             onClick={() => setPopOpen(type)}
+    //                         >
+    //                             Reset {type}
+    //                         </button>
+    //                     ))}
+    //                 </div>
+
+    //             </section>
+    //             {/* delete button*/}
+    //             <div className="divider"></div>
+    //             <div className="flex justify-center">
+    //                 <button
+    //                     className="btn btn-ghost text-black hover:bg-gray-200"
+    //                     onClick={() => setPopOpen("account")}
+    //                 >
+    //                     Delete Account
+    //                 </button>
+    //             </div>
+    //             {/* POPUPS REMAIN THE SAME - JUST WRAP THEM AT THE BOTTOM */}
+    //             <PopUp isOpen={isPopOpen === "account"} onClose={() => setPopOpen(null)}>
+    //                 {/* Your Delete logic */}
+    //             </PopUp>
+    //         </div>
+    //     </div>
+    // );
+
+
+
+    // return (
+    //     <div className="drawer lg:drawer-open bg-base-100">
+    //         <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
+
+    //         <div className="drawer-content p-6">
+    //             {/* This inner div controls the "form width" while the background stays full-width */}
+    //             <div className="max-w-4xl mx-auto flex flex-col gap-8">
+
+    //                 {/* HEADER */}
+    //                 <header className="flex justify-between items-center">
+    //                     <h1 className="text-3xl font-bold">Settings</h1>
+    //                     {/* Subtle placement for the Coach Apply button if you want it top-right */}
+    //                     <button
+    //                         className="btn btn-sm bg-gray-100 hover:bg-gray-200 text-gray-800 border-gray-300 shadow-sm"
+    //                         onClick={() => navigate("/client/coach-apply")}
+    //                     >
+    //                         Become a Coach
+    //                     </button>
+    //                 </header>
+
+    //                 {/* MAIN PROFILE CARD */}
+    //                 <section className="card bg-base-100 shadow-xl border border-base-300">
+    //                     <div className="card-body">
+    //                         <h2 className="card-title mb-4">Profile Information</h2>
+    //                         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    //                             {/* ... your first_name, last_name, etc inputs ... */}
+
+    //                             <div className="md:col-span-2 mt-4">
+    //                                 <button className="btn bg-blue-800 text-white px-10" type="submit">
+    //                                     Update Profile
+    //                                 </button>
+    //                             </div>
+    //                         </form>
+    //                     </div>
+    //                 </section>
+
+    //                 {/* SECONDARY ACTIONS GRID */}
+    //                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    //                     <div className="p-6 bg-blue-50 rounded-2xl border border-blue-100 flex flex-col justify-between">
+    //                         <div>
+    //                             <h3 className="font-bold text-blue-900">Health Survey</h3>
+    //                             <p className="text-sm text-blue-700 mt-1">Update your physical metrics and fitness goals.</p>
+    //                         </div>
+    //                         <button className="btn bg-blue-800 text-white mt-6" onClick={() => setPopOpen("retake_survey")}>
+    //                             Retake Survey
+    //                         </button>
+    //                     </div>
+
+    //                     {/* DANGER ZONE PREVIEW */}
+    //                     <div className="p-6 bg-red-50 rounded-2xl border border-red-100">
+    //                         <h3 className="font-bold text-red-900">Data Management</h3>
+    //                         <p className="text-sm text-red-700 mt-1">Reset today's logs or remove your account.</p>
+    //                         <div className="flex flex-wrap gap-2 mt-6">
+    //                             <button className="btn btn-xs btn-outline btn-error" onClick={() => setPopOpen("calories")}>Calories</button>
+    //                             <button className="btn btn-xs btn-outline btn-error" onClick={() => setPopOpen("steps")}>Steps</button>
+    //                             <button className="btn btn-xs btn-outline btn-error" onClick={() => setPopOpen("water")}>Water</button>
+    //                         </div>
+    //                     </div>
+    //                 </div>
+
+    //                 {/* FINAL DANGER BUTTON */}
+    //                 <div className="divider"></div>
+    //                 <div className="flex justify-center">
+    //                     <button
+    //                         className="btn btn-ghost text-red-600 hover:bg-red-50"
+    //                         onClick={() => setPopOpen("account")}
+    //                     >
+    //                         Delete Account
+    //                     </button>
+    //                 </div>
+
+    //             </div>
+    //         </div>
+    //     </div>
+    // );
+
 }
 
 export default CSettings;

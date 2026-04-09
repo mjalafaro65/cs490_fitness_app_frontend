@@ -18,11 +18,7 @@ function ProgressLogs(){
   useEffect(() => {
     async function fetchUser() {
       try {
-        const response = await api.get("/client/daily-survey", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
-          }
-        });
+        const response = await api.get("/client/daily-survey");
 
         const data = response.data;
 

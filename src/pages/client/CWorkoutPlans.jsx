@@ -3,11 +3,11 @@ import "../../App.css";
 import PopUp from "../../components/PopUp";
 import api from "../../axios";
 import WorkoutCalendar from "../../components/Calendar";
-
-//put calender in here-- have to import a package to get 
+import { useNavigate } from "react-router-dom";
 
 function ClientWorkoutPlans(){
   const [isPopOpen, setPopOpen] = useState(null);
+  const navigate = useNavigate();
 
   const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -294,7 +294,7 @@ function ClientWorkoutPlans(){
               )}
 
               <div className="mt-auto flex justify-center mt-3">
-                <button className="btn btn-primary btn-sm">
+                <button onClick={() => navigate("/plans")} className="btn btn-primary btn-sm">
                   Browse Plans
                 </button>
               </div>

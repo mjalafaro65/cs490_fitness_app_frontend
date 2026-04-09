@@ -23,6 +23,7 @@ import ClientWorkoutPlans from "./pages/client/CWorkoutPlans";
 import MyCoach from "./pages/client/MyCoach";
 import ClientProgressLogs from "./pages/client/CProgressLogs";   
 import ClientMealLogs from "./pages/client/CMealLogs";
+import CoachApply from "./pages/client/CoachApp";
 
 import CoachDashboard from "./pages/coach/CoDashboard";
 import CoachSettings from "./pages/coach/CoSettings";
@@ -62,6 +63,7 @@ function App() {
             <Route path="initial-survey" element ={<Initial_Survey />}/>
             <Route path="dashboard" element={<ClientDashboard />} />
             <Route path="mycoach" element={<MyCoach />} />
+            <Route path="coach-apply" element={<CoachApply />} />
             <Route path="coaches" isPublic={false}  element ={<Coaches  isPublic={false}/>}/>
             <Route path="profile" element={<ClientProfile />} />
             <Route path="workoutplans" element={<ClientWorkoutPlans />} />

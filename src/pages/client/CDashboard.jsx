@@ -29,20 +29,17 @@ function CDashboard(){
         console.log("GET response:", data);
 
         setData({
-          daily_goal: data.daily_goal ?? "",
-          energy_level: data.energy_level ?? null,
-          target_focus: data.target_focus ?? null,
-          water_oz: data.water_oz ?? null,
-          weight_lbs: data.weight_lbs ?? null, 
-          sleep_hours: data.sleep_hours ?? null,
-          mood_score: data.mood_score ?? null
+          daily_goal: data.daily_goal || "",
+          energy_level: data.energy_level || "",
+          target_focus: data.target_focus || "",
+          water_oz: data.water_oz || "",
+          weight_lbs: data.weight_lbs || "", 
+          sleep_hours: data.sleep_hours || "",
+          mood_score: data.mood_score || ""
         });
-        localStorage.setItem("dailyData", JSON.stringify(data));
+
       } catch (err) {
         console.error("Failed to fetch user:", err.response?.data || err);
-
-        const saved = localStorage.getItem("dailyData");
-        if (saved) setData(JSON.parse(saved));
       }
     }
 
@@ -51,14 +48,14 @@ function CDashboard(){
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setData((prev) => ({
-      ...prev,
+    setData({
+      ...daily,
       [name]:
-        ["energy_level", "water_oz", "weight_lbs", "sleep_hours", "mood_score"].includes(name)
+        name === "energy_level" || name === "water_oz" || name === "weight_lbs" || name === "sleep_hours" || name === "mood_score"
           ? value === "" ? "" : Number(value)
-          : value,
-  }));
-};
+          : value
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -78,11 +75,8 @@ function CDashboard(){
         sleep_hours: rd.sleep_hours ?? null,
         mood_score: rd.mood_score ?? null
       });
-      localStorage.setItem("dailyData", JSON.stringify(daily));
-      setPopOpen(null); 
       setPopOpen(null); // close popup after submit
       console.log("Survey submitted successfully");
-
 
     } catch (error) {
       console.error("Update failed:", error.response?.data || error);
