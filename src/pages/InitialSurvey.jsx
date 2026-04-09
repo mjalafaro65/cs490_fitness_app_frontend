@@ -95,7 +95,7 @@ function Initial_Survey() {
 
                     {/* Header Section */}
                     <div className="text-center">
-                        <h2 className="text-3xl font-bold text-primary">Daily Check-in</h2>
+                        <h2 className="text-3xl text-blue-800 font-bold ">Daily Check-in</h2>
                         <p className="text-base-content/60 mt-2">Let's set the tone for your workout today.</p>
                     </div>
 
@@ -139,7 +139,7 @@ function Initial_Survey() {
                         <div className="form-control w-full">
                             <label className="label flex justify-between">
                                 <span className="label-text font-bold">Energy Level</span>
-                                <span className="badge badge-primary font-bold">{initialData.energy_level} / 5</span>
+                                <span className="badge badge-primary bg-blue-800  font-bold">{initialData.energy_level} / 5</span>
                             </label>
                             <input
                                 type="range"
@@ -147,11 +147,11 @@ function Initial_Survey() {
                                 max="5"
                                 name="energy_level"
                                 value={initialData.energy_level}
-                                className="range range-primary w-full  range-sm"
+                                className="range  border-blue-800  w-full  range-sm"
                                 step="1"
                                 onChange={handleChange}
                             />
-                            <div className="flex w-full justify-between px-2 text-[10px] font-bold opacity-50 mt-1">
+                            <div className="flex w-full  justify-between px-2 text-[10px] font-bold opacity-50 mt-1">
                                 <span>LOW</span>
                                 <span>MID</span>
                                 <span>HIGH</span>
@@ -161,8 +161,8 @@ function Initial_Survey() {
                         {/* Mood Score Slider */}
                         <div className="form-control w-full">
                             <label className="label flex justify-between">
-                                <span className="label-text font-bold">Current Mood</span>
-                                <span className="badge badge-secondary font-bold">{initialData.mood_score} / 5</span>
+                                <span className="label-text font-bold ">Current Mood</span>
+                                <span className="badge badge-primary bg-blue-800  font-bold">{initialData.mood_score} / 5</span>
                             </label>
                             <input
                                 type="range"
@@ -170,7 +170,7 @@ function Initial_Survey() {
                                 max="5"
                                 name="mood_score"
                                 value={initialData.mood_score}
-                                className="range range-secondary range-sm w-full"
+                                className="range range-sm w-full"
                                 step="1"
                                 onChange={handleChange}
                             />
@@ -183,7 +183,7 @@ function Initial_Survey() {
 
                         {/* Submit Button */}
                         <div className="card-actions mt-4">
-                            <button className="btn btn-primary btn-block text-lg" type="submit">
+                            <button className="btn btn-primary bg-blue-800  btn-block text-lg" type="submit">
                                 Launch Workout
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />

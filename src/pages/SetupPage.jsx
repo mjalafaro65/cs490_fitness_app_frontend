@@ -166,8 +166,9 @@ function SetupPage() {
                         <input type="number" name="weight" onChange={handleChange} className="input input-bordered" />
                     </div>
 
+                    {/* Upload profile pic */}
                     <div className="form-control md:col-span-2">
-                        <label className="label font-semibold text-white">Profile Photo / Documents</label>
+                        <label className="label font-semibold text-white">Profile Photo</label>
                         <div className="flex items-center gap-4">
                             <button
                                 type="button"
