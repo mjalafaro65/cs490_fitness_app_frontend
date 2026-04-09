@@ -25,13 +25,13 @@ function ClientWorkoutPlans() {
   });
 
   const [newDay, setNewDay] = useState({
-    day_label: "", 
-    sort_order: 0, 
+    day_label: "",
+    sort_order: 0,
     weekday: 0,
     session_time: "",
   });
 
-    const [newDayExercise, setNewDayExercise] = useState({
+  const [newDayExercise, setNewDayExercise] = useState({
     exercise_id: 0,
     sets: 1,
     reps: 1,
@@ -79,23 +79,24 @@ function ClientWorkoutPlans() {
       const res = await api.get("/workouts/exercises");
       setExer(res.data.exercises || []);
     } catch (err) {
-      console.error("Failed to fetch exercises:", err.response?.data || err);
+      console.error("Failed to fetch exercises:", err);
     }
   };
 
   const handleChange = (e, setter) => {
     const { name, value, type, checked } = e.target;
-    
+
     setter((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
   };
 
-  const selectedWorkouts =
-    selectedDate &&
-    plans.flatMap((plan) =>
-    plan.days?.filter(d => d.session_time && new Date(d.session_time).toDateString() === selectedDate.toDateString()) || []
+  const selectedWorkouts = selectedDate && plans.flatMap((plan) =>
+    plan.days?.filter(d =>
+      d.session_time &&
+      new Date(d.session_time).toDateString() === selectedDate.toDateString()
+    ) || []
   );
 
   const handleCreate = async (e) => {
@@ -257,10 +258,10 @@ function ClientWorkoutPlans() {
                     <div
                       key={i}
                       className={`h-10 flex items-center justify-center rounded-lg cursor-pointer transition
-                        ${isSelected ? "bg-primary text-white" 
-                          : isToday ? "bg-neutral text-white" 
-                          : hasWorkout ? "bg-secondary text-white" 
-                          : "bg-base-200"}`}
+                        ${isSelected ? "bg-primary text-white"
+                          : isToday ? "bg-neutral text-white"
+                            : hasWorkout ? "bg-secondary text-white"
+                              : "bg-base-200"}`}
                       onClick={() => setSelectedDate(day)}
                     >
                       {i + 1}
