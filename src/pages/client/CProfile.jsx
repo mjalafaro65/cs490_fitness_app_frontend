@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import "../../App.css";
 import api from "../../axios";
 import { useAuth } from "../../AuthContext";
-//idk if we want 
+import { useNavigate } from "react-router-dom";
 
 function CProfile() {
 
