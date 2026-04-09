@@ -12,6 +12,7 @@ import Coaches from "./pages/Coaches";
 import Messages from "./pages/Messages";
 import Notifications from "./pages/Notifications";
 import SetupPage from "./pages/SetupPage";
+import Plans from "./pages/WorkoutPlans";
 
 
 {/*client specific pages */}
@@ -48,6 +49,7 @@ function App() {
         <Route path="login" element ={<Log_In />}/>
         <Route path="coaches" element ={<Coaches isPublic={true} />}/>
         <Route path="setup" element ={<SetupPage />}/>
+        <Route path="plans" element ={<Plans isPublic={true} />}/>
         
 
         <Route  element={<Layout />}>
