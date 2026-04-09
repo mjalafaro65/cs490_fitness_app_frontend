@@ -18,13 +18,13 @@ function Layout() {
   }, []);
 
   return (
-    <div className="flex min-h-screen"> 
+    <div className="flex h-screen w-full overflow-hidden bg-base-100"> 
       
       {/* Side Navigation */}
       <Navbar user={user} />
 
       {/* Main Content Area */}
-      <main className="flex-1 bg-base-100">
+      <main className="flex-1 h-full overflow-y-auto">
         <Outlet /> 
       </main>
     </div>

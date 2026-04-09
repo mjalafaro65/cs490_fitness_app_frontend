@@ -7,10 +7,11 @@ import Landing from "./pages/visitors/Landing";
 import AboutUs from "./pages/visitors/AboutUs";
 import Sign_Up from "./pages/Sign_Up";
 import Log_In from "./pages/Log_In";
-import InitialSurvey from "./pages/InitialSurvey";
+import Initial_Survey from "./pages/InitialSurvey";
 import Coaches from "./pages/Coaches";
 import Messages from "./pages/Messages";
 import Notifications from "./pages/Notifications";
+import SetupPage from "./pages/SetupPage";
 
 
 {/*client specific pages */}
@@ -21,6 +22,7 @@ import ClientWorkoutPlans from "./pages/client/CWorkoutPlans";
 import MyCoach from "./pages/client/MyCoach";
 import ClientProgressLogs from "./pages/client/CProgressLogs";   
 import ClientMealLogs from "./pages/client/CMealLogs";
+import CoachApply from "./pages/client/CoachApp";
 
 import CoachDashboard from "./pages/coach/CoDashboard";
 import CoachSettings from "./pages/coach/CoSettings";
@@ -31,7 +33,7 @@ import CoachMealLogs from "./pages/coach/CoMealLogs";
 import AdminDashboard from "./pages/admin/ADashboard";
 import AdminSettings from "./pages/admin/ASettings";
 import AdminProfile from "./pages/admin/AProfile";
-import AdminWorkoutPlans from "./pages/admin/AWorkoutPlans";
+import AWorkouts from "./pages/admin/AWorkouts";
 import AdminCoach from "./pages/admin/ACoach";
 import AdminMealLogs from "./pages/admin/AMealLogs";
 import AdminProgressLogs from "./pages/admin/AProgressLogs";  
@@ -45,7 +47,7 @@ function App() {
         <Route path="signup" element ={<Sign_Up />}/>
         <Route path="login" element ={<Log_In />}/>
         <Route path="coaches" element ={<Coaches isPublic={true} />}/>
-        <Route path="initialsurvey" element ={<InitialSurvey />}/>
+        <Route path="setup" element ={<SetupPage />}/>
         
 
         <Route  element={<Layout />}>
@@ -56,8 +58,10 @@ function App() {
 
           {/* client Routes */}
           <Route path="/client" element={<ProtectedRoute allowedRoles={["1"]} />}>
+            <Route path="initial-survey" element ={<Initial_Survey />}/>
             <Route path="dashboard" element={<ClientDashboard />} />
             <Route path="mycoach" element={<MyCoach />} />
+            <Route path="coach-apply" element={<CoachApply />}/>
             <Route path="coaches" isPublic={false}  element ={<Coaches  isPublic={false}/>}/>
             <Route path="profile" element={<ClientProfile />} />
             <Route path="workoutplans" element={<ClientWorkoutPlans />} />
@@ -79,13 +83,13 @@ function App() {
           {/* admin Routes */}
           <Route path="/admin" element={<ProtectedRoute allowedRoles={["3"]} />}>
             <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="mycoach" element={<AdminCoach />} />
             <Route path="coaches" isPublic={false}  element ={<Coaches  isPublic={false}/>}/>
             <Route path="profile" element={<AdminProfile />} />
-            <Route path="workoutplans" element={<AdminWorkoutPlans />} />
+            <Route path="workouts" element={<AWorkouts />} />
             <Route path="meallogs" element={<AdminMealLogs />} />
             <Route path="progresslogs" element={<AdminProgressLogs />} />
             <Route path="settings" element={<AdminSettings />} />
+            <Route path="coach" element={<AdminCoach />} />
           </Route>
           
         </Route>
