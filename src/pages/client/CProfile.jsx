@@ -24,6 +24,8 @@ function CProfile() {
     weight: ""
   });
 
+ 
+
   useEffect(() => {
     const fetchUser = async () =>{
       try {
@@ -163,6 +165,7 @@ function CProfile() {
       </div>
     </div>
   );
+
 
 
 }
