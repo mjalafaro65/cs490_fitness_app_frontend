@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import api from "../../axios";
 import "../../App.css";
+import Navbar from "../../components/Navbar";
 
 // takes a second to load, so fix that
 
@@ -130,6 +131,7 @@ function ACoach() {
 
   return (
     <div className="drawer lg:drawer-open">
+      Na
       <div className="drawer-content">
         <section className="p-6">
           <div className="text-2xl font-bold mb-6">Coach Requests</div>
