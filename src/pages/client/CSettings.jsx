@@ -5,8 +5,6 @@ import PopUp from "../../components/PopUp";
 import api from "../../axios";
 import { useAuth } from "../../AuthContext";
 
-//change the daily wellness thing to make it right
-
 function CSettings() {
     const { user } = useAuth()
     const navigate = useNavigate();
@@ -25,6 +23,7 @@ function CSettings() {
         height: "",
         weight: ""
     });
+    
 
     // const [user, setUser] = useState({
     //     first_name: "",
@@ -35,11 +34,7 @@ function CSettings() {
     useEffect(() => {
     async function fetchUser() {
       try {
-        const response = await api.get("/client/profile", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
-          }
-        });
+        const response = await api.get("/client/profile");
 
         const data = response.data;
 
@@ -52,7 +47,7 @@ function CSettings() {
         password: data.password || "",
         phone_number: data.phone_number || "",
         date_of_birth: data.date_of_birth || "",
-        gender: data.gender || "",
+        gender: data.gender ? data.gender.split(".")[1] : "", 
         profile_photo: data.profile_photo || "",
         bio: data.bio || "",
         height: data.height || "",
@@ -74,19 +69,39 @@ function CSettings() {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const response = await api.post("/auth/setup", initialData);
-            console.log("Update Success:", response.status);
-            setPopOpen(null); // Close popup on success
-            alert("Profile updated successfully!");
-        } catch (error) {
-            console.error("Update failed:", error.response?.data);
-            alert("Update failed, please try again");
-        }
+    e.preventDefault();
+
+    const formattedData = {
+    date_of_birth: initialData.date_of_birth,
+    gender: initialData.gender,
+    bio: initialData.bio,
+    profile_photo: initialData.profile_photo,
+    height: Number(initialData.height),
+    weight: Number(initialData.weight),
     };
 
-    //handle account deletion
+    console.log("====== SENDING DATA ======");
+    console.log("Raw state:", initialData);
+    console.log("JSON:", JSON.stringify(formattedData, null, 2));
+
+    try {
+        const response = await api.put("/client/profile", formattedData);
+
+        console.log("SUCCESS:", response.data);
+        alert("Profile updated successfully!");
+    } catch (error) {
+        console.error("====== ERROR ======");
+        console.error("Full error:", error);
+
+        if (error.response) {
+        console.error("Status:", error.response.status);
+        console.error("Backend errors:", error.response.data);
+        } else {
+        console.error("No response received");
+        }
+    }
+};
+
     const handleDeleteAccount = async () => {
 
         try {
@@ -103,7 +118,6 @@ function CSettings() {
         }
     };
 
-    //handle deletion of specific data
     const handleDeleteRecord = async () => {
         try {
             const response = await api.patch("/client/delete-daily");
@@ -114,8 +128,6 @@ function CSettings() {
         }
     };
 
-
-
     return (
         <div className="drawer lg:drawer-open">
             <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
@@ -124,7 +136,7 @@ function CSettings() {
                     <div className="text-2xl font-bold mb-2">Settings</div>
                     <section className="p-10 flex flex-col md:flex-row gap-30 items-start">
                         <div className="flex-shrink-0 ">
-                            {user.picture ? (
+                            {user?.picture ? (
                                 <img
                                     src={user.picture}
                                     alt="Profile"
@@ -132,58 +144,124 @@ function CSettings() {
                                 />
                             ) : (
                                 <div className="w-50 h-50 bg-blue-800  rounded-full  text-primary-content flex items-center justify-center text-4xl font-bold uppercase border-4 border-base-100 shadow-lg">
-                                    {user.first_name?.[0]?.toUpperCase() || "?"}
+                                    {user?.first_name?.[0]?.toUpperCase() || "?"}
                                 </div>
                             )}
                         </div>
-                        <fieldset className="fieldset rounded-box w-full flex-1">
-                            <form onSubmit={handleSubmit} className="flex-1 grid grid-cols-1 gap-2 w-full">
-
-                                <label className="label font-semibold">First Name: </label>
+                        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full p-6 bg-white rounded-xl shadow-lg border border-gray-100">
+                            {/* Name */}
+                            <div className="flex flex-col gap-1">
+                                <span className="font-semibold text-gray-600">First Name</span>
                                 <input
-                                    className="input input-bordered"
-                                    type="text"
-                                    name="first_name"
-                                    onChange={handleChange}
-                                    required
+                                className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                type="text"
+                                name="first_name"
+                                value={initialData.first_name}
+                                onChange={handleChange}
+                                placeholder="First Name"
                                 />
+                            </div>
 
-
-                                <label className="label font-semibold">Last Name: </label>
+                            <div className="flex flex-col gap-1">
+                                <span className="font-semibold text-gray-600">Last Name</span>
                                 <input
-                                    className="input input-bordered"
-                                    type="text"
-                                    name="last_name"
-                                    onChange={handleChange}
-                                    required
+                                className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                type="text"
+                                name="last_name"
+                                value={initialData.last_name}
+                                onChange={handleChange}
+                                placeholder="Last Name"
                                 />
+                            </div>
 
-
-                                <label className="label font-semibold ">Phone Number: </label>
+                            {/* Email */}
+                            <div className="flex flex-col md:col-span-2 gap-1">
+                                <span className="font-semibold text-gray-600">Email</span>
                                 <input
-                                    className="input font-semibold "
-                                    type="email"
-                                    name="Email"
-                                    onChange={handleChange}
-                                    required
+                                className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                type="email"
+                                name="email"
+                                value={initialData.email}
+                                onChange={handleChange}
+                                placeholder="Email"
                                 />
+                            </div>
 
-
-                                <label className="label font-semibold">Date of Birth: </label>
+                            {/* Date of Birth & Gender */}
+                            <div className="flex flex-col gap-1">
+                                <span className="font-semibold text-gray-600">Date of Birth</span>
                                 <input
-                                    className="input font-semibold"
-                                    type="text"
-                                    name="password"
-                                    onChange={handleChange}
-                                    required
+                                className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                type="date"
+                                name="date_of_birth"
+                                value={initialData.date_of_birth}
+                                onChange={handleChange}
                                 />
+                            </div>
 
+                            <div className="flex flex-col gap-1">
+                                <span className="font-semibold text-gray-600">Gender</span>
+                                <select
+                                className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                name="gender"
+                                value={initialData.gender}
+                                onChange={handleChange}
+                                >
+                                <option value="">Select</option>
+                                <option value="female">Female</option>
+                                <option value="male">Male</option>
+                                <option value="other">Other</option>
+                                <option value="prefer_not_to_say">Prefer not to say</option>
+                                </select>
+                            </div>
 
-                                <div>
-                                    <button className="btn bg-blue-800 btn-primary" type="submit">Confirm</button>
-                                </div>
+                            {/* Bio */}
+                            <div className="flex flex-col md:col-span-2 gap-1">
+                                <span className="font-semibold text-gray-600">Bio</span>
+                                <textarea
+                                className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 h-24 resize-none"
+                                name="bio"
+                                value={initialData.bio}
+                                onChange={handleChange}
+                                placeholder="Tell us about yourself..."
+                                />
+                            </div>
+
+                            {/* Height & Weight */}
+                            <div className="flex flex-col gap-1">
+                                <span className="font-semibold text-gray-600">Height (cm)</span>
+                                <input
+                                className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                type="number"
+                                name="height"
+                                value={initialData.height}
+                                onChange={handleChange}
+                                placeholder="Height"
+                                />
+                            </div>
+
+                            <div className="flex flex-col gap-1">
+                                <span className="font-semibold text-gray-600">Weight (kg)</span>
+                                <input
+                                className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                type="number"
+                                name="weight"
+                                value={initialData.weight}
+                                onChange={handleChange}
+                                placeholder="Weight"
+                                />
+                            </div>
+
+                            {/* Save Button */}
+                            <div className="md:col-span-2 flex justify-end mt-4">
+                                <button
+                                type="submit"
+                                className="btn bg-blue-800 btn-primary btn-m rounded-t mr-2 mb-2"
+                                >
+                                Save Changes
+                                </button>
+                            </div>
                             </form>
-                        </fieldset>
                     </section>
                     <div>
                         <button className="btn border-2 text-l border-black bg-transparent text-black hover:bg-black hover:text-white transition-all font-black" onClick={() => setPopOpen("account")}>DELETE ACCOUNT</button>
