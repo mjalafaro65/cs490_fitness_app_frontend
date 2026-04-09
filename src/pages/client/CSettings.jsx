@@ -23,7 +23,6 @@ function CSettings() {
         height: "",
         weight: ""
     });
-    
 
     // const [user, setUser] = useState({
     //     first_name: "",
@@ -47,7 +46,7 @@ function CSettings() {
         password: data.password || "",
         phone_number: data.phone_number || "",
         date_of_birth: data.date_of_birth || "",
-        gender: data.gender ? data.gender.split(".")[1] : "", 
+        gender: data.gender || "",
         profile_photo: data.profile_photo || "",
         bio: data.bio || "",
         height: data.height || "",
@@ -69,38 +68,17 @@ function CSettings() {
     };
 
     const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const formattedData = {
-    date_of_birth: initialData.date_of_birth,
-    gender: initialData.gender,
-    bio: initialData.bio,
-    profile_photo: initialData.profile_photo,
-    height: Number(initialData.height),
-    weight: Number(initialData.weight),
-    };
-
-    console.log("====== SENDING DATA ======");
-    console.log("Raw state:", initialData);
-    console.log("JSON:", JSON.stringify(formattedData, null, 2));
-
-    try {
-        const response = await api.put("/client/profile", formattedData);
-
-        console.log("SUCCESS:", response.data);
-        alert("Profile updated successfully!");
-    } catch (error) {
-        console.error("====== ERROR ======");
-        console.error("Full error:", error);
-
-        if (error.response) {
-        console.error("Status:", error.response.status);
-        console.error("Backend errors:", error.response.data);
-        } else {
-        console.error("No response received");
+        e.preventDefault();
+        try {
+            const response = await api.post("/auth/setup", initialData);
+            console.log("Update Success:", response.status);
+            setPopOpen(null); 
+            alert("Profile updated successfully!");
+        } catch (error) {
+            console.error("Update failed:", error.response?.data);
+            alert("Update failed, please try again");
         }
-    }
-};
+    };
 
     const handleDeleteAccount = async () => {
 
@@ -148,7 +126,7 @@ function CSettings() {
                                 </div>
                             )}
                         </div>
-                        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full p-6 bg-white rounded-xl shadow-lg border border-gray-100">
+                        <section className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full p-6 bg-white rounded-xl shadow-lg border border-gray-100">
                             {/* Name */}
                             <div className="flex flex-col gap-1">
                                 <span className="font-semibold text-gray-600">First Name</span>
@@ -261,7 +239,7 @@ function CSettings() {
                                 Save Changes
                                 </button>
                             </div>
-                            </form>
+                            </section>
                     </section>
                     <div>
                         <button className="btn border-2 text-l border-black bg-transparent text-black hover:bg-black hover:text-white transition-all font-black" onClick={() => setPopOpen("account")}>DELETE ACCOUNT</button>
