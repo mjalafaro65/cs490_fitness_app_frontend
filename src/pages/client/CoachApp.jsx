@@ -5,12 +5,12 @@ import { openCloudinaryWidget } from "../../cloudinary";
 import { useAuth } from "../../AuthContext";
 
 
-
 function CoachApply() {
 
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [specialties, setSpecialties] = useState([]);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
 
     const [profileData, setProfileData] = useState({
         "specialty_id": 1,
@@ -93,6 +93,8 @@ function CoachApply() {
                 console.log(documentData)
                 const res = await api.post("/coach/coach-profile/documents", documentData)
                 console.log(res)
+
+                setShowSuccessModal(true);
 
             } catch (error) {
                 console.error("Error posting document data", error.response);
@@ -186,7 +188,7 @@ function CoachApply() {
                                             {profileData.profile_photo ? "Change File" : "Upload Photo for Profile Photo"}
                                         </button>
 
-                                        
+
                                     </div>
                                 </div>
                             </div>
@@ -264,7 +266,35 @@ function CoachApply() {
                     </button>
                 </form>
             </div>
+            {showSuccessModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+                    <div className="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-8 transform transition-all animate-in fade-in zoom-in duration-200">
+                        <div className="text-center">
+                            {/* Success Checkmark Icon */}
+                            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 mb-6">
+                                <svg className="h-8 w-8 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+
+                            <h3 className="text-2xl font-bold text-gray-900 mb-2">All Set!</h3>
+                            <p className="text-gray-500 mb-8">
+                                Your profile and documents have been uploaded successfully.
+                            </p>
+
+                            <button
+                                onClick={() => navigate("/client/profile")}
+                                className="w-full py-4 px-6 bg-blue-800 hover:bg-blue-700 text-white font-bold rounded-2xl transition-all active:scale-95 shadow-lg shadow-blue-200"
+                            >
+                                Go to Profile
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
+
+
     );
 }
 export default CoachApply

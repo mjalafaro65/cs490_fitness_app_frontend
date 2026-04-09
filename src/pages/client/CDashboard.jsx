@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Link } from 'react-router-dom';
 import "../../App.css";
 import PopUp from "../../components/PopUp";
 import api from "../../axios";
@@ -118,14 +117,14 @@ function CDashboard() {
             </div>
           </div>
           <div className="flex justify-end gap-2">
-            {!loading && !isUpdated && (
+            {/* {!loading && !isUpdated && ( */}
               <button
                 className="btn btn-primary btn-sm rounded-t"
                 onClick={() => setPopOpen("log")}
               >
                 Daily Wellness Log
               </button>
-            )}
+            {/* )} */}
 
             <button className="btn btn-primary btn-sm rounded-t" onClick={() => setPopOpen("view")}>View Today's Log</button>
 

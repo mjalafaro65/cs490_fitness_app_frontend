@@ -36,6 +36,13 @@ function ClientWorkoutPlans(){
 
   const [newDayByPlan, setNewDayByPlan] = useState({});
 
+  const [newDay, setNewDay] = useState({
+    day_label: "",
+    sort_order: 0,
+    weekday: 0,
+    session_time: "",
+  });
+
   const [newDayExercise, setNewDayExercise] = useState({
     exercise_id: 0,
     sets: 1,
@@ -76,7 +83,7 @@ function ClientWorkoutPlans(){
       const res = await api.get("/workouts/exercises");
       setExer(res.data.exercises || []);
     } catch (err) {
-      console.error("Failed to fetch exercises:", err.response?.data || err);
+      console.error("Failed to fetch exercises:", err);
     }
   };
 
@@ -130,7 +137,7 @@ function ClientWorkoutPlans(){
 
   const handleChange = (e, setter) => {
     const { name, value, type, checked } = e.target;
-    
+
     setter((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -330,10 +337,10 @@ function ClientWorkoutPlans(){
                     <div
                       key={i}
                       className={`h-10 flex items-center justify-center rounded-lg cursor-pointer transition
-                        ${isSelected ? "bg-primary text-white" 
-                          : isToday ? "bg-neutral text-white" 
-                          : hasWorkout ? "bg-secondary text-white" 
-                          : "bg-base-200"}`}
+                        ${isSelected ? "bg-primary text-white"
+                          : isToday ? "bg-neutral text-white"
+                            : hasWorkout ? "bg-secondary text-white"
+                              : "bg-base-200"}`}
                       onClick={() => setSelectedDate(day)}
                     >
                       {i + 1}
