@@ -1,3 +1,7 @@
+import { useState, useEffect } from "react";
+import api from "../axios";
+import PopUp from "../components/PopUp";
+
 function BrowseExercises({ planId, dayId, onExerciseAdded, onClose }) {
   const [exercises, setExercises] = useState([]);
   const [selectedEx, setSelectedEx] = useState(null);
@@ -91,3 +95,5 @@ function BrowseExercises({ planId, dayId, onExerciseAdded, onClose }) {
     </div>
   );
 }
+
+export default BrowseExercises;
