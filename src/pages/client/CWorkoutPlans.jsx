@@ -3,8 +3,6 @@ import "../../App.css";
 import PopUp from "../../components/PopUp";
 import api from "../../axios";
 
-//put calender in here-- have to import a package to get 
-
 function ClientWorkoutPlans() {
   const [isPopOpen, setPopOpen] = useState(null);
 
