@@ -68,6 +68,9 @@ const Coaches = ({ isPublic }) => {
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
+      {filteredCoaches.length === 0 && (
+        <p className="px-16 text-gray-500">No coaches found.</p>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-14 pl-16 pr-16">
       {filteredCoaches.map((coach) => (
           <div key={coach.coach_profile_id} className="card bg-base-100 shadow-xl border border-base-300 h-52 overflow-hidden relative flex flex-col">
