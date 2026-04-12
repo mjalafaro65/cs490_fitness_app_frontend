@@ -88,6 +88,11 @@ function ProgressLogs(){
                     </p>
                 </div>
               </div>
+               {/* <div className="flex w-full grow gap-4">-            
+-            <div className="card bg-base-300 rounded-box grow p-4">
+-              <h2 className="text-lg font-bold mb-2">Steps</h2>
+-            </div>
+-            </div> */}
           <div className="flex w-full h-60 gap-4">
             <div className="card bg-base-300 rounded-box flex-1 grow p-4">
               <h2 className="text-lg font-bold mb-2">Weight Tracking</h2>

@@ -2,11 +2,38 @@ import { useState, useEffect } from "react";
 import "../../App.css";
 import PopUp from "../../components/PopUp";
 import api from "../../axios";
+import BrowseExercises from "../Exercises";
 import WorkoutCalendar from "../../components/Calendar";
 
 //put calender in here-- have to import a package to get 
+function LargeModal({ open, onClose, children, width = "70vw", height = "85vh" }) {
+  if (!open) return null;
 
+  return (
+    <div
+      className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
+      onClick={onClose}
+    >
+     <div
+        className="bg-base-100 rounded-xl shadow-xl p-6 overflow-y-auto"
+        style={{ width, height }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
 function ClientWorkoutPlans(){
+
+  const [isBrowsePopOpen, setBrowsePopOpen] = useState(false);
+  const [exerciseToAdd, setExerciseToAdd] = useState(null);
+  const [assigningDay, setAssigningDay] = useState(null);
+
+  const [activeDays, setActiveDays] = useState([]);
+  const [selectedCalendarDay, setSelectedCalendarDay] = useState(null);
+  const [exerciseDayContext, setExerciseDayContext] = useState(null);
+   
   const [isPopOpen, setPopOpen] = useState(null);
 
   const [currentDate, setCurrentDate] = useState(new Date());

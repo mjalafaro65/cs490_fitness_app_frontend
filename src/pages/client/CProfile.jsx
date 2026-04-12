@@ -1,8 +1,15 @@
 import { useState, useEffect } from "react";
 import "../../App.css";
 import api from "../../axios";
+import { useAuth } from "../../AuthContext";
+import { useNavigate } from "react-router-dom";
 
 function CProfile() {
+  const { fetchUser, coachStatus } = useAuth();
+
+  const navigate = useNavigate();
+
+
 
   const [bioData, setData] = useState({
     date_of_birth: "",
@@ -18,9 +25,9 @@ function CProfile() {
     picture: ""
   });
 
-  const [popOpen, setPopOpen] = useState(null); 
+  const [popOpen, setPopOpen] = useState(null);
 
-    useEffect(() => {
+  useEffect(() => {
     async function fetchUser() {
       try {
         const response = await api.get("/auth/setup", {
@@ -36,7 +43,7 @@ function CProfile() {
         setUser({
           first_name: data.date_of_birth || "",
           last_name: data.gender || "",
-          bio: data.bio || "", 
+          bio: data.bio || "",
           profile_picture: data.profile_picture || ""
         });
 
@@ -113,6 +120,21 @@ function CProfile() {
       console.error("Update failed:", error.response?.data || error);
     }
   };
+  const handleSwitchAccount = async (e) => {
+    e.preventDefault();
+    try {
+
+      await api.patch("/coach/coach-profile", {
+        "status": "approved"
+      })
+      await fetchUser();
+
+      navigate("/coach/dashboard");
+
+    } catch (error) {
+      console.error("Switch failed", error);
+    }
+  }
 
   return (
     <div className="drawer lg:drawer-open">
@@ -169,7 +191,7 @@ function CProfile() {
               <label className="label font-semibold">Weight:</label>
               <p className="text-xl font-bold">
                 {bioData.weight || "—"}
-              </p> 
+              </p>
             </div>
           </section>
 
@@ -181,9 +203,21 @@ function CProfile() {
               View Reports
             </button>
           </div>
+          
+          <button
+            onClick={handleSwitchAccount}
+            className="btn btn-outline btn-primary btn-sm"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="size-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+            </svg>
+            Switch to {coachStatus === "approved" ? 'Client View' : 'Coach View'}
+          </button>
 
         </section>
       </div>
+
+
     </div>
   );
 }
