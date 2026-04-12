@@ -3,6 +3,7 @@ import "../../App.css";
 import PopUp from "../../components/PopUp";
 import api from "../../axios";
 import BrowseExercises from "../Exercises";
+import { useNavigate } from "react-router-dom";
 
 function LargeModal({ open, onClose, children, width = "70vw", height = "85vh" }) {
   if (!open) return null;
@@ -27,6 +28,8 @@ function ClientWorkoutPlans(){
   const [isPopOpen, setPopOpen] = useState(null);
 
   const [currentDate, setCurrentDate] = useState(new Date());
+
+  const navigate = useNavigate();
 
   const [plans, setPlans] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -276,9 +279,10 @@ const handleAssign = async () => {
       <div className="drawer-content">
         <section className="p-6 flex flex-col gap-6">
           <div className="text-2xl font-bold mb-4">My Workout Plans</div>
-              
+
             <div className="flex w-full grow flex-1 gap-4">
               <div className="card bg-base-300 rounded-box grow p-4">
+                
                 <h2 className="text-lg font-bold mb-2">Current Weight</h2>
                 <p className="text-m">
                   {currentWeight !== null ? `${currentWeight} lbs` : "No data yet"}
@@ -420,7 +424,7 @@ const handleAssign = async () => {
               )}
 
               <div className="mt-auto flex justify-center mt-3">
-                <button className="btn btn-primary bg-blue-800 btn-sm">
+                <button onClick={() => navigate("/plans")} className="btn btn-primary bg-blue-800 btn-sm">
                   Browse Plans
                 </button>
               </div>

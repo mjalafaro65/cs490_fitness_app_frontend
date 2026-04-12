@@ -156,7 +156,6 @@ function Navbar() {
                 {allPages.map((tab, index) => (
                     <li key={index} className="my-2.5">
                         {tab.isButton ? (
-                            /* RENDER AS BUTTON FOR LOGOUT */
                             <button
                                 onClick={tab.onClick}
                                 className="is-drawer-close:tooltip is-drawer-close:tooltip-right flex items-center w-full text-left"
@@ -168,7 +167,6 @@ function Navbar() {
                                 </span>
                             </button>
                         ) : (
-                            /* RENDER AS LINK FOR EVERYTHING ELSE */
                             <Link
                                 to={tab.to}
                                 className="is-drawer-close:tooltip is-drawer-close:tooltip-right flex items-center"
