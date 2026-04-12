@@ -1,9 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../../axios";
 import "../../App.css";
-import Navbar from "../../components/Navbar";
-
-// takes a second to load, so need to fix that
 
 const SPECIALTY_TITLES = {
   1: "Weight Loss",
@@ -29,6 +26,7 @@ function ACoach() {
   const [loadingDocs, setLoadingDocs] = useState({});
   const [names, setNames] = useState({});
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const [selectedCoach, setSelectedCoach] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -56,6 +54,8 @@ function ACoach() {
                 : "Unknown";
             } catch {
               namesMap[coach.user_id] = "Unknown";
+            } finally{
+              setLoading(false);
             }
           })
         );
@@ -131,16 +131,18 @@ function ACoach() {
 
   return (
     <div className="drawer lg:drawer-open">
-      Na
       <div className="drawer-content">
         <section className="p-6">
           <div className="text-2xl font-bold mb-6">Coach Requests</div>
 
           <div className="flex flex-col gap-4 w-full">
             {error && <p className="text-red-500">Error: {error}</p>}
-            {appli.length === 0 && <p>No pending applications</p>}
 
-            {appli.map((app) => (
+            {loading ? (
+              <div>Loading...</div>
+            ) : appli.length === 0 ? (
+              <div>No pending applications</div>
+            ) : ( appli.map((app) => (
               <div
                 key={app.coach_profile_id}
                 className="card bg-base-300 rounded-box p-4 flex flex-col md:flex-row items-start md:items-center gap-4"
@@ -179,7 +181,7 @@ function ACoach() {
                   View Documents
                 </button>
               </div>
-            ))}
+            )))}
           </div>
         </section>
 

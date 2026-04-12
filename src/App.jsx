@@ -30,6 +30,7 @@ import CoachSettings from "./pages/coach/CoSettings";
 import CoachProfile from "./pages/coach/CoProfile";
 import CoachWorkoutPlans from "./pages/coach/CoWorkoutPlans";
 import CoachMealLogs from "./pages/coach/CoMealLogs";
+import CoachProgressLogs from "./pages/coach/CoProgressLogs";
 
 import AdminDashboard from "./pages/admin/ADashboard";
 import AdminSettings from "./pages/admin/ASettings";
@@ -80,6 +81,7 @@ function App() {
             <Route path="workoutplans" element={<CoachWorkoutPlans />} />
             <Route path="meallogs" element={<CoachMealLogs />} />
             <Route path="settings" element={<CoachSettings />} />
+            <Route path="progresslogs" element={<CoachProgressLogs />} />
           </Route>
 
           {/* admin Routes */}

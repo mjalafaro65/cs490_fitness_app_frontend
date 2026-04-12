@@ -137,71 +137,60 @@ function CProfile() {
   }
 
   return (
+
     <div className="drawer lg:drawer-open">
+      <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
       <div className="drawer-content">
         <section className="p-6 flex flex-col gap-6">
           <div className="text-2xl font-bold mb-2">Profile</div>
+          <section className="p-10 flex flex-col md:flex-row gap-30 items-start">
+            <div className="flex-shrink-0 ">
+                {user?.picture ? (
+                    <img
+                        src={user.picture}
+                        alt="Profile"
+                        className="w-32 h-32  rounded-full  object-cover border-2 border-gray-300  "
+                    />
+                ) : (
+                    <div className="w-50 h-50 bg-blue-800  rounded-full  text-primary-content flex items-center justify-center text-4xl font-bold uppercase border-4 border-base-100 shadow-lg">
+                        {user?.first_name?.[0]?.toUpperCase() || "?"}
+                    </div>
+                )}
+            </div>
 
-          <section className="p-10 flex flex-col md:flex-row gap-10 items-start">
 
-            <div className="flex-shrink-0">
-              {user.picture ? (
-                <img
-                  src={user.picture}
-                  alt="Profile"
-                  className="w-32 h-32 rounded-full object-cover border-2 border-gray-300"
-                />
-              ) : (
-                <div className="w-32 h-32 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-bold">
-                  {user.first_name?.[0] || "?"}
-                </div>
-              )}
-            </div>
-            <div>
-              <label className="label font-semibold">Name:</label>
-              <p className="text-xl font-bold">
-                {user.first_name || user.last_name || "—"}
-              </p>
-            </div>
-            <div>
-              <label className="label font-semibold">Date of Birth:</label>
-              <p className="text-xl font-bold">
-                {bioData.date_of_birth || "—"}
-              </p>
-            </div>
-            <div>
-              <label className="label font-semibold">Gender:</label>
-              <p className="text-xl font-bold">
-                {bioData.gender || "—"}
-              </p>
-            </div>
-            <div>
-              <label className="label font-semibold">Bio:</label>
-              <p className="text-xl font-bold">
-                {bioData.bio || "—"}
-              </p>
-            </div>
-            <div>
-              <label className="label font-semibold">Height:</label>
-              <p className="text-xl font-bold">
-                {bioData.height || "—"}
-              </p>
-            </div>
-            <div>
-              <label className="label font-semibold">Weight:</label>
-              <p className="text-xl font-bold">
-                {bioData.weight || "—"}
-              </p>
+            <div className="ml-6 flex flex-col gap-3">
+              <div>
+                <label className="label font-semibold">Name:</label>
+                <p className="text-xl font-bold">
+                  {user.first_name || user.last_name || "—"}
+                </p>
+              </div>
+              <div>
+                <label className="label font-semibold">Date of Birth:</label>
+                <p className="text-xl font-bold">{bioData.date_of_birth || "—"}</p>
+              </div>
+              <div>
+                <label className="label font-semibold">Gender:</label>
+                <p className="text-xl font-bold">{bioData.gender || "—"}</p>
+              </div>
+              <div>
+                <label className="label font-semibold">Bio:</label>
+                <p className="text-xl font-bold">{bioData.bio || "—"}</p>
+              </div>
+              <div>
+                <label className="label font-semibold">Height:</label>
+                <p className="text-xl font-bold">{bioData.height || "—"}</p>
+              </div>
+              <div>
+                <label className="label font-semibold">Weight:</label>
+                <p className="text-xl font-bold">{bioData.weight || "—"}</p>
+              </div>
             </div>
           </section>
-
           <div className="flex gap-6">
-            <button className="btn btn-primary" onClick={() => setPopOpen("invoices")}>
-              Invoices
-            </button>
-            <button className="btn btn-primary" onClick={() => setPopOpen("reports")}>
-              View Reports
-            </button>
+            <button className="btn btn-primary bg-blue-800 btn-m rounded-t" onClick={() => setPopOpen("invoices")}>Invoices</button>
+            <button className="btn btn-primary bg-blue-800 btn-m rounded-t" onClick={() => setPopOpen("reports")}>View Reports</button>
           </div>
           
           <button

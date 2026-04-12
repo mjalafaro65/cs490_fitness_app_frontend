@@ -3,9 +3,8 @@ import "../../App.css";
 import PopUp from "../../components/PopUp";
 import api from "../../axios";
 import BrowseExercises from "../Exercises";
-import WorkoutCalendar from "../../components/Calendar";
+import { useNavigate } from "react-router-dom";
 
-//put calender in here-- have to import a package to get 
 function LargeModal({ open, onClose, children, width = "70vw", height = "85vh" }) {
   if (!open) return null;
 
@@ -14,7 +13,7 @@ function LargeModal({ open, onClose, children, width = "70vw", height = "85vh" }
       className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
       onClick={onClose}
     >
-     <div
+      <div
         className="bg-base-100 rounded-xl shadow-xl p-6 overflow-y-auto"
         style={{ width, height }}
         onClick={(e) => e.stopPropagation()}
@@ -24,22 +23,24 @@ function LargeModal({ open, onClose, children, width = "70vw", height = "85vh" }
     </div>
   );
 }
+
 function ClientWorkoutPlans(){
+  const [isPopOpen, setPopOpen] = useState(null);
+
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  const navigate = useNavigate();
+
+  const [plans, setPlans] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   const [isBrowsePopOpen, setBrowsePopOpen] = useState(false);
-  const [exerciseToAdd, setExerciseToAdd] = useState(null);
+  const [exerciseToAdd, setExerciseToAdd] = useState(null); 
   const [assigningDay, setAssigningDay] = useState(null);
 
   const [activeDays, setActiveDays] = useState([]);
   const [selectedCalendarDay, setSelectedCalendarDay] = useState(null);
   const [exerciseDayContext, setExerciseDayContext] = useState(null);
-   
-  const [isPopOpen, setPopOpen] = useState(null);
-
-  const [currentDate, setCurrentDate] = useState(new Date());
-
-  const [plans, setPlans] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(new Date());
 
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [editData, setEditData] = useState({
@@ -62,13 +63,6 @@ function ClientWorkoutPlans(){
 });
 
   const [newDayByPlan, setNewDayByPlan] = useState({});
-
-  const [newDay, setNewDay] = useState({
-    day_label: "",
-    sort_order: 0,
-    weekday: 0,
-    session_time: "",
-  });
 
   const [newDayExercise, setNewDayExercise] = useState({
     exercise_id: 0,
@@ -110,7 +104,7 @@ function ClientWorkoutPlans(){
       const res = await api.get("/workouts/exercises");
       setExer(res.data.exercises || []);
     } catch (err) {
-      console.error("Failed to fetch exercises:", err);
+      console.error("Failed to fetch exercises:", err.response?.data || err);
     }
   };
 
@@ -124,9 +118,9 @@ function ClientWorkoutPlans(){
     }));
   };
 
-  const handleAssign = async () => {
+const handleAssign = async () => {
   if (!selectedPlan || !assignData.start_date || !assignData.end_date) {
-    alert("Please select a plan and start/end dates.");
+    alert("Please select a plan and dates.");
     return;
   }
 
@@ -140,31 +134,38 @@ function ClientWorkoutPlans(){
       }
     );
 
-    // Map each day to a scheduled occurrence based on start_date
-    const occurrences = selectedPlan.days.map(day => ({
-      plan_day_id: day.day_id,
-      scheduled_start: assignData.start_date,  // could enhance later for actual weekly schedule
-      scheduled_end: assignData.end_date,
-    }));
+    const start = new Date(assignData.start_date);
+    const end = new Date(assignData.end_date);
 
-    if (occurrences.length > 0) {
-      await api.post(
-        `/workouts/plans/${selectedPlan.plan_id}/calendar`,
-        { occurrences }
+    const scheduled = [];
+
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const weekday = d.getDay();
+
+      const matchingDay = selectedPlan.days.find(
+        (day) => Number(day.weekday) === weekday
       );
+
+      if (matchingDay) {
+        scheduled.push({
+          date: new Date(d),
+          day: matchingDay,
+        });
+      }
     }
 
-    fetchPlans(); 
+    setActiveDays(scheduled);
+
     alert("Plan scheduled!");
+    fetchPlans();
   } catch (err) {
-    console.error("Assign failed:", err.response?.data || err);
-    alert("Failed to assign plan. Check console for details.");
+    console.error(err);
   }
 };
 
   const handleChange = (e, setter) => {
     const { name, value, type, checked } = e.target;
-
+    
     setter((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -278,9 +279,10 @@ function ClientWorkoutPlans(){
       <div className="drawer-content">
         <section className="p-6 flex flex-col gap-6">
           <div className="text-2xl font-bold mb-4">My Workout Plans</div>
-              
+
             <div className="flex w-full grow flex-1 gap-4">
               <div className="card bg-base-300 rounded-box grow p-4">
+                
                 <h2 className="text-lg font-bold mb-2">Current Weight</h2>
                 <p className="text-m">
                   {currentWeight !== null ? `${currentWeight} lbs` : "No data yet"}
@@ -318,6 +320,14 @@ function ClientWorkoutPlans(){
                   </div>
                 ))
               )}
+              <div className="flex justify-center mt-2">
+                <button
+                  className="btn btn-primary bg-blue-800 btn-sm mt-2"
+                  onClick={() => setBrowsePopOpen(true)}
+                >
+                  Add Exercise
+                </button>
+              </div>
             </div>
 
             <div className="card bg-base-300 rounded-box w-1/2 p-4">
@@ -352,23 +362,29 @@ function ClientWorkoutPlans(){
                   const isSelected =
                     selectedDate &&
                     selectedDate.toDateString() === day.toDateString();
-                  const hasWorkout = plans.some(plan =>
-                    plan.days?.some(d =>
-                      d.occurrences?.some(o =>
-                        new Date(o.scheduled_start).toDateString() === day.toDateString()
-                      )
-                    )
-                  );
+                  const hasWorkout = activeDays.some(
+  (d) => d.date.toDateString() === day.toDateString()
+);
 
                   return (
                     <div
                       key={i}
                       className={`h-10 flex items-center justify-center rounded-lg cursor-pointer transition
-                        ${isSelected ? "bg-primary text-white"
-                          : isToday ? "bg-neutral text-white"
-                            : hasWorkout ? "bg-secondary text-white"
-                              : "bg-base-200"}`}
-                      onClick={() => setSelectedDate(day)}
+                        ${isSelected ? "bg-primary text-white" 
+                          : isToday ? "bg-neutral text-white" 
+                          : hasWorkout ? "bg-secondary text-white" 
+                          : "bg-base-200"}`}
+                      onClick={() => {
+  setSelectedDate(day);
+
+  const matchedPlanDay = selectedPlan?.days?.find(
+    (d) => Number(d.weekday) === day.getDay()
+  );
+
+  setSelectedCalendarDay(day);
+  setExerciseDayContext(matchedPlanDay || null);
+  setAssigningDay(matchedPlanDay || null);
+}}
                     >
                       {i + 1}
                     </div>
@@ -408,7 +424,7 @@ function ClientWorkoutPlans(){
               )}
 
               <div className="mt-auto flex justify-center mt-3">
-                <button className="btn btn-primary btn-sm">
+                <button onClick={() => navigate("/plans")} className="btn btn-primary bg-blue-800 btn-sm">
                   Browse Plans
                 </button>
               </div>
@@ -420,7 +436,7 @@ function ClientWorkoutPlans(){
                 Create New Workout Plan
               </h2>
                 <button
-                  className="btn btn-primary btn-sm mt-auto"
+                  className="btn btn-primary bg-blue-800 btn-sm mt-auto"
                   onClick={() => setPopOpen("create")}
                 >
                   Create New
@@ -472,7 +488,7 @@ function ClientWorkoutPlans(){
               Public
             </label>
 
-            <button className="btn btn-primary mt-2" type="submit">
+            <button className="btn btn-primary bg-blue-800 mt-2" type="submit">
               Create
             </button>
           </form>
@@ -507,7 +523,7 @@ function ClientWorkoutPlans(){
           </label>
 
           <button
-            className="btn btn-primary btn-sm"
+            className="btn btn-primary bg-blue-800 btn-sm"
             onClick={handleUpdate}
           >
             Save Changes
@@ -538,41 +554,145 @@ function ClientWorkoutPlans(){
                   </div>
                 ))
               )}
+              {!assigningDay && (
+                <p className="text-xs opacity-60 mt-2">
+                  Click a calendar date to add exercises
+                </p>
+              )}
+              {assigningDay && (
+                <button
+                  className="btn btn-primary bg-blue-800 btn-sm mt-2"
+                  onClick={() => setBrowsePopOpen(true)}
+                >
+                  Add Exercise
+                </button>
+              )}
             </div>
 
             <div className="mt-3">
               <h3 className="font-bold">Schedule Plan</h3>
 
-              <input
-                type="date"
-                className="input input-sm"
-                value={assignData.start_date}
-                onChange={(e) =>
-                  setAssignData(prev => ({ ...prev, start_date: e.target.value }))
-                }
-              />
+          {/* DATE RANGE INPUTS (unchanged but we enhance them) */}
+          <input
+            type="date"
+            className="input input-sm"
+            value={assignData.start_date}
+            onChange={(e) =>
+              setAssignData(prev => ({
+                ...prev,
+                start_date: e.target.value
+              }))
+            }
+          />
 
-              <input
-                type="date"
-                className="input input-sm"
-                value={assignData.end_date}
-                onChange={(e) =>
-                  setAssignData(prev => ({ ...prev, end_date: e.target.value }))
-                }
-              />
+          <input
+            type="date"
+            className="input input-sm"
+            value={assignData.end_date}
+            onChange={(e) =>
+              setAssignData(prev => ({
+                ...prev,
+                end_date: e.target.value
+              }))
+            }
+          />
 
-              <button
-                className="btn btn-secondary btn-sm mt-2"
-                onClick={handleAssign}
-              >
-                Assign Plan
-              </button>
+          {/* NEW: CALENDAR PREVIEW (ONLY SHOWS AFTER DATES SELECTED) */}
+          {assignData.start_date && assignData.end_date && (() => {
+            const start = new Date(assignData.start_date);
+            const end = new Date(assignData.end_date);
+
+            const days = [];
+            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+              days.push(new Date(d));
+            }
+
+            return (
+              <div className="mt-3">
+                <p className="font-bold mb-2">Click days to activate workouts</p>
+
+                <div className="grid grid-cols-7 gap-2 text-center text-xs">
+                  {days.map((day, i) => {
+                    const isSelected =
+                      selectedCalendarDay?.toDateString() === day.toDateString();
+
+                    const hasWorkout = activeDays.some(
+                      (d) => d.date.toDateString() === day.toDateString()
+                    );
+
+                    return (
+                      <div
+                        key={i}
+                        onClick={() => {
+                          setSelectedCalendarDay(day);
+
+                          const matchedDay = selectedPlan?.days?.find(
+                            (d) => Number(d.weekday) === day.getDay()
+                          );
+
+                          setExerciseDayContext(matchedDay || null);
+                        }}
+                        className={`h-10 flex items-center justify-center rounded cursor-pointer
+                          ${isSelected ? "bg-primary text-white"
+                            : hasWorkout ? "bg-secondary text-white"
+                            : "bg-base-200"}`}
+                      >
+                        {day.getDate()}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* BUTTON UNCHANGED */}
+          <button
+            className="btn btn-primary bg-blue-800 btn-sm mt-2"
+            onClick={handleAssign}
+          >
+            Assign Plan
+          </button>
+                      </div>
+
+                    </div>
+                  )}
+                </PopUp>
+                {isBrowsePopOpen && (
+            <LargeModal
+            open={isBrowsePopOpen}
+            onClose={() => setBrowsePopOpen(false)}
+          >
+            <div className="w-full h-full flex flex-col">
+
+              <BrowseExercises
+                planId={selectedPlan?.plan_id}
+                dayId={assigningDay?.day_id}
+                onExerciseAdded={(exercise) => {
+            setSelectedPlan((prev) => {
+              const updatedDays = prev.days.map((day) => {
+                if (day.day_id === assigningDay?.day_id) {
+                  return {
+                    ...day,
+                    exercises: [...(day.exercises || []), exercise],
+                  };
+                }
+                return day;
+              });
+
+              return { ...prev, days: updatedDays };
+            });
+
+            setBrowsePopOpen(false);
+            setAssigningDay(null);
+          }}
+                onClose={() => setBrowsePopOpen(false)}
+              />
             </div>
-
-          </div>
-        )}
-      </PopUp>
-    </div>
+          </LargeModal>
+          )}
+              </div>
+    
   );
 }
 

@@ -5,16 +5,30 @@ import Navbar from "../../components/Navbar.jsx";
 import api from "../../axios.jsx";
 import { useAuth } from "../../AuthContext.jsx";
 
+const SPECIALTY_TITLES = {
+  1: "Weight Loss",
+  2: "Muscle Building",
+  3: "Cardio & Endurance",
+  4: "Nutrition Coaching",
+  5: "Yoga & Flexibility",
+  6: "Sports Performance",
+  7: "Senior Fitness",
+  8: "Rehabilitation",
+  9: "Weight Management Nutrition",
+  10: "Sports Nutrition",
+  11: "Plant-Based Nutrition",
+  12: "Macro Tracking",
+  13: "CrossFit & HIIT",
+  14: "Powerlifting",
+  15: "Bodyweight Training"
+};
+
 function Profile() {
   const {coachStatus, fetchUser} =useAuth()
   const navigate=useNavigate()
 
-  const [documents, setDocuments] = useState([]);
-  const [newDocType, setNewDocType] = useState("");
-  const [newDocUrl, setNewDocUrl] = useState("");
-
   const [fetchData, setData] = useState({
-    specialty: "",
+    specialty_id: "",
     years_experience: "",
     bio: "",
     profile_photo: "",
@@ -32,6 +46,22 @@ function Profile() {
       try {
         const response = await api.get("/coach/coach-profile");
         console.log("Response data:", response.data);
+        const data = response.data;
+
+        setData({
+        specialty_id: data.specialty_id || "",
+        years_experience: data.years_experience || "",
+        bio: data.bio || "",
+        profile_photo: data.profile_photo || "",
+        status: data.status || ""
+      });
+
+      setUser({
+        first_name: data.first_name || "",
+        last_name: data.last_name || "",
+        picture: data.picture || ""
+      });
+
       } catch (err) {
         console.error("Failed to fetch user:", err);
         if (err.response) {
@@ -49,45 +79,6 @@ function Profile() {
     fetchUser();
   }, []);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setData({
-      ...fetchData,
-      years_experience: name === "years_experience" ? Number(value) : value,
-      [name]: name !== "years_experience" ? value : fetchData.years_experience
-    });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-      const response = await api.patch("/coach/coach-profile", fetchData);
-      console.log("STATUS:", response.status);
-    }
-    catch (error) {
-      console.error("Update failed:", error.response?.data);
-      alert("Update failed, please try again");
-    }
-  };
-  const handleAddDocument = async () => {
-    if (!newDocType || !newDocUrl) return alert("Enter type and URL");
-
-    try {
-      const token = localStorage.getItem("token");
-      const response = await api.post("/coach/coach-documents", {
-        document_type: newDocType,
-        document_url: newDocUrl
-      }
-      );
-      setDocuments([...documents, response.data]);
-      setNewDocType("");
-      setNewDocUrl("");
-    } catch (error) {
-      console.error("Failed to add document:", error.response?.data);
-      alert("Failed to add document");
-    }
-  };
 
   const handleSwitchAccount = async (e) => {
     if (e) e.preventDefault();
@@ -105,112 +96,6 @@ function Profile() {
     }
   }
 
-
-
-
-    // return (
-
-    //     <div className="drawer lg:drawer-open">
-    //       <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
-    //       <div className="drawer-content">
-    //         <section className="p-6 flex flex-col gap-6">
-    //           <div className="text-2xl font-bold mb-2">Profile</div>
-    //           <section className="p-10 flex flex-col md:flex-row gap-30 items-start">
-    //             <div className="flex-shrink-0">
-    //               {user.picture ? (
-    //                 <img
-    //                   src={user.picture}
-    //                   alt="Profile"
-    //                   className="w-32 h-32 rounded-full object-cover border-2 border-gray-300"
-    //                 />
-    //               ) : (
-    //                 <div className="w-32 h-32 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-bold">
-    //                   {user.first_name?.[0] || "?"}
-    //                 </div>
-    //               )}
-    //             </div>
-    //             <fieldset className="fieldset rounded-box w-full flex-1">
-    //                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-    //                     <label className="label font-semibold">Speciality: </label>
-    //                       <select className="select" id="speciality" name="specialty" value={fetchData.specialty} onChange={handleChange}>
-    //                           <option value="">Select</option>
-    //                           <option value="1">Weight Loss</option>
-    //                           <option value="2">Muscle Building</option>
-    //                           <option value="3">Cardio & Endurance</option>
-    //                           <option value="4">Nutrition Coaching</option>
-    //                           <option value="5">Yoga & Flexibility</option>
-    //                           <option value="6">Sports Performance</option>
-    //                           <option value="7">Senior Fitness</option>
-    //                           <option value="8">Rehabilitation</option>
-    //                           <option value="9">Weight Management Nutrition</option>
-    //                           <option value="10">Sports Nutrition</option>
-    //                           <option value="11">Plant-Based Nutrition</option>
-    //                           <option value="12">Macro Tracking</option>
-    //                           <option value="13">CrossFit & HIIT</option>
-    //                           <option value="14">Powerlifting</option>
-    //                           <option value="15">Bodyweight Training</option>
-    //                       </select>
-    //                     <label className="label font-semibold">Years of Experience: </label>
-    //                     <input
-    //                         className="input"
-    //                         type="number"
-    //                         name="years_experience"
-    //                         min = "0"
-    //                         value={fetchData.years_experience}
-    //                         onChange={handleChange}
-    //                         required
-    //                     />
-    //                     <label className="label font-semibold">Bio: </label>
-    //                     <textarea className="textarea h-24" 
-    //                               name="bio"
-    //                               placeholder="Tell us about yourself!"
-    //                               value={fetchData.bio}
-    //                               onChange={handleChange}>
-    //                     </textarea>
-    //                     <label className="label font-semibold">Profile Photo: </label>
-    //                     <input
-    //                         className="input"
-    //                         type="text"
-    //                         placeholder="Insert a URL here"
-    //                         name="profile_photo"
-    //                         value={fetchData.profile_photo}
-    //                         onChange={handleChange}
-    //                         required
-    //                     />
-    //                     <div>
-    //                       <button className="btn btn-primary" type="submit">Update</button>
-    //                     </div>
-    //                 </form>
-    //           </fieldset>
-    //           </section>
-    //           <div>
-    //             <div className="text-lg font-bold mb-2">Documents:</div>
-    //             <ul className="list-disc ml-6">
-    //                 {documents.map(doc => (
-    //                 <li key={doc.document_id}>
-    //                     <a href={doc.document_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-    //                     {doc.document_type}
-    //                     </a>
-    //                 </li>
-    //                 ))}
-    //             </ul>
-
-    //             <div className="mt-4 flex flex-col md:flex-row gap-2">
-    //                 <input
-    //                 type="text"
-    //                 placeholder="Document type"
-    //                 className="input input-bordered"
-    //                 value={newDocType}
-    //                 onChange={e => setNewDocType(e.target.value)}
-    //                 />
-    //                 <input
-    //                 type="text"
-    //                 placeholder="Document URL"
-    //                 className="input input-bordered"
-    //                 value={newDocUrl}
-    //                 onChange={e => setNewDocUrl(e.target.value)}
-    //                 />
-    //                 <button className="btn btn-primary" onClick={handleAddDocument}>Add Document</button>
   return (
 
     <div className="drawer lg:drawer-open">
@@ -220,102 +105,47 @@ function Profile() {
           <div className="text-2xl font-bold mb-2">Profile</div>
           <section className="p-10 flex flex-col md:flex-row gap-30 items-start">
             <div className="flex-shrink-0">
-              {user.picture ? (
-                <img
-                  src={user.picture}
-                  alt="Profile"
-                  className="w-32 h-32 rounded-full object-cover border-2 border-gray-300"
-                />
-              ) : (
-                <div className="w-32 h-32 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-bold">
-                  {user.first_name?.[0] || "?"}
-                </div>
-              )}
+             {fetchData?.profile_photo ? (
+                    <img
+                        src={fetchData.profile_photo}
+                        alt="Profile"
+                        className="w-32 h-32  rounded-full  object-cover border-2 border-gray-300  "
+                    />
+                ) : (
+                    <div className="w-50 h-50 bg-blue-800  rounded-full  text-primary-content flex items-center justify-center text-4xl font-bold uppercase border-4 border-base-100 shadow-lg">
+                        {user?.first_name?.[0]?.toUpperCase() || "?"}
+                    </div>
+                )}
             </div>
-            <fieldset className="fieldset rounded-box w-full flex-1">
-              <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                <label className="label font-semibold">Speciality: </label>
-                <select className="select" id="speciality" name="specialty" value={fetchData.specialty} onChange={handleChange}>
-                  <option value="">Select</option>
-                  <option value="1">Weight Loss</option>
-                  <option value="2">Muscle Building</option>
-                  <option value="3">Cardio & Endurance</option>
-                  <option value="4">Nutrition Coaching</option>
-                  <option value="5">Yoga & Flexibility</option>
-                  <option value="6">Sports Performance</option>
-                  <option value="7">Senior Fitness</option>
-                  <option value="8">Rehabilitation</option>
-                  <option value="9">Weight Management Nutrition</option>
-                  <option value="10">Sports Nutrition</option>
-                  <option value="11">Plant-Based Nutrition</option>
-                  <option value="12">Macro Tracking</option>
-                  <option value="13">CrossFit & HIIT</option>
-                  <option value="14">Powerlifting</option>
-                  <option value="15">Bodyweight Training</option>
-                </select>
-                <label className="label font-semibold">Years of Experience: </label>
-                <input
-                  className="input"
-                  type="number"
-                  name="years_experience"
-                  min="0"
-                  value={fetchData.years_experience}
-                  onChange={handleChange}
-                  required
-                />
-                <label className="label font-semibold">Bio: </label>
-                <textarea className="textarea h-24"
-                  name="bio"
-                  placeholder="Tell us about yourself!"
-                  value={fetchData.bio}
-                  onChange={handleChange}>
-                </textarea>
-                <label className="label font-semibold">Profile Photo: </label>
-                <input
-                  className="input"
-                  type="text"
-                  placeholder="Insert a URL here"
-                  name="profile_photo"
-                  value={fetchData.profile_photo}
-                  onChange={handleChange}
-                  required
-                />
-                <div>
-                  <button className="btn btn-primary" type="submit">Update</button>
-                </div>
-              </form>
-            </fieldset>
-          </section>
-          <div>
-            {/* <div className="text-lg font-bold mb-2">Documents:</div>
-            <ul className="list-disc ml-6">
-              {documents.map(doc => (
-                <li key={doc.document_id}>
-                  <a href={doc.document_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-                    {doc.document_type}
-                  </a>
-                </li>
-              ))}
-            </ul> */}
 
-            {/* <div className="mt-4 flex flex-col md:flex-row gap-2">
-              <input
-                type="text"
-                placeholder="Document type"
-                className="input input-bordered"
-                value={newDocType}
-                onChange={e => setNewDocType(e.target.value)}
-              />
-              <input
-                type="text"
-                placeholder="Document URL"
-                className="input input-bordered"
-                value={newDocUrl}
-                onChange={e => setNewDocUrl(e.target.value)}
-              />
-              <button className="btn btn-primary" onClick={handleAddDocument}>Add Document</button>
-            </div> */}
-          </div>
+
+            <div className="ml-6 flex flex-col gap-3">
+              <div>
+                <label className="label font-semibold">Name:</label>
+                <p className="text-l">
+                  {user.first_name || user.last_name
+                  ? `${user.first_name} ${user.last_name}`
+                  : "—"}
+                </p>
+              </div>
+              <div>
+                <label className="label font-semibold">Specialty:</label>
+                <p className="text-l font-bold">{SPECIALTY_TITLES[fetchData.specialty_id] || "—"}</p>
+              </div>
+              <div>
+                <label className="label font-semibold">Year of Experience:</label>
+                <p className="text-l font-bold">{fetchData.years_experience || "—"}</p>
+              </div>
+              <div>
+                <label className="label font-semibold">Bio:</label>
+                <p className="text-l font-bold">{fetchData.bio || "—"}</p>
+              </div>
+              <div>
+                <label className="label font-semibold">Status:</label>
+                <p className="text-l font-bold">{fetchData.status || "—"}</p>
+              </div>
+            </div>
+          </section>
           {coachStatus === "approved" &&
             <div className="mt-8 p-6 bg-base-100 border border-gray-200 rounded-xl shadow-sm">
               <h3 className="text-lg font-bold text-gray-800 mb-4">Account Type</h3>
