@@ -40,6 +40,9 @@ function CSettings() {
 
         console.log("Response data:", data);
 
+        console.log("RAW GENDER FROM API:", data.gender);
+        console.log("PARSED GENDER:", data.gender ? data.gender.split(".")[1] : "");
+
         setData({
         first_name: data.first_name || "",
         last_name: data.last_name || "",
@@ -53,6 +56,10 @@ function CSettings() {
         height: data.height || "",
         weight: data.weight || "",
         });
+
+        setTimeout(() => {
+            console.log("STATE AFTER SET:", initialData.gender);
+        }, 0);
 
       } catch (err) {
         console.error("Failed to fetch user:", err.response?.data || err);
@@ -71,18 +78,17 @@ function CSettings() {
     const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const formattedData = {
+    console.log("====== SENDING DATA ======");
+console.log("FULL STATE BEFORE FORMAT:", initialData);
+
+const formattedData = {
     date_of_birth: initialData.date_of_birth,
-    gender: initialData.gender,
+    gender: initialData.gender?.split(".")[1] || initialData.gender,
     bio: initialData.bio,
     profile_photo: initialData.profile_photo,
     height: Number(initialData.height),
     weight: Number(initialData.weight),
-    };
-
-    console.log("====== SENDING DATA ======");
-    console.log("Raw state:", initialData);
-    console.log("JSON:", JSON.stringify(formattedData, null, 2));
+};
 
     try {
         const response = await api.put("/client/profile", formattedData);
@@ -90,9 +96,7 @@ function CSettings() {
         console.log("SUCCESS:", response.data);
         alert("Profile updated successfully!");
     } catch (error) {
-        console.error("====== ERROR ======");
-        console.error("Full error:", error);
-
+        console.log("SUBMIT STATE SNAPSHOT:", JSON.parse(JSON.stringify(initialData)));
         if (error.response) {
         console.error("Status:", error.response.status);
         console.error("Backend errors:", error.response.data);
