@@ -204,31 +204,33 @@ function CProfile() {
             </button>
           </div>
 
+          {coachStatus === "switched" &&
+            <div className="mt-8 p-6 bg-base-100 border border-gray-200 rounded-xl shadow-sm">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">Account Type</h3>
+
+              <div className="flex flex-row items-center justify-between w-full">
+
+                <p className="text-sm text-gray-500">
+                  Currently logged in as: <span className="font-semibold text-primary">{coachStatus === "approved" ? 'Coach' : 'Client'}</span>
+                </p>
+
+                <button
+                  onClick={handleSwitchAccount}
+                  className="btn btn-outline btn-primary btn-sm"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="size-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                  </svg>
+                  Switch to {coachStatus === "approved" ? 'Client View' : 'Coach View'}
+                </button>
+
+              </div>
+            </div>
+          }
+
         </section>
 
-        {coachStatus === "switched" &&
-          <div className="mt-8 p-6 bg-base-100 border border-gray-200 rounded-xl shadow-sm">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">Account Type</h3>
 
-            <div className="flex flex-row items-center justify-between w-full">
-
-              <p className="text-sm text-gray-500">
-                Currently logged in as: <span className="font-semibold text-primary">{coachStatus === "approved" ? 'Coach' : 'Client'}</span>
-              </p>
-
-              <button
-                onClick={handleSwitchAccount}
-                className="btn btn-outline btn-primary btn-sm"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="size-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                </svg>
-                Switch to {coachStatus === "approved" ? 'Client View' : 'Coach View'}
-              </button>
-
-            </div>
-          </div>
-        }
       </div>
 
 
