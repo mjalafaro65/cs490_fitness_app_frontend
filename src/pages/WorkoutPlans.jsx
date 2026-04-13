@@ -1,10 +1,17 @@
 import { useState, useEffect } from "react";
 import api from "../axios";
 import "../App.css";
+import PopUp from "../components/PopUp";
+import { useNavigate } from "react-router-dom";
 
 function BrowsePlans() {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingPlans, setLoadingPlans] = useState(false);
+  const [pop, setPopOpen] = useState(null);
+  const [selectedPlan, setSelectedPlan] = useState(null);
+  const navigate = useNavigate();
+
 
   const [filters, setFilters] = useState({
     q: "",
@@ -15,7 +22,19 @@ function BrowsePlans() {
     exercise_match: "any",
   });
 
-  // Fetch plans
+  const fetchPlanDetails = async (planId) => {
+  setLoadingPlans(true);
+  try {
+    const response = await api.get(`/workouts/plans/${planId}`);
+    console.log("Full plan:", response.data);
+
+    setSelectedPlan(response.data);
+  } catch (err) {
+    console.error("Error fetching plan details:", err);
+  }
+  setLoadingPlans(false);
+};
+
   const fetchPlans = async () => {
     setLoading(true);
 
@@ -32,7 +51,7 @@ function BrowsePlans() {
       });
 
       console.log("Plans:", response.data);
-      setPlans(response.data);
+      setPlans(response.data.plans);
     } catch (err) {
       console.error("Error fetching plans:", err.response?.data || err);
     }
@@ -40,12 +59,10 @@ function BrowsePlans() {
     setLoading(false);
   };
 
-  // Run once on load
   useEffect(() => {
     fetchPlans();
   }, []);
 
-  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -76,7 +93,6 @@ function BrowsePlans() {
     fetchUser();
   }, []);
 
-  // Handle search submit
   const handleSubmit = (e) => {
     e.preventDefault();
     fetchPlans();
@@ -84,9 +100,16 @@ function BrowsePlans() {
 
   return (
     <div className="p-6 flex flex-col gap-6">
+      <div>
+      <button
+        onClick={() => navigate(-1)}
+        className="btn btn-m fixed top-4 left-4 z-50"
+      >
+        ← Back
+      </button>
+      </div>
       <h1 className="text-2xl font-bold">Browse Workout Plans</h1>
 
-      {/* FILTER FORM */}
       <form
         onSubmit={handleSubmit}
         className="flex flex-wrap gap-4 bg-base-200 p-4 rounded-box"
@@ -149,12 +172,11 @@ function BrowsePlans() {
         <button className="btn btn-primary">Search</button>
       </form>
 
-      {/* RESULTS */}
       {loading ? (
         <p>Loading...</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {plans.length === 0 ? (
+          {!Array.isArray(plans) || plans.length === 0 ?  (
             <p>No plans found.</p>
           ) : (
             plans.map((plan) => (
@@ -176,7 +198,11 @@ function BrowsePlans() {
                   <p>Muscle: {plan.muscle_group || "N/A"}</p>
                 </div>
 
-                <button className="btn btn-sm btn-primary mt-3">
+                <button onClick={async () => {
+                                setPopOpen(plan.plan_id);
+                                setSelectedPlan(null);
+                                await fetchPlanDetails(plan.plan_id);
+          }} className="btn btn-sm btn-primary mt-3">
                   View Plan
                 </button>
               </div>
@@ -184,6 +210,73 @@ function BrowsePlans() {
           )}
         </div>
       )}
+
+      <PopUp isOpen={pop !== null} onClose={() => {
+  setPopOpen(null);
+  setSelectedPlan(null);
+}}>
+  {loadingPlans ? (
+  <p>Loading plan...</p>
+) : selectedPlan ? (
+  <div className="p-4 max-h-[70vh] overflow-y-auto">
+    <h2 className="text-xl font-bold mb-1">
+      {selectedPlan.name}
+    </h2>
+
+    <p className="text-sm opacity-60 mb-2">
+      By {selectedPlan.owner_name || "Unknown"}
+    </p>
+
+    <p className="mb-4 opacity-70">
+      {selectedPlan.description || "No description"}
+    </p>
+
+    {selectedPlan.days?.length > 0 ? (
+      selectedPlan.days.map((day, index) => (
+        <div key={index} className="mb-4 p-3 bg-base-200 rounded">
+          <h3 className="font-bold mb-2">
+            {day.day_label || `Day ${index + 1}`}
+          </h3>
+
+          {day.session_time && (
+            <p className="text-xs opacity-60 mb-2">
+              Time: {day.session_time}
+            </p>
+          )}
+
+          {day.exercises?.length > 0 ? (
+  <ul className="space-y-2 text-sm">
+    {day.exercises.map((ex, i) => (
+      <li key={i} className="flex justify-between items-center">
+        
+        {/* Exercise name is nested */}
+        <span className="font-medium">
+          {ex.exercise?.name || "Unknown Exercise"}
+        </span>
+
+        <div className="text-right opacity-70">
+          <div>{ex.sets || "-"} x {ex.reps || "-"}</div>
+          <div className="text-xs">
+            {ex.duration_minutes ? `${ex.duration_minutes} min` : ""}
+          </div>
+        </div>
+
+      </li>
+    ))}
+  </ul>
+) : (
+  <p className="text-sm opacity-50">No exercises</p>
+)}
+        </div>
+      ))
+    ) : (
+      <p>No days in this plan.</p>
+    )}
+  </div>
+) : (
+  <p>No plan selected.</p>
+)}
+</PopUp>
     </div>
   );
 }
