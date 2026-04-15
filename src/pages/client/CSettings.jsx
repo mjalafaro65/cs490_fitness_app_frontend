@@ -109,7 +109,7 @@ const formattedData = {
     const handleDeleteAccount = async () => {
 
         try {
-            const response = await api.delete("/user/me");
+            const response = await api.delete("/auth/me");
             console.log("Server Response:", response.data);
 
             localStorage.clear();
