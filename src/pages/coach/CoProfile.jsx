@@ -27,40 +27,23 @@ function Profile() {
   const {coachStatus, fetchUser} =useAuth()
   const navigate=useNavigate()
 
-  const [fetchData, setData] = useState({
-    specialty_id: "",
-    years_experience: "",
-    bio: "",
-    profile_photo: "",
-    status: ""
-  });
+  const [fetchData, setData] = useState( null);
 
-  const [user, setUser] = useState({
-    first_name: "",
-    last_name: "",
-    picture: ""
-  });
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     async function fetchUser() {
       try {
+        const userRes = await api.get("/user/me");
+        console.log(userRes)
+        setUser(userRes.data);
+
         const response = await api.get("/coach/coach-profile");
         console.log("Response data:", response.data);
         const data = response.data;
 
-        setData({
-        specialty_id: data.specialty_id || "",
-        years_experience: data.years_experience || "",
-        bio: data.bio || "",
-        profile_photo: data.profile_photo || "",
-        status: data.status || ""
-      });
+        setData(data);
 
-      setUser({
-        first_name: data.first_name || "",
-        last_name: data.last_name || "",
-        picture: data.picture || ""
-      });
 
       } catch (err) {
         console.error("Failed to fetch user:", err);
@@ -123,26 +106,22 @@ function Profile() {
               <div>
                 <label className="label font-semibold">Name:</label>
                 <p className="text-l">
-                  {user.first_name || user.last_name
-                  ? `${user.first_name} ${user.last_name}`
+                  {user?.first_name || user?.last_name
+                  ? `${user?.first_name} ${user?.last_name}`
                   : "—"}
                 </p>
               </div>
               <div>
                 <label className="label font-semibold">Specialty:</label>
-                <p className="text-l font-bold">{SPECIALTY_TITLES[fetchData.specialty_id] || "—"}</p>
+                <p className="text-l font-bold">{fetchData?.specialty_name || "—"}</p>
               </div>
               <div>
                 <label className="label font-semibold">Year of Experience:</label>
-                <p className="text-l font-bold">{fetchData.years_experience || "—"}</p>
+                <p className="text-l font-bold">{fetchData?.years_experience || "—"}</p>
               </div>
               <div>
                 <label className="label font-semibold">Bio:</label>
-                <p className="text-l font-bold">{fetchData.bio || "—"}</p>
-              </div>
-              <div>
-                <label className="label font-semibold">Status:</label>
-                <p className="text-l font-bold">{fetchData.status || "—"}</p>
+                <p className="text-l font-bold">{fetchData?.bio || "—"}</p>
               </div>
             </div>
           </section>

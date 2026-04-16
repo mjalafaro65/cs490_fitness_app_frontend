@@ -11,70 +11,27 @@ function CProfile() {
 
 
 
-  const [bioData, setData] = useState({
-    date_of_birth: "",
-    gender: "",
-    bio: "",
-    height: "",
-    weight: ""
-  });
+  const [bioData, setData] = useState(null);
 
-  const [user, setUser] = useState({
-    first_name: "",
-    last_name: "",
-    picture: ""
-  });
+  const [user, setUser] = useState(null);
 
   const [popOpen, setPopOpen] = useState(null);
 
   useEffect(() => {
     async function fetchUser() {
       try {
-        const response = await api.get("/auth/setup", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
-          }
-        });
+        const userRes = await api.get("/user/me");
+        console.log(userRes)
+        setUser(userRes.data);
 
-        const data = response.data;
+        const profileRes = await api.get("/client/profile");
+        console.log(profileRes)
 
-        console.log("Response data:", data);
-
-        setUser({
-          first_name: data.date_of_birth || "",
-          last_name: data.gender || "",
-          bio: data.bio || "",
-          profile_picture: data.profile_picture || ""
-        });
-
-      } catch (err) {
-        console.error("Failed to fetch user:", err.response?.data || err);
-      }
-    }
-
-    fetchUser();
-  }, []);
-
-  useEffect(() => {
-    async function fetchUser() {
-      try {
-        const response = await api.get("/client/profile", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
-          }
-        });
-
-        const data = response.data;
+        const data = profileRes.data;
 
         console.log("Response data:", data);
 
-        setData({
-          date_of_birth: data.date_of_birth || "",
-          gender: data.gender ? data.gender.split(".")[1] : "",
-          bio: data.bio || "",
-          height: data.height || "",
-          weight: data.weight || ""
-        });
+        setData(data);
 
       } catch (err) {
         console.error("Failed to fetch user:", err.response?.data || err);
@@ -120,6 +77,7 @@ function CProfile() {
       console.error("Update failed:", error.response?.data || error);
     }
   };
+
   const handleSwitchAccount = async (e) => {
     e.preventDefault();
     try {
@@ -145,17 +103,17 @@ function CProfile() {
           <div className="text-2xl font-bold mb-2">Profile</div>
           <section className="p-10 flex flex-col md:flex-row gap-30 items-start">
             <div className="flex-shrink-0 ">
-                {user?.picture ? (
-                    <img
-                        src={user.picture}
-                        alt="Profile"
-                        className="w-32 h-32  rounded-full  object-cover border-2 border-gray-300  "
-                    />
-                ) : (
-                    <div className="w-50 h-50 bg-blue-800  rounded-full  text-primary-content flex items-center justify-center text-4xl font-bold uppercase border-4 border-base-100 shadow-lg">
-                        {user?.first_name?.[0]?.toUpperCase() || "?"}
-                    </div>
-                )}
+              {user?.picture ? (
+                <img
+                  src={user.picture}
+                  alt="Profile"
+                  className="w-32 h-32  rounded-full  object-cover border-2 border-gray-300  "
+                />
+              ) : (
+                <div className="w-50 h-50 bg-blue-800  rounded-full  text-primary-content flex items-center justify-center text-4xl font-bold uppercase border-4 border-base-100 shadow-lg">
+                  {/* {user?.first_name?.toUpperCase() || "?"} */}
+                </div>
+              )}
             </div>
 
 
@@ -163,28 +121,28 @@ function CProfile() {
               <div>
                 <label className="label font-semibold">Name:</label>
                 <p className="text-xl font-bold">
-                  {user.first_name || user.last_name || "—"}
+                  {user?.first_name || user?.last_name || "—"}
                 </p>
               </div>
               <div>
                 <label className="label font-semibold">Date of Birth:</label>
-                <p className="text-xl font-bold">{bioData.date_of_birth || "—"}</p>
+                <p className="text-xl font-bold">{bioData?.date_of_birth || "—"}</p>
               </div>
               <div>
                 <label className="label font-semibold">Gender:</label>
-                <p className="text-xl font-bold">{bioData.gender || "—"}</p>
+                <p className="text-xl font-bold">{bioData?.gender || "—"}</p>
               </div>
               <div>
                 <label className="label font-semibold">Bio:</label>
-                <p className="text-xl font-bold">{bioData.bio || "—"}</p>
+                <p className="text-xl font-bold">{bioData?.bio || "—"}</p>
               </div>
               <div>
                 <label className="label font-semibold">Height:</label>
-                <p className="text-xl font-bold">{bioData.height || "—"}</p>
+                <p className="text-xl font-bold">{bioData?.height || "—"}</p>
               </div>
               <div>
                 <label className="label font-semibold">Weight:</label>
-                <p className="text-xl font-bold">{bioData.weight || "—"}</p>
+                <p className="text-xl font-bold">{bioData?.weight || "—"}</p>
               </div>
             </div>
           </section>
