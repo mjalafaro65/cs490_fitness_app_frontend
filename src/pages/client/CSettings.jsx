@@ -114,7 +114,7 @@ function CSettings() {
         const repsonse2 = await api.patch("/user/me", formattedData2);
 
         console.log("SUCCESS:", response.data);
-        console.log("SUCCESS:", response2.data);
+        console.log("SUCCESS:", repsonse2.data);
         alert("Profile updated successfully!");
     } catch (error) {
         console.log("SUBMIT STATE SNAPSHOT:", JSON.parse(JSON.stringify(initialData)));
@@ -163,9 +163,9 @@ function CSettings() {
                     <div className="text-2xl font-bold mb-2">Settings</div>
                     <section className="p-10 flex flex-col md:flex-row gap-30 items-start">
                         <div className="flex-shrink-0 ">
-                            {user?.picture ? (
+                            {initialData?.profile_photo ? (
                                 <img
-                                    src={user.picture}
+                                    src={initialData.profile_photo}
                                     alt="Profile"
                                     className="w-32 h-32  rounded-full  object-cover border-2 border-gray-300  "
                                 />

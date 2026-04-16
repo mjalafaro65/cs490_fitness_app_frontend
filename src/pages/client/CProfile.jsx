@@ -103,9 +103,9 @@ function CProfile() {
           <div className="text-2xl font-bold mb-2">Profile</div>
           <section className="p-10 flex flex-col md:flex-row gap-30 items-start">
             <div className="flex-shrink-0 ">
-              {user?.picture ? (
+              {bioData?.profile_photo ? (
                 <img
-                  src={user.picture}
+                  src={bioData.profile_photo}
                   alt="Profile"
                   className="w-32 h-32  rounded-full  object-cover border-2 border-gray-300  "
                 />
