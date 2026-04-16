@@ -5,7 +5,6 @@ import api from "../../axios";
 function AWorkoutPlans() {
   const [activeTab, setActiveTab] = useState("plans");
   
-  // Plans state
   const [plans, setPlans] = useState([]);
   const [plansLoading, setPlansLoading] = useState(false);
   const [plansFilters, setPlansFilters] = useState({
@@ -18,7 +17,6 @@ function AWorkoutPlans() {
   });
   const [showPlansFilters, setShowPlansFilters] = useState(false);
   
-  // Exercises state
   const [exercises, setExercises] = useState([]);
   const [exercisesLoading, setExercisesLoading] = useState(false);
   const [exercisesFilters, setExercisesFilters] = useState({
@@ -29,7 +27,6 @@ function AWorkoutPlans() {
   });
   const [showExercisesFilters, setShowExercisesFilters] = useState(false);
 
-  // Fetch published plans
   const fetchPlans = async () => {
     setPlansLoading(true);
     try {
@@ -51,8 +48,6 @@ function AWorkoutPlans() {
     }
   };
 
-  // Fetch exercises
-// Fetch exercises - FIXED version
 const fetchExercises = async () => {
   setExercisesLoading(true);
   try {
@@ -65,7 +60,6 @@ const fetchExercises = async () => {
     const response = await api.get("/workouts/exercises", { params });
     console.log("Exercises response:", response.data);
     
-    // FIX: Handle different response structures
     let exercisesArray = [];
     if (Array.isArray(response.data)) {
       exercisesArray = response.data;
@@ -140,9 +134,9 @@ const fetchExercises = async () => {
           <div className="flex gap-2">
             <button
               onClick={() => setActiveTab("plans")}
-              className={`px-4 py-1.5 text-sm rounded-md transition ${
+              className={`px-4 py-1.5 text-sm rounded-md transition cursor-pointer ${
                 activeTab === "plans"
-                  ? "bg-blue-600 text-white"
+                  ? "bg-blue-800 text-white"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >
@@ -150,9 +144,9 @@ const fetchExercises = async () => {
             </button>
             <button
               onClick={() => setActiveTab("exercises")}
-              className={`px-4 py-1.5 text-sm rounded-md transition ${
+              className={`px-4 py-1.5 text-sm rounded-md transition cursor-pointer ${
                 activeTab === "exercises"
-                  ? "bg-blue-600 text-white"
+                  ? "bg-blue-800 text-white"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >
@@ -161,10 +155,8 @@ const fetchExercises = async () => {
           </div>
           
           <div className="mt-4">
-            {/* PLANS TAB - Browse Published Plans */}
             {activeTab === "plans" && (
               <div>
-                {/* Search and Filters */}
                 <div className="mb-4">
                   <div className="flex gap-2 mb-2">
                     <input
@@ -177,19 +169,18 @@ const fetchExercises = async () => {
                     />
                     <button
                       onClick={() => setShowPlansFilters(!showPlansFilters)}
-                      className="px-3 py-2 text-sm bg-gray-100 rounded-md hover:bg-gray-200"
+                      className="px-3 py-2 text-sm bg-gray-100 rounded-md hover:bg-gray-200 cursor-pointer"
                     >
                       {showPlansFilters ? "Hide Filters" : "Show Filters"}
                     </button>
                     <button
                       onClick={clearPlansFilters}
-                      className="px-3 py-2 text-sm bg-gray-100 rounded-md hover:bg-gray-200"
+                      className="px-3 py-2 text-sm bg-gray-100 rounded-md hover:bg-gray-200 cursor-pointer"
                     >
                       Clear
                     </button>
                   </div>
-                  
-                  {/* Plans Filters */}
+
                   {showPlansFilters && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 p-3 bg-gray-50 rounded-md">
                       <select
@@ -260,7 +251,6 @@ const fetchExercises = async () => {
                   )}
                 </div>
 
-                {/* Plans List */}
                 {plansLoading ? (
                   <div className="text-center py-8 text-gray-500">Loading plans...</div>
                 ) : plans.length === 0 ? (
@@ -268,30 +258,23 @@ const fetchExercises = async () => {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {plans.map((plan) => (
-                      <div key={plan.plan_id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
+                      <btn key={plan.plan_id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition cursor-pointer">
                         <h3 className="font-semibold text-lg mb-2">{plan.name}</h3>
                         {plan.description && (
                           <p className="text-sm text-gray-600 mb-3">{plan.description}</p>
                         )}
-                        <div className="text-xs text-gray-500 mb-2">
-                          {plan.days?.length || 0} days • {plan.exercise_count || 0} exercises
+                        <div className="flex gap-2 text-xs">
+                          <btn className="btn btn-xs bg-red-600 text-white">Delete</btn>
                         </div>
-                        <div className="flex flex-wrap gap-2 text-xs">
-                          {plan.muscle_groups && plan.muscle_groups.map((mg, idx) => (
-                            <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-700 rounded">🏋️ {mg}</span>
-                          ))}
-                        </div>
-                      </div>
+                      </btn>
                     ))}
                   </div>
                 )}
               </div>
             )}
 
-            {/* EXERCISES TAB */}
             {activeTab === "exercises" && (
               <div>
-                {/* Search and Filters */}
                 <div className="mb-4">
                   <div className="flex gap-2 mb-2">
                     <input
@@ -304,19 +287,18 @@ const fetchExercises = async () => {
                     />
                     <button
                       onClick={() => setShowExercisesFilters(!showExercisesFilters)}
-                      className="px-3 py-2 text-sm bg-gray-100 rounded-md hover:bg-gray-200"
+                      className="px-3 py-2 text-sm bg-gray-100 rounded-md hover:bg-gray-200 cursor-pointer"
                     >
                       {showExercisesFilters ? "Hide Filters" : "Show Filters"}
                     </button>
                     <button
                       onClick={clearExercisesFilters}
-                      className="px-3 py-2 text-sm bg-gray-100 rounded-md hover:bg-gray-200"
+                      className="px-3 py-2 text-sm bg-gray-100 rounded-md hover:bg-gray-200 cursor-pointer"
                     >
                       Clear
                     </button>
                   </div>
                   
-                  {/* Exercises Filters */}
                   {showExercisesFilters && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 bg-gray-50 rounded-md">
                       <select
@@ -368,7 +350,6 @@ const fetchExercises = async () => {
                   )}
                 </div>
 
-                {/* Exercises List */}
                 {exercisesLoading ? (
                   <div className="text-center py-8 text-gray-500">Loading exercises...</div>
                 ) : exercises.length === 0 ? (
@@ -376,23 +357,26 @@ const fetchExercises = async () => {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {exercises.map((exercise) => (
-                      <div key={exercise.id || exercise.exercise_id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
+                      <btn key={exercise.id || exercise.exercise_id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition cursor-pointer">
                         <h3 className="font-semibold text-lg mb-2">{exercise.name}</h3>
                         {exercise.description && (
                           <p className="text-sm text-gray-600 mb-3">{exercise.description}</p>
                         )}
-                        <div className="flex flex-wrap gap-2 text-xs">
+                        <div className="flex flex-wrap gap-2 mb-2 text-xs">
                           {exercise.muscle_group && (
-                            <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded">🏋️ {exercise.muscle_group}</span>
+                            <span className="px-2 py-1 bg-yellow-100 text-gray-700 rounded">{exercise.muscle_group}</span>
                           )}
                           {exercise.equipment && (
-                            <span className="px-2 py-1 bg-green-100 text-green-700 rounded">⚙️ {exercise.equipment}</span>
+                            <span className="px-2 py-1 bg-yellow-300 text-gray-700 rounded">{exercise.equipment}</span>
                           )}
                           {exercise.training_type && (
-                            <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded">💪 {exercise.training_type}</span>
+                            <span className="px-2 py-1 bg-yellow-500 text-gray-700 rounded">{exercise.training_type}</span>
                           )}
                         </div>
-                      </div>
+                        <div className="flex flex-wrap gap-2 text-xs">
+                          <btn className="btn btn-xs bg-red-600 text-white">Delete</btn>
+                        </div>
+                      </btn>
                     ))}
                   </div>
                 )}
