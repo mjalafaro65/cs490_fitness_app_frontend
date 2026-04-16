@@ -10,12 +10,7 @@ function ADashboard(){
   const [selectedUser, setSelectedUser] = useState(null);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    total_users: 0,
-    active_users: 0,
-    inactive_users: 0,
-    new_users_last_7_days: 0
-  });
+  const [stats, setStats] = useState();
   
   const [currentPage, setCurrentPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(true);
@@ -79,12 +74,7 @@ function ADashboard(){
         const data = response.data;
         console.log("Data:", data);
         
-        setStats({
-          total_users: data.total_users || 0,
-          active_users: data.active_users || 0,
-          inactive_users: data.inactive_users || 0,
-          new_users_last_7_days: data.new_users_last_7_days || 0
-        });
+        setStats(data);
         
       } catch (err) {
         console.error("Failed to fetch:", err.response?.data || err);
@@ -188,8 +178,8 @@ function ADashboard(){
                 <div className="bg-white rounded-lg border border-blue-100 shadow-sm p-5 hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-medium text-blue-600 uppercase tracking-wide">Total Users</p>
-                      <p className="text-3xl font-bold text-gray-800 mt-2">{stats.total_users}</p>
+                      <p className="text-xs font-medium text-blue-600 uppercase tracking-wide">Total Client Users</p>
+                      <p className="text-3xl font-bold text-gray-800 mt-2">{stats?.client_users}</p>
                     </div>
                     <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center">
                       <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -202,7 +192,7 @@ function ADashboard(){
                 <div className="bg-white rounded-lg border border-green-100 shadow-sm p-5 hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-medium text-green-600 uppercase tracking-wide">Active Users</p>
+                      <p className="text-xs font-medium text-green-600 uppercase tracking-wide">ALL Users</p>
                       <p className="text-3xl font-bold text-gray-800 mt-2">{stats.active_users}</p>
                     </div>
                     <div className="w-10 h-10 bg-green-50 rounded-full flex items-center justify-center">
@@ -216,8 +206,8 @@ function ADashboard(){
                 <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Inactive Users</p>
-                      <p className="text-3xl font-bold text-gray-800 mt-2">{stats.inactive_users}</p>
+                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Deleted Users</p>
+                      <p className="text-3xl font-bold text-gray-800 mt-2">{stats.deleted_users}</p>
                     </div>
                     <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center">
                       <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -231,7 +221,7 @@ function ADashboard(){
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs font-medium text-blue-600 uppercase tracking-wide">New Users (7 days)</p>
-                      <p className="text-3xl font-bold text-gray-800 mt-2">{stats.new_users_last_7_days}</p>
+                      <p className="text-3xl font-bold text-gray-800 mt-2">{stats.new_client_users_last_7}</p>
                     </div>
                     <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center">
                       <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

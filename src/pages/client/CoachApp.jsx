@@ -139,7 +139,6 @@ function CoachApply() {
                                         value={profileData.specialty_id}
                                         onChange={handleChange}
                                     >
-                                        <option value={0} disabled>Select your gender</option>
                                         {specialties.map((specialty) => (
                                             <option key={specialty.specialty_id} value={specialty.specialty_id}>
                                                 {specialty.name}
