@@ -6,18 +6,14 @@ function WorkoutCalendar({ plans = [] }) {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
-  // Month name
   const monthName = currentDate.toLocaleString("default", {
     month: "long",
   });
 
-  // First day of month (0 = Sunday)
   const firstDay = new Date(year, month, 1).getDay();
 
-  // Total days in month
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  // generate calendar grid
   const generateCalendar = (year, month) => {
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -25,7 +21,6 @@ function WorkoutCalendar({ plans = [] }) {
     const rows = [];
     let cells = [];
 
-    // empty cells at start
     for (let i = 0; i < firstDay; i++) {
       cells.push(null);
     }
@@ -50,9 +45,8 @@ function WorkoutCalendar({ plans = [] }) {
 
   return (
     <div className="card bg-base-300 rounded-box p-4">
-      <h2 className="text-lg font-bold mb-2">Workout Calendar</h2>
+      <h2 className="text-lg font-bold mb-2">Calendar</h2>
 
-      {/* Header */}
       <div className="flex justify-between items-center mb-3">
         <button
           className="btn btn-sm"
@@ -82,14 +76,12 @@ function WorkoutCalendar({ plans = [] }) {
         </button>
       </div>
 
-      {/* Weekdays */}
       <div className="grid grid-cols-7 gap-2 text-center text-sm font-bold mb-1">
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
           <div key={d}>{d}</div>
         ))}
       </div>
 
-      {/* Days */}
       {calendar.map((week, i) => (
         <div key={i} className="grid grid-cols-7 gap-2 text-center">
           {week.map((day, idx) => {

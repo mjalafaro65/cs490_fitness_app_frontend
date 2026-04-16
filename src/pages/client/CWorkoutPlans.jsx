@@ -721,7 +721,7 @@ function ClientWorkoutPlans() {
                           </div>
                           <div className="flex gap-2">
                             <button 
-                              className="btn btn-xs btn-primary"
+                              className="btn btn-xs bg-blue-800 text-white"
                               onClick={async (e) => {
                                 e.stopPropagation();
                                 await handleSelectPlan(planGroup.plan_id);
@@ -730,7 +730,7 @@ function ClientWorkoutPlans() {
                               Edit Plan
                             </button>
                             <button 
-                              className="btn btn-xs btn-error"
+                              className="btn btn-xs bg-red-700 text-white"
                               onClick={async (e) => {
                                 e.stopPropagation();
                                 await handleDeletePlan(planGroup.plan_id);
@@ -801,7 +801,7 @@ function ClientWorkoutPlans() {
                                                   <span className="font-medium text-sm">{formattedDate}</span>
                                                   <div className="flex gap-1 mt-1">
                                                     {workoutsOnDate.map(w => (
-                                                      <span key={w.id} className="text-xs badge badge-sm badge-primary">
+                                                      <span key={w.id} className="text-xs badge badge-m bg-yellow-400">
                                                         {w.day_label}
                                                       </span>
                                                     ))}
@@ -867,7 +867,7 @@ function ClientWorkoutPlans() {
                 </div>
               )}
               <div className="mt-3">
-                <button onClick={() => navigate("/plans")} className="btn btn-primary bg-blue-800 btn-sm w-full">
+                <button onClick={() => navigate("/plans")} className="btn bg-blue-800 btn-sm w-full text-white">
                   Browse Plans
                 </button>
               </div>
@@ -900,7 +900,7 @@ function ClientWorkoutPlans() {
               <input type="checkbox" name="is_public" checked={newPlan.is_public} onChange={(e) => handleChange(e, setNewPlan)} />
               Public
             </label>
-            <button className="btn btn-primary w-full" type="submit">Create</button>
+            <button className="btn bg-blue-800 text-white w-full" type="submit">Create</button>
           </form>
         </div>
       </PopUp>

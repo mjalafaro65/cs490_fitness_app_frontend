@@ -6,8 +6,9 @@ function AboutUs(){
     return(
         <div>
             <VisitorNavbar/>
-        
-            <p>hello</p>
+            <div className="justify-center">
+                <p>Thank you for using our web-app! Hope you suceed in your fitness journey!!</p>
+            </div>
         </div>
     )
 }

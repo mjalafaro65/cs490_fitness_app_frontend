@@ -64,12 +64,7 @@ function CProfile() {
     try {
       console.log("Sending:", bioData);
 
-      const response = await api.put("/client/profile", bioData, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-        }
-      });
+      const response = await api.put("/client/profile", bioData);
 
       console.log("SUCCESS:", response.data);
 
@@ -77,6 +72,11 @@ function CProfile() {
       console.error("Update failed:", error.response?.data || error);
     }
   };
+
+  const capitalize = (string) => {
+  if (!string) return "—";
+  return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+};
 
   const handleSwitchAccount = async (e) => {
     e.preventDefault();
@@ -121,7 +121,8 @@ function CProfile() {
               <div>
                 <label className="label font-semibold">Name:</label>
                 <p className="text-xl font-bold">
-                  {user?.first_name || user?.last_name || "—"}
+                  {`${user.first_name} ${user.last_name}`|| user.first_name || user.last_name || "—"}
+//                   {user?.first_name || user?.last_name || "—"}
                 </p>
               </div>
               <div>
@@ -130,7 +131,7 @@ function CProfile() {
               </div>
               <div>
                 <label className="label font-semibold">Gender:</label>
-                <p className="text-xl font-bold">{bioData?.gender || "—"}</p>
+                <p className="text-xl font-bold">{capitalize(bioData?.gender) || "—"}</p>
               </div>
               <div>
                 <label className="label font-semibold">Bio:</label>
