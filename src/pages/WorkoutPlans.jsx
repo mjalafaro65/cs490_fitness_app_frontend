@@ -10,6 +10,7 @@ function BrowsePlans() {
   const [loadingPlans, setLoadingPlans] = useState(false);
   const [pop, setPopOpen] = useState(null);
   const [selectedPlan, setSelectedPlan] = useState(null);
+  const [copyingPlanId, setCopyingPlanId] = useState(null); 
   const navigate = useNavigate();
 
 
@@ -23,17 +24,47 @@ function BrowsePlans() {
   });
 
   const fetchPlanDetails = async (planId) => {
-  setLoadingPlans(true);
-  try {
-    const response = await api.get(`/workouts/plans/${planId}`);
-    console.log("Full plan:", response.data);
+    setLoadingPlans(true);
+    try {
+      const response = await api.get(`/workouts/plans/${planId}`);
+      console.log("Full plan:", response.data);
 
-    setSelectedPlan(response.data);
-  } catch (err) {
-    console.error("Error fetching plan details:", err);
-  }
-  setLoadingPlans(false);
-};
+      setSelectedPlan(response.data);
+    } catch (err) {
+      console.error("Error fetching plan details:", err);
+    }
+    setLoadingPlans(false);
+  };
+    const handleCopyPlan = async (planId, planName) => {
+      setCopyingPlanId(planId);
+    try {
+      const customName = prompt("Enter a name for your copy (or leave blank to use default):", `${planName} (Copy)`);
+      
+
+      if (customName === null) {
+        setCopyingPlanId(null); 
+        return;
+      }
+      
+      const response = await api.post(`/workouts/plans/${planId}/copy`, {
+        name: customName || `${planName} (Copy)`
+      });
+      
+      console.log("Plan copied:", response.data);
+      
+      alert(`Plan "${planName}" has been copied to your workouts!`);
+      const goToPlans = confirm("Would you like to view your workout plans?");
+      if (goToPlans) {
+        navigate("/client/workout-plans");
+      }
+      
+    } catch (err) {
+      console.error("Error copying plan:", err.response?.data || err);
+      alert(`Failed to copy plan: ${err.response?.data?.message || "Unknown error"}`);
+    } finally {
+      setCopyingPlanId(null);
+    }
+  };
 
   const fetchPlans = async () => {
     setLoading(true);
@@ -205,6 +236,21 @@ function BrowsePlans() {
           }} className="btn btn-sm btn-primary mt-3">
                   View Plan
                 </button>
+
+                <button 
+                  onClick={() => handleCopyPlan(plan.plan_id, plan.name)} 
+                  className="btn btn-sm btn-secondary mt-3 ml-2"
+                  disabled={copyingPlanId === plan.plan_id}
+                >
+                  {copyingPlanId === plan.plan_id ? (
+                    <>
+                      <span className="loading loading-spinner loading-xs"></span>
+                      Copying...
+                    </>
+                  ) : (
+                    "Copy to My Plans"
+                  )}
+                </button>
               </div>
             ))
           )}
@@ -212,71 +258,70 @@ function BrowsePlans() {
       )}
 
       <PopUp isOpen={pop !== null} onClose={() => {
-  setPopOpen(null);
-  setSelectedPlan(null);
-}}>
-  {loadingPlans ? (
-  <p>Loading plan...</p>
-) : selectedPlan ? (
-  <div className="p-4 max-h-[70vh] overflow-y-auto">
-    <h2 className="text-xl font-bold mb-1">
-      {selectedPlan.name}
-    </h2>
+        setPopOpen(null);
+        setSelectedPlan(null);
+      }}>
+        {loadingPlans ? (
+        <p>Loading plan...</p>
+      ) : selectedPlan ? (
+        <div className="p-4 max-h-[70vh] overflow-y-auto">
+          <h2 className="text-xl font-bold mb-1">
+            {selectedPlan.name}
+          </h2>
 
-    <p className="text-sm opacity-60 mb-2">
-      By {selectedPlan.owner_name || "Unknown"}
-    </p>
+          <p className="text-sm opacity-60 mb-2">
+            By {selectedPlan.owner_name || "Unknown"}
+          </p>
 
-    <p className="mb-4 opacity-70">
-      {selectedPlan.description || "No description"}
-    </p>
+          <p className="mb-4 opacity-70">
+            {selectedPlan.description || "No description"}
+          </p>
 
-    {selectedPlan.days?.length > 0 ? (
-      selectedPlan.days.map((day, index) => (
-        <div key={index} className="mb-4 p-3 bg-base-200 rounded">
-          <h3 className="font-bold mb-2">
-            {day.day_label || `Day ${index + 1}`}
-          </h3>
+          {selectedPlan.days?.length > 0 ? (
+            selectedPlan.days.map((day, index) => (
+              <div key={index} className="mb-4 p-3 bg-base-200 rounded">
+                <h3 className="font-bold mb-2">
+                  {day.day_label || `Day ${index + 1}`}
+                </h3>
 
-          {day.session_time && (
-            <p className="text-xs opacity-60 mb-2">
-              Time: {day.session_time}
-            </p>
+                {day.session_time && (
+                  <p className="text-xs opacity-60 mb-2">
+                    Time: {day.session_time}
+                  </p>
+                )}
+
+                {day.exercises?.length > 0 ? (
+        <ul className="space-y-2 text-sm">
+          {day.exercises.map((ex, i) => (
+            <li key={i} className="flex justify-between items-center">
+              
+              <span className="font-medium">
+                {ex.exercise?.name || "Unknown Exercise"}
+              </span>
+
+              <div className="text-right opacity-70">
+                <div>{ex.sets || "-"} x {ex.reps || "-"}</div>
+                <div className="text-xs">
+                  {ex.duration_minutes ? `${ex.duration_minutes} min` : ""}
+                </div>
+              </div>
+
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm opacity-50">No exercises</p>
+      )}
+              </div>
+            ))
+          ) : (
+            <p>No days in this plan.</p>
           )}
-
-          {day.exercises?.length > 0 ? (
-  <ul className="space-y-2 text-sm">
-    {day.exercises.map((ex, i) => (
-      <li key={i} className="flex justify-between items-center">
-        
-        {/* Exercise name is nested */}
-        <span className="font-medium">
-          {ex.exercise?.name || "Unknown Exercise"}
-        </span>
-
-        <div className="text-right opacity-70">
-          <div>{ex.sets || "-"} x {ex.reps || "-"}</div>
-          <div className="text-xs">
-            {ex.duration_minutes ? `${ex.duration_minutes} min` : ""}
-          </div>
         </div>
-
-      </li>
-    ))}
-  </ul>
-) : (
-  <p className="text-sm opacity-50">No exercises</p>
-)}
-        </div>
-      ))
-    ) : (
-      <p>No days in this plan.</p>
-    )}
-  </div>
-) : (
-  <p>No plan selected.</p>
-)}
-</PopUp>
+      ) : (
+        <p>No plan selected.</p>
+      )}
+      </PopUp>
     </div>
   );
 }
