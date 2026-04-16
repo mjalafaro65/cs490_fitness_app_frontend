@@ -22,7 +22,10 @@ function Log_In() {
         });
     };
 
-    const { fetchUser , coachStatus} = useAuth();
+    const { fetchUser } = useAuth();
+
+
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -38,19 +41,27 @@ function Log_In() {
                 const roles = userData?.roles || []
                 const userId = userData?.user_id;
 
+                let coachStatusLocal = null;
+
+                if (roles.includes(2)) {
+                    const coachRes = await api.get("/coach/coach-profile");
+                    coachStatusLocal = coachRes.data.status;
+                }
+
                 if (roles.includes(3)) {
                     navigate("/admin/dashboard");
                 }
                 if (roles.includes(2)) {
+
+
                     if (!userId) {
                         // Coach exists in Auth but hasn't filled out their profile
                         return navigate("/setup");
-                    }                
-
-                    if (coachStatus == "approved") {
+                    }
+                    if (coachStatusLocal == "approved") {
                         return navigate("/coach/dashboard");
 
-                    // if status is on switched it will navigate to client profile
+                        // if status is on switched it will navigate to client profile
                     } else {
                         navigate("/client/initial-survey");
                     }

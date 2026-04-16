@@ -24,6 +24,8 @@ export const AuthProvider = ({ children }) => {
         try {
           const coachRes = await api.get("/coach/coach-profile");
           setCoachStatus(coachRes.data.status)
+              console.log(coachRes.data.status)
+
         } catch (errorC) {
           console.log("Coach profile not found yet");
           setCoachStatus(null);
@@ -54,7 +56,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{ user, loading, coachStatus, fetchUser, logout }}>
-      {children}
+        {children}
     </AuthContext.Provider>
   );
 };

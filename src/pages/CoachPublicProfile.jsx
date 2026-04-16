@@ -111,7 +111,7 @@ const CoachPublicProfile = ({ isPublic }) => {
                                 <button className="btn btn-primary w-full bg-blue-800 mb-3">
                                     {isNotLoggedIn ? "Sign up to Message" : "Message Coach"}
                                 </button>
-                                <button className="btn btn-outline btn-block border-gray-300">Book Free Intro</button>
+                                <button className="btn btn-outline btn-block border-gray-300">Hire Coach</button>
                             </div>
                         </div>
                     </div>

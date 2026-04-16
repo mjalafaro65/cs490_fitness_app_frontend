@@ -220,7 +220,7 @@ function CoachApply() {
                                                 <option value="" disabled>Select Type...</option>
                                                 <option value="Certification">Certification</option>
                                                 <option value="ID">ID</option>
-                                                <option value="Insurance">Other</option>
+                                                {/* <option value="Insurance">Other</option> */}
                                             </select>
 
                                             <button
