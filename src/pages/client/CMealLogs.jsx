@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import "../../App.css";
 import PopUp from "../../components/PopUp";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../AuthContext";
 
 function MealLogs(){
   const [isPopOpen, setPopOpen] = useState(null);

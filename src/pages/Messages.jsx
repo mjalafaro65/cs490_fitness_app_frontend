@@ -362,10 +362,11 @@ function Messages() {
     const res = await api.post("/messaging/conversations", {
       relationship_id: rel.relationship_id,
       conversation_type: "direct",
-      participant_ids: [otherUserId],
+      participant_ids: [rel.coach.user_id, rel.client.user_id],
     });
-
     const convo = res.data;
+    console.log(convo)
+
 
     setSelectedConversation(convo);
     fetchMessages(convo.conversation_id);
@@ -402,6 +403,8 @@ function Messages() {
       fetchMessages(location.state.conversation.conversation_id);
     }
   }, [location.state]);
+
+  console.log("ALL CONVERSATIONS:", conversations);
 
   // ---------------- UI ----------------
 
