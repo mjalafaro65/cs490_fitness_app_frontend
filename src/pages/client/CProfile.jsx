@@ -121,8 +121,8 @@ function CProfile() {
               <div>
                 <label className="label font-semibold">Name:</label>
                 <p className="text-xl font-bold">
-                  {`${user.first_name} ${user.last_name}`|| user.first_name || user.last_name || "—"}
-//                   {user?.first_name || user?.last_name || "—"}
+                  {`${user?.first_name} ${user?.last_name}`|| user?.first_name || user?.last_name || "—"}
+{/* //                   {user?.first_name || user?.last_name || "—"} */}
                 </p>
               </div>
               <div>
