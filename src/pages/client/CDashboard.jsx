@@ -212,6 +212,26 @@ function CDashboard() {
       <div className="drawer-content">
         <section className="p-6 flex flex-col gap-6">
           <div className="text-2xl font-bold mb-4">Dashboard</div>
+          <div className="flex w-full grow flex-1 gap-4">
+            <div className="card bg-base-300 rounded-box grow p-4">
+              <h2 className="text-xs font-semibold mb-2">Hours of Sleep</h2>
+              <p className="text-xl font-bold">
+                {daily.sleep_hours || "—"}
+              </p>
+            </div>
+            <div className="card bg-base-300 rounded-box grow p-4">
+              <h2 className="text-xs font-semibold mb-2">Mood</h2>
+              <p className="text-xl font-bold">
+                {daily.mood_score ? `${daily.mood_score} / 5` : "—"}
+              </p>
+            </div>
+            <div className="card bg-base-300 rounded-box grow p-4 flex">
+              <h2 className="text-xs font-semibold mb-2">Water Intake</h2>
+              <p className="text-xl font-bold">
+                {daily.water_oz ? `${daily.water_oz} oz` : "—"}
+              </p>
+            </div>
+          </div>
           <div className="card bg-base-300 rounded-box p-4">
             <div className="flex items-center justify-between mb-4">
               <button
@@ -283,15 +303,16 @@ function CDashboard() {
                         sessions.map((s, si) => (
                           <div
                             key={`s-${si}`}
-                            className="bg-secondary/20 text-secondary rounded px-1.5 py-0.5 text-[10px] font-semibold leading-tight truncate"
+                            className="bg-blue-400/20 text-blue-400 rounded px-1.5 py-0.5 text-[10px] font-semibold leading-tight truncate"
                             title={`${s.planName} — ${s.dayLabel}`}
                           >
                             {s.dayLabel || s.planName}
                           </div>
                         ))
                       ) : (
-                        <span className="text-[10px] opacity-30 text-center mt-auto">rest</span>
+                        <span className="text-[10px] opacity-30 text-center mt-auto">Rest day</span>
                       )}
+
                     </div>
                   );
                 })}
@@ -342,11 +363,11 @@ function CDashboard() {
                 <div className="flex flex-col gap-2 text-sm">
                   {[
                     { label: "Sleep",  value: dayLog.sleep_hours  ? `${dayLog.sleep_hours} hrs`  : null },
-                    { label: "Mood",   value: dayLog.mood_score   ? `${dayLog.mood_score} / 10` : null },
+                    { label: "Mood",   value: dayLog.mood_score   ? `${dayLog.mood_score} / 5` : null },
                     { label: "Water",  value: dayLog.water_oz     ? `${dayLog.water_oz} oz`      : null },
                     { label: "Weight", value: dayLog.weight_lbs   ? `${dayLog.weight_lbs} lbs`   : null },
                     { label: "Goal",   value: dayLog.daily_goal   || null },
-                    { label: "Energy", value: dayLog.energy_level ? `${dayLog.energy_level} / 10` : null },
+                    { label: "Energy", value: dayLog.energy_level ? `${dayLog.energy_level} / 5` : null },
                     { label: "Focus",  value: dayLog.target_focus || null },
                   ].map(({ label, value }) =>
                     value ? (
@@ -369,8 +390,8 @@ function CDashboard() {
               )}
               {isSameDay(selectedDay, today) && (
                 <button
-                  className="btn btn-primary btn-xs mt-4 w-full"
-                  onClick={() => setPopOpen("log")}
+                  className="btn bg-blue-800 text-white btn-xs p-3 mt-4 w-full"
+                  onClick={() => setPopOpen("update")}
                 >
                   Update Today's Log
                 </button>
@@ -378,38 +399,17 @@ function CDashboard() {
             </div>
           </div>
 
-
-          <div className="flex w-full grow flex-1 gap-4">
-            <div className="card bg-base-300 rounded-box grow p-4">
-              <h2 className="text-xs mb-2">Hours of Sleep</h2>
-              <p className="text-xl font-bold">
-                {daily.sleep_hours || "—"}
-              </p>
-            </div>
-            <div className="card bg-base-300 rounded-box grow p-4">
-              <h2 className="text-xs mb-2">Mood</h2>
-              <p className="text-xl font-bold">
-                {daily.mood_score ? `${daily.mood_score} / 10` : "—"}
-              </p>
-            </div>
-            <div className="card bg-base-300 rounded-box grow p-4 flex">
-              <h2 className="text-xs mb-2">Water Intake</h2>
-              <p className="text-xl font-bold">
-                {daily.water_oz ? `${daily.water_oz} oz` : "—"}
-              </p>
-            </div>
-          </div>
-
           <div className="flex justify-end gap-2">
-            <button
-              className="btn btn-primary btn-sm rounded-t"
+            {/*<button
+              className="btn bg-blue-800 text-white btn-sm rounded-t"
               onClick={() => setPopOpen("log")}
             >
               Daily Wellness Log
             </button>
-            <button className="btn btn-primary btn-sm rounded-t" onClick={() => setPopOpen("view")}>
+            <button className="btn bg-yellow-400 btn-sm rounded-t" onClick={() => setPopOpen("view")}>
               View Today's Log
             </button>
+            */}
           </div>
 
           <div className="flex w-full grow flex-1 gap-4">
@@ -429,7 +429,7 @@ function CDashboard() {
               <h2 className="text-lg font-bold mb-2">My Coach</h2>
               <span className="text-sm opacity-70 mb-3">No coach assigned</span>
               <div className="mt-auto flex justify-center">
-                <button className="btn btn-primary btn-sm" onClick={() => navigate("/client/coaches")}>
+                <button className="btn bg-blue-800 text-white btn-sm" onClick={() => navigate("/client/coaches")}>
                   Browse Coaches
                 </button>
               </div>
@@ -489,26 +489,47 @@ function CDashboard() {
               </label>
               <label className="label flex justify-between">
                 Hours of Sleep:
-                <input className="input input-bordered w-32" type="number" name="sleep_hours" value={daily.sleep_hours} onChange={handleChange} step="0.5" />
+                <input className="input input-bordered w-32" type="number" name="sleep_hours" value={daily.sleep_hours} onChange={handleChange} />
+              </label>
+            </div>
+            <button className="btn bg-blue-800 mt-4 w-full text-white" type="submit">Log</button>
+          </form>
+        )}
+
+        {isPopOpen === "update" && (
+          <form onSubmit={handleSubmit} className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+            <h2 className="text-xl font-bold mb-4">DAILY WELLNESS LOG</h2>
+            <div className="space-y-3">
+              <label className="label flex justify-between">
+                Water (in oz):
+                <input className="input input-bordered w-32" type="number" name="water_oz" value={daily.water_oz} onChange={handleChange} />
               </label>
               <label className="label flex justify-between">
-                Mood Score (1-10):
-                <input className="input input-bordered w-32" type="number" name="mood_score" value={daily.mood_score} onChange={handleChange} min="1" max="10" />
+                Weight (in lbs):
+                <input className="input input-bordered w-32" type="number" name="weight_lbs" value={daily.weight_lbs} onChange={handleChange} />
+              </label>
+              <label className="label flex justify-between">
+                Hours of Sleep:
+                <input className="input input-bordered w-32" type="number" name="sleep_hours" value={daily.sleep_hours} onChange={handleChange} />
+              </label>
+              <label className="label flex justify-between">
+                Mood Score (1-5):
+                <input className="input input-bordered w-32" type="number" name="mood_score" value={daily.mood_score} onChange={handleChange} min="1" max="5" />
               </label>
               <label className="label flex flex-col items-start gap-1">
                 <span>Daily Goal:</span>
                 <input className="input input-bordered w-full" type="text" name="daily_goal" value={daily.daily_goal} onChange={handleChange} />
               </label>
               <label className="label flex flex-col items-start gap-1">
-                <span>Energy Level (1-10):</span>
-                <input className="input input-bordered w-full" type="number" name="energy_level" value={daily.energy_level} onChange={handleChange} min="1" max="10" />
+                <span>Energy Level (1-5):</span>
+                <input className="input input-bordered w-full" type="number" name="energy_level" value={daily.energy_level} onChange={handleChange} min="1" max="5" />
               </label>
               <label className="label flex flex-col items-start gap-1">
                 <span>Target Focus:</span>
                 <input className="input input-bordered w-full" type="text" name="target_focus" value={daily.target_focus} onChange={handleChange} />
               </label>
             </div>
-            <button className="btn btn-primary mt-4 w-full" type="submit">Save Log</button>
+            <button className="btn bg-blue-800 mt-4 w-full text-white" type="submit">Update</button>
           </form>
         )}
 
@@ -518,12 +539,12 @@ function CDashboard() {
             <div className="space-y-3">
               {[
                 { key: "daily_goal", label: "Daily Goal" },
-                { key: "energy_level", label: "Energy Level", suffix: "/10" },
+                { key: "energy_level", label: "Energy Level", suffix: "/5" },
                 { key: "target_focus", label: "Target Focus" },
                 { key: "water_oz", label: "Water Intake", suffix: " oz" },
                 { key: "weight_lbs", label: "Weight", suffix: " lbs" },
                 { key: "sleep_hours", label: "Sleep", suffix: " hrs" },
-                { key: "mood_score", label: "Mood Score", suffix: "/10" }
+                { key: "mood_score", label: "Mood Score", suffix: "/5" }
               ].map(({ key, label, suffix }) => (
                 <div key={key} className="flex justify-between border-b border-base-300 pb-2">
                   <span className="font-semibold text-base-content/70">{label}:</span>

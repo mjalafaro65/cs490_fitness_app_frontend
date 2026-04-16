@@ -9,8 +9,6 @@ function CProfile() {
 
   const navigate = useNavigate();
 
-
-
   const [bioData, setData] = useState({
     date_of_birth: "",
     gender: "",
@@ -22,7 +20,7 @@ function CProfile() {
   const [user, setUser] = useState({
     first_name: "",
     last_name: "",
-    picture: ""
+    phone_number: ""
   });
 
   const [popOpen, setPopOpen] = useState(null);
@@ -30,7 +28,7 @@ function CProfile() {
   useEffect(() => {
     async function fetchUser() {
       try {
-        const response = await api.get("/auth/setup", {
+        const response = await api.get("/user/me", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`
           }
@@ -41,10 +39,9 @@ function CProfile() {
         console.log("Response data:", data);
 
         setUser({
-          first_name: data.date_of_birth || "",
-          last_name: data.gender || "",
-          bio: data.bio || "",
-          profile_picture: data.profile_picture || ""
+          first_name: data.first_name || "",
+          last_name: data.last_name || "",
+          phone_number: data.phone_number || ""
         });
 
       } catch (err) {
@@ -107,12 +104,7 @@ function CProfile() {
     try {
       console.log("Sending:", bioData);
 
-      const response = await api.put("/client/profile", bioData, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-        }
-      });
+      const response = await api.put("/client/profile", bioData);
 
       console.log("SUCCESS:", response.data);
 
@@ -120,6 +112,12 @@ function CProfile() {
       console.error("Update failed:", error.response?.data || error);
     }
   };
+
+  const capitalize = (string) => {
+  if (!string) return "—";
+  return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+};
+
   const handleSwitchAccount = async (e) => {
     e.preventDefault();
     try {
@@ -163,7 +161,7 @@ function CProfile() {
               <div>
                 <label className="label font-semibold">Name:</label>
                 <p className="text-xl font-bold">
-                  {user.first_name || user.last_name || "—"}
+                  {`${user.first_name} ${user.last_name}`|| user.first_name || user.last_name || "—"}
                 </p>
               </div>
               <div>
@@ -172,7 +170,7 @@ function CProfile() {
               </div>
               <div>
                 <label className="label font-semibold">Gender:</label>
-                <p className="text-xl font-bold">{bioData.gender || "—"}</p>
+                <p className="text-xl font-bold">{capitalize(bioData.gender) || "—"}</p>
               </div>
               <div>
                 <label className="label font-semibold">Bio:</label>

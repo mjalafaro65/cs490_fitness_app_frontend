@@ -2,31 +2,49 @@ import { useState, useEffect } from "react";
 import "../../App.css";
 import PopUp from "../../components/PopUp";
 
-//put calender in here-- have to import a package to get + edit assignment button
-//edit the forms inside the buttons once we get endpoint
-
 function MealLogs(){
   const [isPopOpen, setPopOpen] = useState(null);
+  const navigate = useNavigate();
+  const { fetchUser } = useAuth();
 
-  const handleChange = (e) => {
-        setData({
-            ...initialData, [e.target.name]: e.target.value
-        });
+
+  const [logData, setData] = useState({
+    user_id: "",
+    meal_id: "", 
+    servings: "", 
+    notes: ""
+  });
+
+  useEffect(() => {
+    fetchUser();
+  }, []);
+
+    const handleChange = (e) => {
+      setData({
+          ...logData, [e.target.name]: e.target.value
+      });
     };
 
   const handleSubmit = async (e) => {
-        e.preventDefault();
-        
-        try{
-            const response = await api.post("/coach/coach-profile", initialData); //fix this api
-            console.log("STATUS:", response.status);
+    e.preventDefault();
 
-        }
-        catch(error){
-            console.error("Update failed:", error.response?.data);
-            alert("Update failed, please try again");
-        }
-    };
+    try {
+      console.log("Sending:", logData);
+      setData({
+        user_id: logData.user_id || "",
+        meal_id: logData.meal_id || "",
+        servings: logData.servings || "",
+        notes: logData.notes || ""
+        });
+
+      const response = await api.post("/nutrition/nutrition-logs", logData);
+
+      console.log("SUCCESS:", response.data);
+
+    } catch (error) {
+      console.error("Update failed:", error.response?.data || error);
+    }
+  };
 
   return (
     <div className="drawer lg:drawer-open">
@@ -90,28 +108,16 @@ function MealLogs(){
           <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
             <h2>Log Meal</h2>
               <label className="label">
-                Daily Goal:
-                <input className = "input" type="text" name="daily_goal" />
+                Meal:
+                <input className = "input" type="number" name="meal_id" />
               </label>
               <label className="label">
-                Energy Level:
-                <input className="input" type="number" name="energy_level" />
+                Servings:
+                <input className="input" type="number" name="servings" />
               </label>
               <label className="label">
-                Target Focus:
-                <input className="input" type="text" name="target_focus" />
-              </label>
-              <label className="label">
-                Water (in oz):
-                <input className="input" type="number" name="water_oz" />
-              </label>
-              <label className="label">
-                Weight (in lbs):
-                <input className="input" type="number" name="weight_lbs" />
-              </label>
-              <label className="label">
-                Hours of Sleep:
-                <input className="input" type="number" name="sleep_hours" />
+                Notes:
+                <input className="input" type="text" name="notes" />
               </label>
               <button className="btn btn-primary bg-blue-800" type="submit">Create</button>
           </fieldset>

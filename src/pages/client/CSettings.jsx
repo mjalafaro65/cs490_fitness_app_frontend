@@ -25,11 +25,11 @@ function CSettings() {
     });
     
 
-    // const [user, setUser] = useState({
-    //     first_name: "",
-    //     last_name: "",
-    //     picture: ""
-    // });
+     const [users, setUser] = useState({
+         first_name: "",
+         last_name: "",
+         phone_number: ""
+    });
 
     useEffect(() => {
     async function fetchUser() {
@@ -39,9 +39,6 @@ function CSettings() {
         const data = response.data;
 
         console.log("Response data:", data);
-
-        console.log("RAW GENDER FROM API:", data.gender);
-        console.log("PARSED GENDER:", data.gender ? data.gender.split(".")[1] : "");
 
         setData({
         first_name: data.first_name || "",
@@ -57,9 +54,25 @@ function CSettings() {
         weight: data.weight || "",
         });
 
-        setTimeout(() => {
-            console.log("STATE AFTER SET:", initialData.gender);
-        }, 0);
+      } catch (err) {
+        console.error("Failed to fetch user:", err.response?.data || err);
+      }
+    }
+
+        fetchUser();
+    }, []);
+
+    useEffect(() => {
+    async function fetchUser() {
+      try {
+        const response = await api.get("/user/me");
+        const data = response.data;
+
+        setUser({
+        first_name: data.first_name || "",
+        last_name: data.last_name || "",
+        phone_number: data.phone_number || ""
+        });
 
       } catch (err) {
         console.error("Failed to fetch user:", err.response?.data || err);
@@ -70,6 +83,9 @@ function CSettings() {
     }, []);
 
     const handleChange = (e) => {
+        setUser({
+            ...users, [e.target.name]: e.target.value
+        });
         setData({
             ...initialData, [e.target.name]: e.target.value
         });
@@ -78,28 +94,35 @@ function CSettings() {
     const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log("====== SENDING DATA ======");
-console.log("FULL STATE BEFORE FORMAT:", initialData);
+    const formattedData = {
+        date_of_birth: initialData.date_of_birth,
+        gender: initialData.gender?.split(".")[1] || initialData.gender,
+        bio: initialData.bio,
+        profile_photo: initialData.profile_photo,
+        height: Number(initialData.height),
+        weight: Number(initialData.weight),
+    };
 
-const formattedData = {
-    date_of_birth: initialData.date_of_birth,
-    gender: initialData.gender?.split(".")[1] || initialData.gender,
-    bio: initialData.bio,
-    profile_photo: initialData.profile_photo,
-    height: Number(initialData.height),
-    weight: Number(initialData.weight),
-};
+    const formattedData2 = {
+        first_name: users.first_name,
+        last_name: users.last_name,
+        phone_number: users.phone_number
+    };
 
     try {
         const response = await api.put("/client/profile", formattedData);
+        const repsonse2 = await api.patch("/user/me", formattedData2);
 
         console.log("SUCCESS:", response.data);
+        console.log("SUCCESS:", response2.data);
         alert("Profile updated successfully!");
     } catch (error) {
         console.log("SUBMIT STATE SNAPSHOT:", JSON.parse(JSON.stringify(initialData)));
-        if (error.response) {
+        if (error.response || error.response2) {
         console.error("Status:", error.response.status);
+        console.error("Status:", error.response2.status);
         console.error("Backend errors:", error.response.data);
+        console.error("Backend errors:", error.response2.data);
         } else {
         console.error("No response received");
         }
@@ -148,19 +171,19 @@ const formattedData = {
                                 />
                             ) : (
                                 <div className="w-50 h-50 bg-blue-800  rounded-full  text-primary-content flex items-center justify-center text-4xl font-bold uppercase border-4 border-base-100 shadow-lg">
-                                    {user?.first_name?.[0]?.toUpperCase() || "?"}
+                                    {users?.first_name?.[0]?.toUpperCase() || "?"}
                                 </div>
                             )}
                         </div>
                         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full p-6 bg-white rounded-xl shadow-lg border border-gray-100">
-                            {/* Name */}
+
                             <div className="flex flex-col gap-1">
                                 <span className="font-semibold text-gray-600">First Name</span>
                                 <input
                                 className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 type="text"
                                 name="first_name"
-                                value={initialData.first_name}
+                                value={users.first_name}
                                 onChange={handleChange}
                                 placeholder="First Name"
                                 />
@@ -172,13 +195,24 @@ const formattedData = {
                                 className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 type="text"
                                 name="last_name"
-                                value={initialData.last_name}
+                                value={users.last_name}
                                 onChange={handleChange}
                                 placeholder="Last Name"
                                 />
                             </div>
 
-                            {/* Email */}
+                            <div className="flex flex-col md:col-span-2 gap-1">
+                                <span className="font-semibold text-gray-600">Phone Number</span>
+                                <input
+                                className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                type="text"
+                                name="phone_number"
+                                value={users.phone_number}
+                                onChange={handleChange}
+                                placeholder="XXX-XXX-XXXX"
+                                />
+                            </div>
+                            {/*
                             <div className="flex flex-col md:col-span-2 gap-1">
                                 <span className="font-semibold text-gray-600">Email</span>
                                 <input
@@ -190,8 +224,8 @@ const formattedData = {
                                 placeholder="Email"
                                 />
                             </div>
+                            */}
 
-                            {/* Date of Birth & Gender */}
                             <div className="flex flex-col gap-1">
                                 <span className="font-semibold text-gray-600">Date of Birth</span>
                                 <input
@@ -219,7 +253,6 @@ const formattedData = {
                                 </select>
                             </div>
 
-                            {/* Bio */}
                             <div className="flex flex-col md:col-span-2 gap-1">
                                 <span className="font-semibold text-gray-600">Bio</span>
                                 <textarea
@@ -231,7 +264,6 @@ const formattedData = {
                                 />
                             </div>
 
-                            {/* Height & Weight */}
                             <div className="flex flex-col gap-1">
                                 <span className="font-semibold text-gray-600">Height (cm)</span>
                                 <input
@@ -256,7 +288,6 @@ const formattedData = {
                                 />
                             </div>
 
-                            {/* Save Button */}
                             <div className="md:col-span-2 flex justify-end mt-4">
                                 <button
                                 type="submit"
@@ -281,7 +312,6 @@ const formattedData = {
                                 </p>
 
                                 <div className="flex flex-col gap-3 mt-4">
-                                    {/* The "Yes" button */}
                                     <button
                                         type="button"
                                         className="btn bg-blue-800 hover:bg-blue-900 text-white border-none"
@@ -290,7 +320,6 @@ const formattedData = {
                                         Yes, DELETE
                                     </button>
 
-                                    {/* The "Cancel" button */}
                                     <button
                                         className="btn bg-gray-200 hover:bg-gray-300 text-black border-none"
                                         onClick={() => setPopOpen(null)}
