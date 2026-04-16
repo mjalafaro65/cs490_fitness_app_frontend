@@ -427,21 +427,21 @@ function Messages() {
                   ? rel.coach
                   : rel.client;
 
-              return (
-                <button
-                  key={rel.relationship_id}
-                  onClick={() => handleStartFromRelationship(rel)}
-                  className="p-2 bg-gray-100 hover:bg-gray-200 rounded text-left"
-                >
-                  Chat with {otherUser.first_name} {otherUser.last_name}
-                  <div className="text-xs text-gray-500">
-                    {/* Role: {rel.relationship_role} */}
-                     Role: coach
+              // return (
+              //   <button
+              //     key={rel.relationship_id}
+              //     onClick={() => handleStartFromRelationship(rel)}
+              //     className="p-2 bg-gray-100 hover:bg-gray-200 rounded text-left"
+              //   >
+              //     Chat with {otherUser.first_name} {otherUser.last_name}
+              //     <div className="text-xs text-gray-500">
+              //       {/* Role: {rel.relationship_role} */}
+              //        Role: coach
 
 
-                  </div>
-                </button>
-              );
+              //     </div>
+              //   </button>
+              // );
             })}
           </div>
         </div>
