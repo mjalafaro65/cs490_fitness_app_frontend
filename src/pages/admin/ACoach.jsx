@@ -162,9 +162,9 @@ const acceptCoach = async (coach) => {
   setProcessingAction(prev => ({ ...prev, [coach.coach_profile_id]: true }));
 
   try {
-    await api.patch("/coach/coach-profile", {
-      status: "approved"
-    });
+    await api.patch("/coach/coach-profile", 
+      {status: "approved"},  { params: { user_id: coach.user_id } }
+    );
 
     setAppli(prev => prev.filter(a => a.coach_profile_id !== coach.coach_profile_id));
     

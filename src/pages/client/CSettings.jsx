@@ -10,6 +10,10 @@ function CSettings() {
     const navigate = useNavigate();
     const [isPopOpen, setPopOpen] = useState(null);
 
+    const [deleteStep, setDeleteStep] = useState(1);
+    const [reason, setReason] = useState("");
+    const [detailedReason, setDetailedReason] = useState("");
+
     const [initialData, setData] = useState({
         first_name: "",
         last_name: "",
@@ -23,61 +27,61 @@ function CSettings() {
         height: "",
         weight: ""
     });
-    
 
-     const [users, setUser] = useState({
-         first_name: "",
-         last_name: "",
-         phone_number: ""
+
+    const [users, setUser] = useState({
+        first_name: "",
+        last_name: "",
+        phone_number: ""
     });
 
     useEffect(() => {
-    async function fetchUser() {
-      try {
-        const response = await api.get("/client/profile");
+        async function fetchUser() {
+            try {
+                const response = await api.get("/client/profile");
 
-        const data = response.data;
+                const data = response.data;
 
-        console.log("Response data:", data);
+                console.log("Response data:", data);
 
-        setData({
-        first_name: data.first_name || "",
-        last_name: data.last_name || "",
-        email: data.email || "",
-        password: data.password || "",
-        phone_number: data.phone_number || "",
-        date_of_birth: data.date_of_birth || "",
-        gender: data.gender ? data.gender.split(".")[1] : "", 
-        profile_photo: data.profile_photo || "",
-        bio: data.bio || "",
-        height: data.height || "",
-        weight: data.weight || "",
-        });
+                setData({
+                    first_name: data.first_name || "",
+                    last_name: data.last_name || "",
+                    email: data.email || "",
+                    password: data.password || "",
+                    phone_number: data.phone_number || "",
+                    date_of_birth: data.date_of_birth || "",
+                    gender: data.gender ? data.gender.split(".")[1] : "",
+                    profile_photo: data.profile_photo || "",
+                    bio: data.bio || "",
+                    height: data.height || "",
+                    weight: data.weight || "",
+                });
 
-      } catch (err) {
-        console.error("Failed to fetch user:", err.response?.data || err);
-      }
-    }
+            } catch (err) {
+                console.error("Failed to fetch user:", err.response?.data || err);
+            }
+        }
 
         fetchUser();
     }, []);
 
     useEffect(() => {
-    async function fetchUser() {
-      try {
-        const response = await api.get("/user/me");
-        const data = response.data;
+        async function fetchUser() {
+            try {
+                const response = await api.get("/user/me");
+                const data = response.data;
 
-        setUser({
-        first_name: data.first_name || "",
-        last_name: data.last_name || "",
-        phone_number: data.phone_number || ""
-        });
+                setUser({
+                    first_name: data.first_name || "",
+                    last_name: data.last_name || "",
+                    phone_number: data.phone_number || ""
+                });
 
-      } catch (err) {
-        console.error("Failed to fetch user:", err.response?.data || err);
-      }
-    }
+            } catch (err) {
+                console.error("Failed to fetch user:", err.response?.data || err);
+            }
+        }
 
         fetchUser();
     }, []);
@@ -92,47 +96,54 @@ function CSettings() {
     };
 
     const handleSubmit = async (e) => {
-    e.preventDefault();
+        e.preventDefault();
 
-    const formattedData = {
-        date_of_birth: initialData.date_of_birth,
-        gender: initialData.gender?.split(".")[1] || initialData.gender,
-        bio: initialData.bio,
-        profile_photo: initialData.profile_photo,
-        height: Number(initialData.height),
-        weight: Number(initialData.weight),
-    };
+        const formattedData = {
+            date_of_birth: initialData.date_of_birth,
+            gender: initialData.gender?.split(".")[1] || initialData.gender,
+            bio: initialData.bio,
+            profile_photo: initialData.profile_photo,
+            height: Number(initialData.height),
+            weight: Number(initialData.weight),
+        };
 
-    const formattedData2 = {
-        first_name: users.first_name,
-        last_name: users.last_name,
-        phone_number: users.phone_number
-    };
+        const formattedData2 = {
+            first_name: users.first_name,
+            last_name: users.last_name,
+            phone_number: users.phone_number
+        };
 
-    try {
-        const response = await api.put("/client/profile", formattedData);
-        const repsonse2 = await api.patch("/user/me", formattedData2);
+        try {
+            const response = await api.put("/client/profile", formattedData);
+            const repsonse2 = await api.patch("/user/me", formattedData2);
 
-        console.log("SUCCESS:", response.data);
-        console.log("SUCCESS:", repsonse2.data);
-        alert("Profile updated successfully!");
-    } catch (error) {
-        console.log("SUBMIT STATE SNAPSHOT:", JSON.parse(JSON.stringify(initialData)));
-        if (error.response || error.response2) {
-        console.error("Status:", error.response.status);
-        console.error("Status:", error.response2.status);
-        console.error("Backend errors:", error.response.data);
-        console.error("Backend errors:", error.response2.data);
-        } else {
-        console.error("No response received");
+            console.log("SUCCESS:", response.data);
+            console.log("SUCCESS:", repsonse2.data);
+            alert("Profile updated successfully!");
+        } catch (error) {
+            console.log("SUBMIT STATE SNAPSHOT:", JSON.parse(JSON.stringify(initialData)));
+            if (error.response || error.response2) {
+                console.error("Status:", error.response.status);
+                console.error("Status:", error.response2.status);
+                console.error("Backend errors:", error.response.data);
+                console.error("Backend errors:", error.response2.data);
+            } else {
+                console.error("No response received");
+            }
         }
-    }
-};
+    };
 
     const handleDeleteAccount = async () => {
 
         try {
-            const response = await api.delete("/user/me");
+
+            const response = await api.delete("/user/me", {
+                data: {
+                    reason:reason,
+                    detailed_reason: detailedReason
+                }
+
+            });
             console.log("Server Response:", response.data);
 
             localStorage.clear();
@@ -180,36 +191,36 @@ function CSettings() {
                             <div className="flex flex-col gap-1">
                                 <span className="font-semibold text-gray-600">First Name</span>
                                 <input
-                                className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                type="text"
-                                name="first_name"
-                                value={users.first_name}
-                                onChange={handleChange}
-                                placeholder="First Name"
+                                    className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    type="text"
+                                    name="first_name"
+                                    value={users.first_name}
+                                    onChange={handleChange}
+                                    placeholder="First Name"
                                 />
                             </div>
 
                             <div className="flex flex-col gap-1">
                                 <span className="font-semibold text-gray-600">Last Name</span>
                                 <input
-                                className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                type="text"
-                                name="last_name"
-                                value={users.last_name}
-                                onChange={handleChange}
-                                placeholder="Last Name"
+                                    className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    type="text"
+                                    name="last_name"
+                                    value={users.last_name}
+                                    onChange={handleChange}
+                                    placeholder="Last Name"
                                 />
                             </div>
 
                             <div className="flex flex-col md:col-span-2 gap-1">
                                 <span className="font-semibold text-gray-600">Phone Number</span>
                                 <input
-                                className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                type="text"
-                                name="phone_number"
-                                value={users.phone_number}
-                                onChange={handleChange}
-                                placeholder="XXX-XXX-XXXX"
+                                    className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    type="text"
+                                    name="phone_number"
+                                    value={users.phone_number}
+                                    onChange={handleChange}
+                                    placeholder="XXX-XXX-XXXX"
                                 />
                             </div>
                             {/*
@@ -229,110 +240,189 @@ function CSettings() {
                             <div className="flex flex-col gap-1">
                                 <span className="font-semibold text-gray-600">Date of Birth</span>
                                 <input
-                                className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                type="date"
-                                name="date_of_birth"
-                                value={initialData.date_of_birth}
-                                onChange={handleChange}
+                                    className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    type="date"
+                                    name="date_of_birth"
+                                    value={initialData.date_of_birth}
+                                    onChange={handleChange}
                                 />
                             </div>
 
                             <div className="flex flex-col gap-1">
                                 <span className="font-semibold text-gray-600">Gender</span>
                                 <select
-                                className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                name="gender"
-                                value={initialData.gender}
-                                onChange={handleChange}
+                                    className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    name="gender"
+                                    value={initialData.gender}
+                                    onChange={handleChange}
                                 >
-                                <option value="">Select</option>
-                                <option value="female">Female</option>
-                                <option value="male">Male</option>
-                                <option value="other">Other</option>
-                                <option value="prefer_not_to_say">Prefer not to say</option>
+                                    <option value="">Select</option>
+                                    <option value="female">Female</option>
+                                    <option value="male">Male</option>
+                                    <option value="other">Other</option>
+                                    <option value="prefer_not_to_say">Prefer not to say</option>
                                 </select>
                             </div>
 
                             <div className="flex flex-col md:col-span-2 gap-1">
                                 <span className="font-semibold text-gray-600">Bio</span>
                                 <textarea
-                                className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 h-24 resize-none"
-                                name="bio"
-                                value={initialData.bio}
-                                onChange={handleChange}
-                                placeholder="Tell us about yourself..."
+                                    className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 h-24 resize-none"
+                                    name="bio"
+                                    value={initialData.bio}
+                                    onChange={handleChange}
+                                    placeholder="Tell us about yourself..."
                                 />
                             </div>
 
                             <div className="flex flex-col gap-1">
                                 <span className="font-semibold text-gray-600">Height (cm)</span>
                                 <input
-                                className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                type="number"
-                                name="height"
-                                value={initialData.height}
-                                onChange={handleChange}
-                                placeholder="Height"
+                                    className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    type="number"
+                                    name="height"
+                                    value={initialData.height}
+                                    onChange={handleChange}
+                                    placeholder="Height"
                                 />
                             </div>
 
                             <div className="flex flex-col gap-1">
                                 <span className="font-semibold text-gray-600">Weight (kg)</span>
                                 <input
-                                className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                type="number"
-                                name="weight"
-                                value={initialData.weight}
-                                onChange={handleChange}
-                                placeholder="Weight"
+                                    className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    type="number"
+                                    name="weight"
+                                    value={initialData.weight}
+                                    onChange={handleChange}
+                                    placeholder="Weight"
                                 />
                             </div>
 
                             <div className="md:col-span-2 flex justify-end mt-4">
                                 <button
-                                type="submit"
-                                className="btn bg-blue-800 btn-primary btn-m rounded-t mr-2 mb-2"
+                                    type="submit"
+                                    className="btn bg-blue-800 btn-primary btn-m rounded-t mr-2 mb-2"
                                 >
-                                Save Changes
+                                    Save Changes
                                 </button>
                             </div>
-                            </form>
+                        </form>
                     </section>
                     <div>
                         <button className="btn border-2 text-l border-black bg-transparent text-black hover:bg-black hover:text-white transition-all font-black" onClick={() => setPopOpen("account")}>DELETE ACCOUNT</button>
-                        <PopUp isOpen={isPopOpen === "account"} onClose={() => setPopOpen(null)}>
+                        <PopUp isOpen={isPopOpen === "account"} onClose={() => {
+                            setPopOpen(null);
+                            setDeleteStep(1);
+                        }}>
+
                             <fieldset className="fieldset bg-white border-2 border-black rounded-box p-6 shadow-xl">
 
                                 <legend className="fieldset-legend px-3 text-xl font-bold bg-black text-white rounded-md">
                                     Delete Account
                                 </legend>
 
-                                <p className="text-gray-700 font-medium my-2">
-                                    Are you sure you want to delete your account? This action cannot be undone.
-                                </p>
+                                {/* step 1 */}
+                                {deleteStep === 1 && (
+                                    <>
+                                        <p className="text-gray-700 font-medium my-2">
+                                            Are you sure you want to delete your account? This action cannot be undone.
+                                        </p>
 
-                                <div className="flex flex-col gap-3 mt-4">
-                                    <button
-                                        type="button"
-                                        className="btn bg-blue-800 hover:bg-blue-900 text-white border-none"
-                                        onClick={handleDeleteAccount}
-                                    >
-                                        Yes, DELETE
-                                    </button>
+                                        <div className="flex flex-col gap-3 mt-4">
+                                            <button
+                                                type="button"
+                                                className="btn bg-red-700 hover:bg-red-900 text-white"
+                                                onClick={() => setDeleteStep(2)}
+                                            >
+                                                Yes, continue
+                                            </button>
 
-                                    <button
-                                        className="btn bg-gray-200 hover:bg-gray-300 text-black border-none"
-                                        onClick={() => setPopOpen(null)}
-                                    >
-                                        Cancel
-                                    </button>
-                                </div>
+                                            <button
+                                                className="btn bg-gray-200 hover:bg-gray-300 text-black"
+                                                onClick={() => setPopOpen(null)}
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
+
+                                {/* step 2 */}
+                                {deleteStep === 2 && (
+                                    <>
+                                        <p className="font-medium mb-2">
+                                            Why are you deleting your account?
+                                        </p>
+
+                                        <select
+                                            className="border p-2 w-full mb-3"
+                                            value={reason}
+                                            onChange={(e) => setReason(e.target.value)}
+                                        >
+                                            <option value="">Select reason</option>
+                                            <option value="Too expensive">Too expensive</option>
+                                            <option value="Not using it">Not using it</option>
+                                            <option value="Found better app">Found better app</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+
+                                        <textarea
+                                            className="border p-2 w-full"
+                                            placeholder="Optional details..."
+                                            value={detailedReason}
+                                            onChange={(e) => setDetailedReason(e.target.value)}
+                                        />
+
+                                        <div className="flex gap-2 mt-4">
+                                            <button
+                                                className="btn bg-black text-white"
+                                                onClick={() => setDeleteStep(3)}
+                                            >
+                                                Continue
+                                            </button>
+
+                                            <button
+                                                className="btn bg-gray-300"
+                                                onClick={() => setDeleteStep(1)}
+                                            >
+                                                Back
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
+
+                                {/* step 3 */}
+                                {deleteStep === 3 && (
+                                    <>
+                                        <p className="text-red-600 font-bold">
+                                            Final confirmation: This cannot be undone.
+                                        </p>
+
+                                        <div className="flex gap-2 mt-4">
+                                            <button
+                                                className="btn bg-red-700 text-white"
+                                                onClick={handleDeleteAccount}
+                                            >
+                                                Delete Forever
+                                            </button>
+
+                                            <button
+                                                className="btn bg-gray-300"
+                                                onClick={() => setDeleteStep(2)}
+                                            >
+                                                Back
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
+
                             </fieldset>
                         </PopUp>
                     </div>
                     <div>
                         <button className="btn bg-blue-800 btn-primary" onClick={() => navigate("/setup")}>RETAKE INITIAL SURVEY</button>
-                                            {/*can i just do this instead?*/}
+                        {/*can i just do this instead?*/}
                         <PopUp isOpen={isPopOpen === "retake_survey"} onClose={() => setPopOpen(null)}>
                             <fieldset className="fieldset bg-base-200 border-base-500 rounded-box w-s border p-4">
                                 <legend className="fieldset-legend px-2 text-xl bg-base-200 rounded-box">Retake Initial Survey</legend>
@@ -437,6 +527,7 @@ function CSettings() {
                             </fieldset>
                         </PopUp>
                     </div>
+                   
                     <div>
                         {!user?.roles?.includes(2) && (
                             <button
@@ -446,7 +537,7 @@ function CSettings() {
                                 Apply to become a Coach
                             </button>
                         )}
-                        
+
                     </div>
                     <div className="flex justify-end mt-4">
                         <button
@@ -457,31 +548,31 @@ function CSettings() {
                         </button>
                         <PopUp isOpen={isPopOpen === "daily"} onClose={() => setPopOpen(null)}>
                             <fieldset className="fieldset bg-base-200 border-base-500 rounded-box w-s border p-4">
-                            <legend className="fieldset-legend px-2 text-xl bg-base-200 rounded-box">
-                                Delete Today's Records?
-                            </legend>
-                            <p className="text-gray-700 my-2">
-                                Are you sure you want to delete all your daily wellness records? This action cannot be undone.
-                            </p>
-                            <div className="flex gap-4 mt-4">
-                                <button
-                                    className="btn bg-blue-800 btn-neutral"
-                                    type="button"
-                                    onClick={() => handleDeleteRecord()}
-                                >
-                                    Yes, DELETE
-                                </button>
-                                <button
-                                    className="btn bg-blue-800 btn-neutral"
-                                    type="button"
-                                    onClick={() => setPopOpen(null)}
-                                >
-                                    Cancel
-                                </button>
-                            </div>
+                                <legend className="fieldset-legend px-2 text-xl bg-base-200 rounded-box">
+                                    Delete Today's Records?
+                                </legend>
+                                <p className="text-gray-700 my-2">
+                                    Are you sure you want to delete all your daily wellness records? This action cannot be undone.
+                                </p>
+                                <div className="flex gap-4 mt-4">
+                                    <button
+                                        className="btn bg-blue-800 btn-neutral"
+                                        type="button"
+                                        onClick={() => handleDeleteRecord()}
+                                    >
+                                        Yes, DELETE
+                                    </button>
+                                    <button
+                                        className="btn bg-blue-800 btn-neutral"
+                                        type="button"
+                                        onClick={() => setPopOpen(null)}
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
                             </fieldset>
                         </PopUp>
-                        </div>
+                    </div>
                 </section>
             </div>
         </div>
