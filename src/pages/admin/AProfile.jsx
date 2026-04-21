@@ -88,21 +88,6 @@ function AProfile() {
           phone_number: data.phone_number || ""
         });
 
-        const response2 = await api.get("/client/profile", {
-        data2: { client_id: selectedUser }
-      });
-
-      const data2 = response2.data;
-
-        setUser2({
-          date_of_birth: data2.date_of_birth || "",
-           gender: data2.gender ? data2.gender.split(".")[1] : "",
-          bio: data2.bio || "",
-          profile_photo: data2.profile_photo || "",
-          height: data2.height || "",
-          weight: data2.weight || ""
-        });
-
       } catch (err) {
         console.error("Failed to fetch user:", err.response?.data || err);
       }
@@ -291,28 +276,6 @@ function AProfile() {
                   <label className="font-semibold">Phone Number:</label>
                   <p className="text-lg">{user.phone_number || "—"}</p>
                 </div>
-                {/*
-                <div>
-                  <label className="font-semibold">Date of Birth:</label>
-                  <p className="text-lg">{user2.date_of_birth || "—"}</p>
-                </div>
-                <div>
-                  <label className="font-semibold">Gender:</label>
-                  <p className="text-lg">{user2.gender || "—"}</p>
-                </div>
-                <div>
-                  <label className="font-semibold">Bio:</label>
-                  <p className="text-lg">{user2.bio || "—"}</p>
-                </div>
-                <div>
-                  <label className="font-semibold">Height:</label>
-                  <p className="text-lg">{user2.height || "—"}</p>
-                </div>
-                <div>
-                  <label className="font-semibold">Weight:</label>
-                  <p className="text-lg">{user2.weight || "—"}</p>
-                </div>
-                */}
               </div>
               
           )}

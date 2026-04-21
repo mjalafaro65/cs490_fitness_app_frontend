@@ -32,7 +32,7 @@ function CoSettings() {
         const data = response.data;
 
         setData({
-        specialty_id: data.specialty_id || "",
+        specialty_name: data.specialty_name || "",
         years_experience: data.years_experience || "",
         bio: data.bio || "",
         profile_photo: data.profile_photo || "",
@@ -125,23 +125,23 @@ function CoSettings() {
             <fieldset className="fieldset rounded-box w-full flex-1">
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                 <label className="label font-semibold">Speciality: </label>
-                <select className="select" id="speciality" name="specialty_id" value={fetchData.specialty_id} onChange={handleChange}>
+                <select className="select" id="speciality" name="specialty_name" value={fetchData.specialty_name} onChange={handleChange}>
                   <option value="">Select</option>
-                  <option value="1">Weight Loss</option>
-                  <option value="2">Muscle Building</option>
-                  <option value="3">Cardio & Endurance</option>
-                  <option value="4">Nutrition Coaching</option>
-                  <option value="5">Yoga & Flexibility</option>
-                  <option value="6">Sports Performance</option>
-                  <option value="7">Senior Fitness</option>
-                  <option value="8">Rehabilitation</option>
-                  <option value="9">Weight Management Nutrition</option>
-                  <option value="10">Sports Nutrition</option>
-                  <option value="11">Plant-Based Nutrition</option>
-                  <option value="12">Macro Tracking</option>
-                  <option value="13">CrossFit & HIIT</option>
-                  <option value="14">Powerlifting</option>
-                  <option value="15">Bodyweight Training</option>
+                  <option value="Weight Loss">Weight Loss</option>
+                  <option value="Muscle Building">Muscle Building</option>
+                  <option value="Cardio & Endurance">Cardio & Endurance</option>
+                  <option value="Nutrition Coaching">Nutrition Coaching</option>
+                  <option value="Yoga & Flexibility">Yoga & Flexibility</option>
+                  <option value="Sports Performance">Sports Performance</option>
+                  <option value="Senior Fitness">Senior Fitness</option>
+                  <option value="Rehabilitation">Rehabilitation</option>
+                  <option value="Weight Management Nutriton">Weight Management Nutrition</option>
+                  <option value="Sports Nutrition">Sports Nutrition</option>
+                  <option value="Plant-Based Nutrition">Plant-Based Nutrition</option>
+                  <option value="Macro Tracking">Macro Tracking</option>
+                  <option value="CrossFit & HIIT">CrossFit & HIIT</option>
+                  <option value="Powerlifting">Powerlifting</option>
+                  <option value="Bodyweight Training">Bodyweight Training</option>
                 </select>
                 <label className="label font-semibold">Years of Experience: </label>
                 <input

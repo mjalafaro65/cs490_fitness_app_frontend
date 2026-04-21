@@ -13,6 +13,7 @@ import Messages from "./pages/Messages";
 import Notifications from "./pages/Notifications";
 import SetupPage from "./pages/SetupPage";
 import Plans from "./pages/WorkoutPlans";
+import Exercises from "./pages/Exercises"
 
 
 {/*client specific pages */}
@@ -58,6 +59,7 @@ function App() {
           <Route element={<ProtectedRoute />}> 
             <Route path="messages" element={<Messages />} />
             <Route path="notifications" element={<Notifications />} />
+            <Route path="exercises" element={<Exercises />} />
           </Route>
 
           {/* client Routes */}

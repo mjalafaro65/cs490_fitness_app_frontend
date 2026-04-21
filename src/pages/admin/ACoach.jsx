@@ -2,24 +2,6 @@ import { useState, useEffect } from "react";
 import api from "../../axios";
 import "../../App.css";
 
-const SPECIALTY_TITLES = {
-  1: "Weight Loss",
-  2: "Muscle Building",
-  3: "Cardio & Endurance",
-  4: "Nutrition Coaching",
-  5: "Yoga & Flexibility",
-  6: "Sports Performance",
-  7: "Senior Fitness",
-  8: "Rehabilitation",
-  9: "Weight Management Nutrition",
-  10: "Sports Nutrition",
-  11: "Plant-Based Nutrition",
-  12: "Macro Tracking",
-  13: "CrossFit & HIIT",
-  14: "Powerlifting",
-  15: "Bodyweight Training"
-};
-
 function ACoach() {
   const [appli, setAppli] = useState([]);
   const [docs, setDocs] = useState({});
@@ -27,7 +9,7 @@ function ACoach() {
   const [names, setNames] = useState({});
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [processingAction, setProcessingAction] = useState({}); // Track loading state for actions
+  const [processingAction, setProcessingAction] = useState({});
 
   const [selectedCoach, setSelectedCoach] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -37,6 +19,9 @@ function ACoach() {
       try {
         setLoading(true);
         const response = await api.get("/admin/coach-applications");
+
+        console.log("📦 Applications:", response.data);
+
         const pending = response.data.filter((app) => app.status === "pending");
         setAppli(pending);
 
@@ -45,16 +30,27 @@ function ACoach() {
         await Promise.all(
           pending.map(async (coach) => {
             try {
+              console.log("🔍 Coach object:", coach);
+
               const res = await api.get("/coach/coach-profile", {
                 params: { user_id: coach.user_id },
               });
 
-              const profile = res.data;
+              const person = res.data;
 
-              namesMap[coach.user_id] = profile.first_name
+              const profileRes = await api.get("/admin/users", {
+                params: { user_id: person.user_id },
+              });
+
+              const profile = Array.isArray(profileRes.data)
+                ? profileRes.data[0]
+                : profileRes.data;
+
+              namesMap[coach.user_id] = profile?.first_name
                 ? `${profile.first_name} ${profile.last_name}`
                 : "Unknown";
-            } catch {
+            } catch (err) {
+              console.error("Response:", err.response?.data);
               namesMap[coach.user_id] = "Unknown";
             }
           })
@@ -62,6 +58,7 @@ function ACoach() {
 
         setNames(namesMap);
       } catch (err) {
+        console.error("Response:", err.response?.data);
         setError(err.message || "Failed to fetch applications");
       } finally {
         setLoading(false);
@@ -84,11 +81,16 @@ function ACoach() {
         params: { user_id: coach.user_id },
       });
 
+      console.log("📄 Documents:", docResp.data);
+
       setDocs((prev) => ({
         ...prev,
         [coach.coach_profile_id]: docResp.data,
       }));
-    } catch {
+    } catch (err) {
+      console.error("❌ Document fetch failed:", err);
+      console.error("Response:", err.response?.data);
+
       setDocs((prev) => ({
         ...prev,
         [coach.coach_profile_id]: [],
@@ -101,115 +103,78 @@ function ACoach() {
     }
   };
 
-  const reviewDocument = async (docId, status, notes = "") => {
-    try {
-      await api.patch(`/admin/coach-documents/${docId}`, { status, notes });
-
-      const updatedDocs = { ...docs };
-
-      for (let coachId in updatedDocs) {
-        updatedDocs[coachId] = updatedDocs[coachId].map((doc) =>
-          doc.document_id === docId ? { ...doc, status } : doc
-        );
-      }
-
-      setDocs(updatedDocs);
-      alert(`Document ${status}`);
-    } catch (err) {
-      alert(`Failed to update document`);
-    }
-  };
-  {/*
-  const areAllDocumentsApproved = (coachId) => {
-    const coachDocs = docs[coachId];
-    if (!coachDocs || coachDocs.length === 0) return false;
-    return coachDocs.every(doc => doc.status === "approved");
-  };
-
   const acceptCoach = async (coach) => {
-    if (!areAllDocumentsApproved(coach.coach_profile_id)) {
-      alert("Please approve all documents before accepting the coach.");
-      return;
-    }
 
-    if (!window.confirm(`Are you sure you want to accept ${names[coach.user_id] || "this coach"}?`)) return;
-
-    setProcessingAction(prev => ({ ...prev, [coach.coach_profile_id]: true }));
-
-    try {
-      await api.patch("/coach/coach-profile", {
-        status: "approved"
-      }, {
-        params: { user_id: coach.user_id }
-      });
-
-      setAppli(prev => prev.filter(a => a.coach_profile_id !== coach.coach_profile_id));
-      
-      alert(`Coach ${names[coach.user_id] || "application"} has been approved!`);
-      closeModal();
-    } catch (err) {
-      console.error("Failed to accept coach:", err);
-      alert(`Failed to accept coach: ${err.response?.data?.message || err.message}`);
-    } finally {
-      setProcessingAction(prev => ({ ...prev, [coach.coach_profile_id]: false }));
-    }
-  };
-*/}
-
-const acceptCoach = async (coach) => {
-  if (!window.confirm(`Are you sure you want to accept ${names[coach.user_id] || "this coach"}?`)) return;
+  if (!window.confirm(`Accept ${names[coach.user_id] || "this coach"}?`)) return;
 
   setProcessingAction(prev => ({ ...prev, [coach.coach_profile_id]: true }));
 
   try {
-    await api.patch("/coach/coach-profile", {
-      status: "approved"
-    });
+    // 1. update status (YOU NEED AN EXISTING ROUTE HERE)
+      await api.patch("/coach/coach-profile", {
+        status: "approved"
+      }, {
+        params: {
+          user_id: coach.user_id
+        }
+      });
 
-    setAppli(prev => prev.filter(a => a.coach_profile_id !== coach.coach_profile_id));
-    
-    alert(`Coach ${names[coach.user_id] || "application"} has been approved!`);
+    // 2. promote user
+    await api.post(`/auth/promote/${coach.coach_id}`);
+
+    setAppli(prev =>
+      prev.filter(a => a.coach_profile_id !== coach.coach_profile_id)
+    );
+
+    alert("Coach approved and promoted!");
     closeModal();
+
   } catch (err) {
-    console.error("Failed to accept coach:", err);
-    alert(`Failed to accept coach: ${err.response?.data?.message || err.message}`);
+    console.error(err);
+    alert(err.response?.data?.message || "Failed to accept coach");
   } finally {
     setProcessingAction(prev => ({ ...prev, [coach.coach_profile_id]: false }));
   }
 };
 
-  const denyCoach = async (coach) => {
-    if (!window.confirm(`Are you sure you want to deny ${names[coach.user_id] || "this coach"}?`)) return;
+const denyCoach = async (coach) => {
+  if (!window.confirm(`Deny ${names[coach.user_id] || "this coach"}?`)) return;
 
-    setProcessingAction(prev => ({ ...prev, [coach.coach_profile_id]: true }));
+  setProcessingAction(prev => ({ ...prev, [coach.coach_profile_id]: true }));
 
-    try {
-      await api.patch("/coach/coach-profile", 
-      { status: "denied" },
-      { params: { user_id: coach.user_id } }
+  try {
+    await api.patch("/coach/coach-profile", {
+      status: "denied"
+    }, {
+      params: {
+        user_id: coach.user_id
+      }
+    });
+
+    setAppli(prev =>
+      prev.filter(a => a.coach_profile_id !== coach.coach_profile_id)
     );
 
-      setAppli(prev => prev.filter(a => a.coach_profile_id !== coach.coach_profile_id));
-      
-      alert(`Coach ${names[coach.user_id] || "application"} has been denied.`);
-      closeModal();
-    } catch (err) {
-        console.error("Failed to deny coach:", err);
-        console.error("Full error response:", err.response?.data);
-        console.error("Errors details:", err.response?.data?.errors);
-        alert(`Failed to deny coach: ${JSON.stringify(err.response?.data?.errors)}`);
-    } finally {
-      setProcessingAction(prev => ({ ...prev, [coach.coach_profile_id]: false }));
-    }
-  };
+    alert("Coach denied.");
+    closeModal();
+
+  } catch (err) {
+    console.error(err);
+    alert(err.response?.data?.message || "Failed to deny coach");
+  } finally {
+    setProcessingAction(prev => ({ ...prev, [coach.coach_profile_id]: false }));
+  }
+};
 
   const openModal = async (coach) => {
+    console.log("📂 Opening modal:", coach);
     setSelectedCoach(coach);
     setModalOpen(true);
     await fetchDocumentsForCoach(coach);
   };
 
   const closeModal = () => {
+    console.log("❌ Closing modal");
     setSelectedCoach(null);
     setModalOpen(false);
   };
@@ -252,10 +217,10 @@ const acceptCoach = async (coach) => {
                       {names[app.user_id] || "Loading..."}
                     </p>
                     <p><strong>Bio:</strong> {app.bio || "No bio provided"}</p>
-                    <p><strong>Experience:</strong> {app.years_experience} years</p>
+                    <p><strong>Experience:</strong> {app.years_experience} year(s)</p>
                     <p>
                       <strong>Specialty:</strong>{" "}
-                      {SPECIALTY_TITLES[app.specialty_id] || "Unknown"}
+                      {app.specialty_name || "Unknown"}
                     </p>
                   </div>
 
@@ -289,7 +254,7 @@ const acceptCoach = async (coach) => {
               <div className="mb-6 p-4 bg-gray-50 rounded-lg">
                 <h3 className="font-semibold mb-2">Application Summary</h3>
                 <p><strong>Experience:</strong> {selectedCoach.years_experience} years</p>
-                <p><strong>Specialty:</strong> {SPECIALTY_TITLES[selectedCoach.specialty_id] || "Unknown"}</p>
+                <p><strong>Specialty:</strong> {selectedCoach.specialty_name || "Unknown"}</p>
                 <p><strong>Bio:</strong> {selectedCoach.bio || "No bio provided"}</p>
               </div>
 
@@ -309,33 +274,6 @@ const acceptCoach = async (coach) => {
                       >
                         View Document
                       </a>
-                      <span className={`ml-2 text-sm font-semibold ${
-                        document.status === "approved" ? "text-green-600" : 
-                        document.status === "denied" ? "text-red-600" : "text-yellow-600"
-                      }`}>
-                        [{document.status || "Pending"}]
-                      </span>
-
-                      <div className="mt-2 flex gap-2">
-                        <button
-                          className="btn btn-xs btn-success"
-                          onClick={() =>
-                            reviewDocument(document.document_id, "approved")
-                          }
-                          disabled={document.status === "approved"}
-                        >
-                          Approve Document
-                        </button>
-                        <button
-                          className="btn btn-xs btn-error"
-                          onClick={() =>
-                            reviewDocument(document.document_id, "denied")
-                          }
-                          disabled={document.status === "denied"}
-                        >
-                          Reject Document
-                        </button>
-                      </div>
                     </li>
                   ))}
                 </ul>
@@ -347,8 +285,7 @@ const acceptCoach = async (coach) => {
                 <button
                   className="flex-1 btn btn-success"
                   onClick={() => acceptCoach(selectedCoach)}
-              /*disabled=processingAction[selectedCoach.coach_profile_id] || !areAllDocumentsApproved(selectedCoach.coach_profile_id) */
-                  disabled={processingAction[selectedCoach.coach_profile_id]}
+                  disabled={processingAction[selectedCoach.coach_profile_id]} 
                 >
                   {processingAction[selectedCoach.coach_profile_id] ? "Processing..." : "Accept Coach"}
                 </button>
@@ -361,13 +298,6 @@ const acceptCoach = async (coach) => {
                 </button>
               </div>
               
-              {/*
-              {!areAllDocumentsApproved(selectedCoach.coach_profile_id) && docs[selectedCoach.coach_profile_id]?.length > 0 && (
-                <p className="text-sm text-yellow-600 mt-2 text-center">
-                  * Please approve all documents before accepting the coach
-                </p>
-              )}
-                */}
             </div>
           </div>
         )}
