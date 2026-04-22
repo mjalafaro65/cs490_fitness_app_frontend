@@ -26,7 +26,7 @@ function MyCoach(){
               </div>
             <div className="divider"></div>
               <div className="flex w-full h-60 flex-1 gap-4">
-                <div className="card bg-base-300 rounded-box flex-1 grow p-4 flex flex-col">
+                <div className="card bg-base-300 rounded-box grid grow p-4 flex">
                   <h2 className="text-lg font-bold mb-2">Saved Coaches</h2>
                   <span className="text-sm opacity-70 mb-3">No coach assigned</span>
                   <div className="mt-auto flex justify-center">
@@ -37,7 +37,7 @@ function MyCoach(){
                   <h2 className="text-lg font-bold mb-2">My Reviews</h2>
                   <span className="text-sm opacity-70 mb-3">No reviews</span>
                   <div className="mt-auto flex justify-center">
-                    <button className="btn btn-primary btn-sm" onClick={() => navigate("/client/coaches")}>Browse Coaches</button>
+                    <button className="btn btn-primary btn-sm" onClick={() => navigate("/client/reviews")}>My Reviews</button>
                   </div>
                 </div>
               </div>

@@ -13,6 +13,7 @@ function Log_In() {
         email: "",
         password: ""
     });
+    const [error, setError] = useState("");
 
     const navigate = useNavigate();
 
@@ -29,6 +30,7 @@ function Log_In() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError("");
 
         try {
             const response = await api.post("/auth/login", loginData);
@@ -74,7 +76,7 @@ function Log_In() {
             }
         } catch (error) {
             console.error("Login failed:", error.message);
-            alert("Wrong email or password");
+            setError("Email or password not found. Please try again.");
         }
     };
 
@@ -110,6 +112,11 @@ function Log_In() {
                             required
                         />
                         <button className="btn btn-neutral mt-4" type="submit">Log In</button>
+                        {error && (
+                            <div className="alert alert-error mt-4">
+                                <span>{error}</span>
+                            </div>
+                        )}
                     </form>
                 </fieldset>
             </div>

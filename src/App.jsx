@@ -21,8 +21,9 @@ import ClientSettings from "./pages/client/CSettings";
 import ClientProfile from "./pages/client/CProfile";
 import ClientWorkoutPlans from "./pages/client/CWorkoutPlans";
 import MyCoach from "./pages/client/MyCoach";
-import ClientProgressLogs from "./pages/client/CProgressLogs";   
 import ClientMealLogs from "./pages/client/CMealLogs";
+import CReviews from "./pages/client/CReviews";
+import ClientProgressLogs from "./pages/client/CProgressLogs";   
 import CoachApply from "./pages/client/CoachApp";
 import CoachPublicProfile from "./pages/CoachPublicProfile";
 
@@ -72,6 +73,7 @@ function App() {
             <Route path="workoutplans" element={<ClientWorkoutPlans />} />
             <Route path="meallogs" element={<ClientMealLogs />} />
             <Route path="progresslogs" element={<ClientProgressLogs />} />
+            <Route path="reviews" element={<CReviews />} />
             <Route path="settings" element={<ClientSettings />} />
           </Route>
 
