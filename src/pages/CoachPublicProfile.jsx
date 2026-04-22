@@ -14,6 +14,7 @@ const CoachPublicProfile = ({ isPublic }) => {
     const [newRating, setNewRating] = useState(5);
     const [newComment, setNewComment] = useState("");
     const [submitting, setSubmitting] = useState(false);
+    const [payments, setPayments] = useState(null);
 
     const [reviews, setReviews] = useState([]);
     const [reviewStats, setReviewStats] = useState({
@@ -79,6 +80,24 @@ const CoachPublicProfile = ({ isPublic }) => {
 
     }, [id]);
 
+    useEffect(() => {
+        if (!coach) return;
+
+        const fetchPaymentPlans = async () => {
+            try {
+                const response = await api.get(
+                    `/client/coach-payment-plans/${coach.coach_profile_id}`
+                );
+                console.log(response.data)
+                setPayments(response.data);
+            } catch {
+                setError("Payment Plans not found or an error occurred.");
+            }
+        };
+
+        fetchPaymentPlans();
+    }, [coach]);
+
     if (loading) return <div className="p-10 text-center">Loading profile...</div>;
     if (error || !coach) return <div className="p-10 text-center text-red-500">{error}</div>;
 
@@ -143,33 +162,57 @@ const CoachPublicProfile = ({ isPublic }) => {
                                     <p className="text-gray-600">{coach.years_experience}</p>
                                 </div>
                             )}
-
-                            {/* PRICING PLANS SECTION */}
                             {activeTab === 'pricing' && (
                                 <div className="animate-fadeIn">
                                     <h3 className="text-xl font-bold mb-6">Choose Your Plan</h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="border-2 border-blue-100 rounded-2xl p-6 hover:border-blue-500 transition-all">
-                                            <span className="badge badge-primary mb-2">Monthly</span>
-                                            <h4 className="text-lg font-bold">Standard Coaching</h4>
-                                            <p className="text-3xl font-black my-4">$150<span className="text-sm font-normal text-gray-400">/mo</span></p>
-                                            <ul className="text-sm space-y-2 mb-6">
-                                                <li>✓ 4 sessions per month</li>
-                                                <li>✓ Customized workout plan</li>
-                                                <li>✓ 24/7 Chat support</li>
-                                            </ul>
-                                            <button className="btn btn-sm btn-block btn-primary">Purchase Plan</button>
+
+                                    {!payments || payments.length === 0 ? (
+                                        <p className="text-gray-400 text-center">No plans available</p>
+                                    ) : (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {payments.map((plan) => (
+                                                <div
+                                                    key={plan.payment_plan_id}
+                                                    className="border-2 border-blue-100 rounded-2xl p-6 hover:border-blue-500 transition-all"
+                                                >
+                                                    <span className="badge badge-primary mb-2">
+                                                        {plan.billing_type}
+                                                    </span>
+
+
+                                                    <h4 className="text-lg font-bold">
+                                                        {plan.name || "Coaching Plan"}
+                                                    </h4>
+
+                                                    <p className="text-3xl font-black my-4">
+                                                        ${plan.amount}
+                                                        <span className="text-sm font-normal text-gray-400">
+                                                            {plan.billing_type === "monthly"
+                                                                ? "/mo"
+                                                                : plan.billing_type === "session"
+                                                                    ? "/session"
+                                                                    : ""}
+                                                        </span>
+                                                    </p>
+
+                                                    {/* Features (if you store them as comma string) */}
+                                                    {plan.features && (
+                                                        <ul className="text-sm space-y-2 mb-6">
+                                                            {plan.features.split(",").map((f, i) => (
+                                                                <li key={i}>✓ {f.trim()}</li>
+                                                            ))}
+                                                        </ul>
+                                                    )}
+
+                                                    <button className="btn btn-sm btn-block btn-primary">
+                                                        Purchase Plan
+                                                    </button>
+                                                </div>
+                                            ))}
                                         </div>
-                                        <div className="border border-gray-100 rounded-2xl p-6">
-                                            <span className="badge badge-ghost mb-2">Single</span>
-                                            <h4 className="text-lg font-bold">1-on-1 Session</h4>
-                                            <p className="text-3xl font-black my-4">$50<span className="text-sm font-normal text-gray-400">/session</span></p>
-                                            <button className="btn btn-sm btn-block btn-outline">Book Now</button>
-                                        </div>
-                                    </div>
+                                    )}
                                 </div>
                             )}
-
                             {/* AVAILABILITY / CALENDAR SECTION */}
                             {activeTab === 'availability' && (
                                 <div className="animate-fadeIn text-center">
