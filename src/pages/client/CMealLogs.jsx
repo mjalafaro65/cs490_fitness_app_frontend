@@ -8,9 +8,8 @@ import api from "../../axios";
 function MealLogs(){
   const [isPopOpen, setPopOpen] = useState(null);
   const navigate = useNavigate();
-  const { fetchUser, user } = useAuth();
-
-
+  const [user, setUser] = useState(null);
+  
   const [logData, setData] = useState({
     user_id: "",
     meal_id: "", 
@@ -18,27 +17,45 @@ function MealLogs(){
     notes: ""
   });
 
+  const fetchUser = async () => {
+    try {
+      const res = await api.get("/user/me");
+      setUser(res.data);
+    } catch (err) {
+      console.error("ERROR:", err.response?.data || err);
+      setUser(null);
+    }
+  };
+
   useEffect(() => {
     fetchUser();
   }, []);
 
   useEffect(() => {
-    if (user?.id) {
-      setData(prev => ({ ...prev, user_id: user.id }));
+    if (user?.user_id) {
+      setData(prev => ({ ...prev, user_id: user.user_id }));
     }
   }, [user]);
 
-    const handleChange = (e) => {
-      setData({
-          ...logData, [e.target.name]: e.target.value
-      });
-    };
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const set = {
+      ...logData,
+      user_id: user?.id
+    };
+
     try {
-      console.log("Sending:", logData);
+      console.log("Sending:", set);
 
       const response = await api.post("/nutrition/nutrition-logs", logData);
 
