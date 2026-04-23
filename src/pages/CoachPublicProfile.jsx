@@ -200,7 +200,7 @@ const CoachPublicProfile = ({ isPublic }) => {
                                 </div>
                                 <p className="text-blue-900 font-medium mb-6">Certified Fitness Coach</p>
 
-                                <button className="btn btn-primary w-full bg-blue-800 mb-3">
+                                {/* <button className="btn btn-primary w-full bg-blue-800 mb-3">
                                     {isNotLoggedIn ? "Sign up to Message" : "Message Coach"}
                                 </button>
                                 <button 
@@ -209,7 +209,7 @@ const CoachPublicProfile = ({ isPublic }) => {
                                     disabled={hireLoading || isHired}
                                 >
                                     {hireLoading ? 'Hiring...' : isHired ? 'Hired' : 'Hire Coach'}
-                                </button>
+                                </button> */}
 
                                 <button
                                     onClick={toggleFavorite}
@@ -353,7 +353,7 @@ const CoachPublicProfile = ({ isPublic }) => {
 
                                             <button
                                                 className="btn btn-primary"
-                                                disabled={hiring || !selectedPla}
+                                                disabled={hiring || !selectedPlan}
                                                 onClick={async () => {
                                                     try {
                                                         setHiring(true);

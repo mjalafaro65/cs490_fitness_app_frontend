@@ -148,6 +148,7 @@ function MyCoach() {
 
     fetchFavoriteCoaches()
   }, []);
+  
    if (loading) {
     return (
       <div className="drawer lg:drawer-open">
