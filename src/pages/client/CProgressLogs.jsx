@@ -112,32 +112,20 @@ function ProgressLogs(){
       {isPopOpen === "create" && (
         <>
           <form className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
-            <h2>Create a New Goal</h2>
+            <h1>Create a New Goal</h1>
               <label className="label">
-                Daily Goal:
-                <input className = "input" type="text" name="daily_goal" value={daily.daily_goal} onChange={(e) => setData({...daily, daily_goal: e.target.value})}/>
+                Name:
+                <input className = "input" type="name" name="goal_name" value={daily.daily_goal} onChange={(e) => setData({...daily, daily_goal: e.target.value})}/>
               </label>
               <label className="label">
-                Energy Level:
-                <input className="input" type="number" name="energy_level" value={daily.energy_level} onChange={(e) => setData({...daily, energy_level: e.target.value})} />
+                Duration:
+                <input className="input" type="number" name="duration" value={daily.sleep_hours} onChange={(e) => setData({...daily, sleep_hours: e.target.value})} />
               </label>
               <label className="label">
-                Target Focus:
-                <input className="input" type="text" name="target_focus" value={daily.target_focus} onChange={(e) => setData({...daily, target_focus: e.target.value})} />
+                Notes:
+                <input className="input" type="text" name="notes" value={daily.energy_level} onChange={(e) => setData({...daily, sleep_hours: e.target.value})} />
               </label>
-              <label className="label">
-                Water (in oz):
-                <input className="input" type="number" name="water_oz" value={daily.water_oz} onChange={(e) => setData({...daily, water_oz: e.target.value})}/>
-              </label>
-              <label className="label">
-                Weight (in lbs):
-                <input className="input" type="number" name="weight_lbs" value={daily.weight_lbs} onChange={(e) => setData({...daily, weight_lbs: e.target.value})}/>
-              </label>
-              <label className="label">
-                Hours of Sleep:
-                <input className="input" type="number" name="sleep_hours" value={daily.sleep_hours} onChange={(e) => setData({...daily, sleep_hours: e.target.value})} />
-              </label>
-              <button className="btn btn-primary" type="submit">Create</button>
+              <button className="btn btn-primary" type="submit">Create New</button>
           </form>
         </>
       )}
@@ -147,20 +135,16 @@ function ProgressLogs(){
         <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
           <legend className = "fieldset-legend">Edit Goals</legend>
               <label className="label">
-                Daily Goal  :
-              <input className = "input" type="text" name="daily_goal" />
+                Name:
+              <input className = "input" type="text" name="name" />
               </label>
               <label className="label">
-                Energy Level:
+                Duration:
                 <input className="input" type="number" name="energy_level" />
               </label>
               <label className="label">
-                Target Focus:
-                <input className="input" type="text" name="target_focus" />
-              </label>
-              <label className="label">
-                Water (in oz):
-                <input className="input" type="number" name="water_oz" />
+                Notes:
+                <input className="input" type="text" name="notes" />
               </label>
               <button className="btn btn-primary bg-blue-800" type="submit">Update</button>
         </fieldset>
@@ -172,20 +156,36 @@ function ProgressLogs(){
           <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
             <h2>Edit Activity</h2>
               <label className="label">
-                Daily Goal:
-                <input className = "input" type="text" name="daily_goal" />
+                Exercise:
+                <input className = "input" type="number" name="exercise" />
               </label>
               <label className="label">
-                Energy Level:
-                <input className="input" type="number" name="energy_level" />
+                Sets:
+                <input className="input" type="number" name="sets" />
               </label>
               <label className="label">
-                Target Focus:
-                <input className="input" type="text" name="target_focus" />
+                Reps:
+                <input className="input" type="number" name="reps" />
               </label>
               <label className="label">
-                Water (in oz):
-                <input className="input" type="number" name="water_oz" />
+                Weight:
+                <input className="input" type="number" name="weight" />
+              </label>
+              <label className="label">
+                RPE (rate of perceived exertion):
+                <input className="input" type="number" name="rpe" />
+              </label>
+              <label className="label">
+                Distance:
+                <input className="input" type="number" name="distance" />
+              </label>
+              <label className="label">
+                Calories:
+                <input className="input" type="number" name="calories" />
+              </label>
+              <label className="label">
+                Duration (mins):
+                <input className="input" type="number" name="duration" />
               </label>
               <button className="btn btn-primary bg-blue-800" type="submit">Update</button>
           </fieldset>
@@ -194,18 +194,42 @@ function ProgressLogs(){
 
       {isPopOpen === "log" && (
       <>
-        <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
-          <legend className = "fieldset-legend">Log Activity</legend>
+          <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+            <h2>Edit Activity</h2>
               <label className="label">
-                Activity Name:
-              <input className = "input" type="text" name="name" />
+                Exercise:
+                <input className = "input" type="number" name="exercise" />
               </label>
               <label className="label">
-                Sets/Reps:
-                <input className="input" type="number" name="sets_reps" />
+                Sets:
+                <input className="input" type="number" name="sets" />
               </label>
-              <button className="btn btn-primary" type="submit">Log</button>
-        </fieldset>
+              <label className="label">
+                Reps:
+                <input className="input" type="number" name="reps" />
+              </label>
+              <label className="label">
+                Weight:
+                <input className="input" type="number" name="weight" />
+              </label>
+              <label className="label">
+                RPE (rate of perceived exertion):
+                <input className="input" type="number" name="rpe" />
+              </label>
+              <label className="label">
+                Distance:
+                <input className="input" type="number" name="distance" />
+              </label>
+              <label className="label">
+                Calories:
+                <input className="input" type="number" name="calories" />
+              </label>
+              <label className="label">
+                Duration (mins):
+                <input className="input" type="number" name="duration" />
+              </label>
+              <button className="btn btn-primary bg-blue-800" type="submit">Log</button>
+          </fieldset>
       </>
       )}
     </PopUp>

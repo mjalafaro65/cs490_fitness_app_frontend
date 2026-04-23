@@ -3,13 +3,25 @@ import "../../App.css";
 import PopUp from "../../components/PopUp";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../AuthContext";
+import api from "../../axios";
+import Alert from "../../components/Alert";
 
 function MealLogs(){
   const [isPopOpen, setPopOpen] = useState(null);
   const navigate = useNavigate();
-  const { fetchUser } = useAuth();
+  const [user, setUser] = useState(null);
 
+  const [alert, setShowAlert] = useState(false);
+    const [alertMsg, setAlertMsg] = useState('');
+    const [alertType, setAlertType] = useState('success');
 
+  const showAlert = (message, type = 'success') => {
+      console.log("ALERT FUNCTION CALLED with:", message, type);
+      setAlertMsg(message);
+      setAlertType(type);
+      setShowAlert(true);
+  };
+  
   const [logData, setData] = useState({
     user_id: "",
     meal_id: "", 
@@ -17,34 +29,62 @@ function MealLogs(){
     notes: ""
   });
 
+  const fetchUser = async () => {
+    try {
+      const res = await api.get("/user/me");
+      setUser(res.data);
+    } catch (err) {
+      console.error("ERROR:", err.response?.data || err);
+      setUser(null);
+    }
+  };
+
   useEffect(() => {
     fetchUser();
   }, []);
 
-    const handleChange = (e) => {
-      setData({
-          ...logData, [e.target.name]: e.target.value
-      });
-    };
+  useEffect(() => {
+    if (user?.user_id) {
+      setData(prev => ({ ...prev, user_id: user.user_id }));
+    }
+  }, [user]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    try {
-      console.log("Sending:", logData);
-      setData({
-        user_id: logData.user_id || "",
-        meal_id: logData.meal_id || "",
-        servings: logData.servings || "",
-        notes: logData.notes || ""
-        });
+    const set = {
+      ...logData,
+      user_id: user?.user_id
+    };
 
-      const response = await api.post("/nutrition/nutrition-logs", logData);
+    try {
+      console.log("Sending:", set);
+
+      const response = await api.post("/nutrition/nutrition-logs", set);
 
       console.log("SUCCESS:", response.data);
 
+      setData(prev => ({
+        user_id: prev.user_id,
+        meal_id: "",
+        servings: "",
+        notes: ""
+      }));
+
+      showAlert("Meal logged sucessfully!", "success");
+
     } catch (error) {
       console.error("Update failed:", error.response?.data || error);
+      showAlert(error.response?.data || "Failed to log meal", "error");
     }
   };
 
@@ -106,24 +146,24 @@ function MealLogs(){
         </>
       )}
       {isPopOpen === "log" && (
-        <>
+        <form onSubmit={handleSubmit}>
           <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
             <h2>Log Meal</h2>
               <label className="label">
                 Meal:
-                <input className = "input" type="number" name="meal_id" />
+                <input className = "input" type="number" name="meal_id" value={logData.meal_id} onChange={handleChange} />
               </label>
               <label className="label">
                 Servings:
-                <input className="input" type="number" name="servings" />
+                <input className="input" type="number" name="servings" value={logData.servings} onChange={handleChange} />
               </label>
               <label className="label">
                 Notes:
-                <input className="input" type="text" name="notes" />
+                <input className="input" type="text" name="notes" value={logData.notes} onChange={handleChange} />
               </label>
-              <button className="btn btn-primary bg-blue-800" type="submit">Create</button>
+              <button className="btn btn-primary bg-blue-800" type="submit">Log</button>
           </fieldset>
-        </>
+        </form>
       )}
   
     {isPopOpen === "browse" && ( 
@@ -140,6 +180,12 @@ function MealLogs(){
         </>
       )}
     </PopUp>
+
+     <Alert 
+      isOpen={alert} 
+      message={alertMsg}
+      type={alertType}
+      onClose={() => setShowAlert(false)}/>
   </div>
 
   );

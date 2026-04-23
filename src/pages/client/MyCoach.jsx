@@ -234,9 +234,9 @@ function MyCoach() {
     <div className="drawer lg:drawer-open">
       <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
       <div className="drawer-content">
-        <section className="p-6">
+        <section className="p-6 flex flex-col gap-6">
           <div className="text-2xl font-bold mb-6">My Coach</div>
-          <div className="flex w-full">
+          <div className="flex w-full gap-4">
             <div className="card bg-base-300 rounded-box grow p-4 flex flex-col">
               <h2 className="text-lg font-bold mb-2">My Coach</h2>
               <span className="text-sm opacity-70 mb-3">No coach assigned</span>
@@ -244,7 +244,6 @@ function MyCoach() {
                 <button className="btn btn-primary bg-blue-800 btn-sm" onClick={() => navigate("/client/coaches")} >Browse Coaches</button>
               </div>
             </div>
-            <div className="divider divider-horizontal"></div>
             <div className="card bg-base-300 rounded-box grid grow p-4 flex">
               <h2 className="text-lg font-bold mb-2">My Requests</h2>
               {loading ? (
@@ -271,9 +270,8 @@ function MyCoach() {
               )}
             </div>
           </div>
-          <div className="divider"></div>
           <div className="flex w-full h-60 flex-1 gap-4">
-            <div className="card bg-base-300 rounded-box flex-1 grow p-4 flex flex-col">
+            <div className="card bg-base-300 rounded-box grid grow p-4 flex">
               <h2 className="text-lg font-bold mb-2">Saved Coaches</h2>
               {myFav? (myFav.map((coach) => (
                 <div
@@ -301,7 +299,7 @@ function MyCoach() {
                 <button className="btn btn-primary bg-blue-800 btn-sm" onClick={() => navigate("/client/coaches")}>Browse Coaches</button>
               </div>
             </div>
-            <div className="card bg-base-300 rounded-box flex-1 grow p-4 flex flex-col">
+            <div className="card bg-base-300 rounded-box grid grow p-4 flex">
               <h2 className="text-lg font-bold mb-2">My Reviews</h2>
               {myReviews.map((review) => (
                 <div

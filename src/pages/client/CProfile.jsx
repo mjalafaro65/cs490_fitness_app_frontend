@@ -9,13 +9,15 @@ function CProfile() {
 
   const navigate = useNavigate();
 
-
-
   const [bioData, setData] = useState(null);
-
   const [user, setUser] = useState(null);
 
   const [popOpen, setPopOpen] = useState(null);
+
+  const [reviews, setReviews] = useState([]);
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     async function fetchUser() {
@@ -74,9 +76,31 @@ function CProfile() {
   };
 
   const capitalize = (string) => {
-  if (!string) return "—";
-  return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
-};
+    if (!string) return "—";
+    return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+  };
+
+  const fetchReviews = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await api.get("/client/my-reviews");
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setReviews(data.slice(0, 10)); // Get first 10 reviews for demo
+      setPopOpen(true);
+    } catch (err) {
+      setError(err.message);
+      console.error('Failed to fetch reviews:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSwitchAccount = async (e) => {
     e.preventDefault();
@@ -111,7 +135,6 @@ function CProfile() {
                 />
               ) : (
                 <div className="w-50 h-50 bg-blue-800  rounded-full  text-primary-content flex items-center justify-center text-4xl font-bold uppercase border-4 border-base-100 shadow-lg">
-                  {/* {user?.first_name?.toUpperCase() || "?"} */}
                 </div>
               )}
             </div>
@@ -122,7 +145,6 @@ function CProfile() {
                 <label className="label font-semibold">Name:</label>
                 <p className="text-xl font-bold">
                   {`${user?.first_name} ${user?.last_name}`|| user?.first_name || user?.last_name || "—"}
-{/* //                   {user?.first_name || user?.last_name || "—"} */}
                 </p>
               </div>
               <div>
@@ -151,6 +173,67 @@ function CProfile() {
             <button className="btn btn-primary bg-blue-800 btn-m rounded-t" onClick={() => setPopOpen("invoices")}>Invoices</button>
             <button className="btn btn-primary bg-blue-800 btn-m rounded-t" onClick={() => setPopOpen("reports")}>View Reports</button>
           </div>
+
+      {popOpen && (
+        <div className="fixed inset-0 backdrop-blur-md bg-black/20 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col">
+            <div className="bg-base-600 p-4 rounded-t-2xl flex justify-between items-center">
+              <h2 className="text-black font-bold text-xl">
+                Reviews ({reviews.length})
+              </h2>
+              <button
+                onClick={() => setPopOpen(false)}
+                className="text-white flex items-center justify-center bg-red-500 hover:bg-red-600 rounded-md w-8 h-8 p-2 cursor-pointer"
+              >
+                X
+              </button>
+            </div>
+
+            {loading && (
+              <div className="flex-1 flex items-center justify-center p-8">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading reviews...</p>
+                </div>
+              </div>
+            )}
+
+            {error && !loading && (
+              <div className="flex-1 flex items-center justify-center p-8">
+                <div className="text-center text-red-500">
+                  <p className="text-xl mb-2">Error</p>
+                  <p>{error}</p>
+                  <button
+                    onClick={fetchReviews}
+                    className="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {!loading && !error && (
+              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                {reviews.map((review, index) => (
+                  <div key={review.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="font-bold text-black-600">#{index + 1}</span>
+                          <h3 className="font-semibold text-black-800">{review.name}</h3>
+                        </div>
+                        <p className="text-gray-600 text-sm mb-2">{review.body}</p>
+                        <p className="text-gray-400 text-xs">{review.email}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
           {coachStatus === "switched" &&
             <div className="mt-8 p-6 bg-base-100 border border-gray-200 rounded-xl shadow-sm">
