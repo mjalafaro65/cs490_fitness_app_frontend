@@ -83,6 +83,13 @@ function MealLogs(){
 
       showAlert("Meal logged sucessfully!", "success");
 
+      setData(prev => ({
+        user_id: prev.user_id,
+        meal_id: "",
+        servings: "",
+        notes: ""
+      }));
+
     } catch (error) {
       console.error("Update failed:", error.response?.data || error);
       showAlert(error.response?.data || "Failed to log meal", "error");
