@@ -105,7 +105,7 @@ function Profile() {
             <div className="ml-6 flex flex-col gap-3">
               <div>
                 <label className="label font-semibold">Name:</label>
-                <p className="text-l">
+                <p className="text-l font-bold">
                   {user?.first_name || user?.last_name
                   ? `${user?.first_name} ${user?.last_name}`
                   : "—"}

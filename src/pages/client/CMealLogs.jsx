@@ -3,11 +3,12 @@ import "../../App.css";
 import PopUp from "../../components/PopUp";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../AuthContext";
+import api from "../../axios";
 
 function MealLogs(){
   const [isPopOpen, setPopOpen] = useState(null);
   const navigate = useNavigate();
-  const { fetchUser } = useAuth();
+  const { fetchUser, user } = useAuth();
 
 
   const [logData, setData] = useState({
@@ -21,6 +22,12 @@ function MealLogs(){
     fetchUser();
   }, []);
 
+  useEffect(() => {
+    if (user?.id) {
+      setData(prev => ({ ...prev, user_id: user.id }));
+    }
+  }, [user]);
+
     const handleChange = (e) => {
       setData({
           ...logData, [e.target.name]: e.target.value
@@ -32,16 +39,17 @@ function MealLogs(){
 
     try {
       console.log("Sending:", logData);
-      setData({
-        user_id: logData.user_id || "",
-        meal_id: logData.meal_id || "",
-        servings: logData.servings || "",
-        notes: logData.notes || ""
-        });
 
       const response = await api.post("/nutrition/nutrition-logs", logData);
 
       console.log("SUCCESS:", response.data);
+
+      setData(prev => ({
+        user_id: prev.user_id,
+        meal_id: "",
+        servings: "",
+        notes: ""
+      }));
 
     } catch (error) {
       console.error("Update failed:", error.response?.data || error);
@@ -106,24 +114,24 @@ function MealLogs(){
         </>
       )}
       {isPopOpen === "log" && (
-        <>
+        <form onSubmit={handleSubmit}>
           <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
             <h2>Log Meal</h2>
               <label className="label">
                 Meal:
-                <input className = "input" type="number" name="meal_id" />
+                <input className = "input" type="number" name="meal_id" value={logData.meal_id} onChange={handleChange} />
               </label>
               <label className="label">
                 Servings:
-                <input className="input" type="number" name="servings" />
+                <input className="input" type="number" name="servings" value={logData.servings} onChange={handleChange} />
               </label>
               <label className="label">
                 Notes:
-                <input className="input" type="text" name="notes" />
+                <input className="input" type="text" name="notes" value={logData.notes} onChange={handleChange} />
               </label>
-              <button className="btn btn-primary bg-blue-800" type="submit">Create</button>
+              <button className="btn btn-primary bg-blue-800" type="submit">Log</button>
           </fieldset>
-        </>
+        </form>
       )}
   
     {isPopOpen === "browse" && ( 

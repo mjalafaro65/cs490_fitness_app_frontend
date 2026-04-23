@@ -5,8 +5,6 @@ import api from "../../axios.jsx";
 import { useAuth } from "../../AuthContext.jsx";
 
 function CoSettings() {
-  const {coachStatus, fetchUser} =useAuth()
-
   const [documents, setDocuments] = useState([]);
   const [newDocType, setNewDocType] = useState("");
   const [newDocUrl, setNewDocUrl] = useState("");
@@ -14,8 +12,7 @@ function CoSettings() {
     specialty_id: "",
     years_experience: "",
     bio: "",
-    profile_photo: "",
-    status: ""
+    profile_photo: ""
   });
 
   const [user, setUser] = useState({
@@ -23,6 +20,24 @@ function CoSettings() {
     last_name: "",
     picture: ""
   });
+
+  const specialty = {
+    "Weight Loss": 1,
+    "Muscle Building": 2,
+    "Cardio & Endurance": 3,
+    "Nutrition Coaching": 4,
+    "Yoga & Flexibility": 5,
+    "Sports Performance": 6,
+    "Senior Fitness": 7,
+    "Rehabilitation": 8,
+    "Weight Management Nutrition": 9,
+    "Sports Nutrition": 10,
+    "Plant-Based Nutrition": 11,
+    "Macro Tracking": 12,
+    "CrossFit & HIIT": 13,
+    "Powerlifting": 14,
+    "Bodyweight Training": 15
+    };
 
   useEffect(() => {
     async function fetchUser() {
@@ -32,7 +47,7 @@ function CoSettings() {
         const data = response.data;
 
         setData({
-        specialty_id: data.specialty_id || "",
+        specialty_id: data.specialty_name || "",
         years_experience: data.years_experience || "",
         bio: data.bio || "",
         profile_photo: data.profile_photo || "",
@@ -73,8 +88,13 @@ function CoSettings() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const updateData = {
+      ...fetchData,
+      specialty_id: specialty[fetchData.specialty_id] || null
+      };
+
     try {
-      const response = await api.patch("/coach/coach-profile", fetchData);
+      const response = await api.patch("/coach/coach-profile", updateData);
       console.log("STATUS:", response.status);
     }
     catch (error) {
@@ -82,6 +102,7 @@ function CoSettings() {
       alert("Update failed, please try again");
     }
   };
+
   const handleAddDocument = async () => {
     if (!newDocType || !newDocUrl) return alert("Enter type and URL");
 
@@ -127,21 +148,21 @@ function CoSettings() {
                 <label className="label font-semibold">Speciality: </label>
                 <select className="select" id="speciality" name="specialty_id" value={fetchData.specialty_id} onChange={handleChange}>
                   <option value="">Select</option>
-                  <option value="1">Weight Loss</option>
-                  <option value="2">Muscle Building</option>
-                  <option value="3">Cardio & Endurance</option>
-                  <option value="4">Nutrition Coaching</option>
-                  <option value="5">Yoga & Flexibility</option>
-                  <option value="6">Sports Performance</option>
-                  <option value="7">Senior Fitness</option>
-                  <option value="8">Rehabilitation</option>
-                  <option value="9">Weight Management Nutrition</option>
-                  <option value="10">Sports Nutrition</option>
-                  <option value="11">Plant-Based Nutrition</option>
-                  <option value="12">Macro Tracking</option>
-                  <option value="13">CrossFit & HIIT</option>
-                  <option value="14">Powerlifting</option>
-                  <option value="15">Bodyweight Training</option>
+                  <option value="Weight Loss">Weight Loss</option>
+                  <option value="Muscle Building">Muscle Building</option>
+                  <option value="Cardio & Endurance">Cardio & Endurance</option>
+                  <option value="Nutrition Coaching">Nutrition Coaching</option>
+                  <option value="Yoga & Flexibility">Yoga & Flexibility</option>
+                  <option value="Sports Performance">Sports Performance</option>
+                  <option value="Senior Fitness">Senior Fitness</option>
+                  <option value="Rehabilitation">Rehabilitation</option>
+                  <option value="Weight Management Nutriton">Weight Management Nutrition</option>
+                  <option value="Sports Nutrition">Sports Nutrition</option>
+                  <option value="Plant-Based Nutrition">Plant-Based Nutrition</option>
+                  <option value="Macro Tracking">Macro Tracking</option>
+                  <option value="CrossFit & HIIT">CrossFit & HIIT</option>
+                  <option value="Powerlifting">Powerlifting</option>
+                  <option value="Bodyweight Training">Bodyweight Training</option>
                 </select>
                 <label className="label font-semibold">Years of Experience: </label>
                 <input
