@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import api from "../../axios";
 import "../../App.css";
+import Alert from "../../components/Alert.jsx";
 
 const SPECIALTY_TITLES = {
   1: "Weight Loss",
@@ -31,6 +32,17 @@ function ACoach() {
 
   const [selectedCoach, setSelectedCoach] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+
+  const [alert, setShowAlert] = useState(false);
+  const [alertMsg, setAlertMsg] = useState('');
+  const [alertType, setAlertType] = useState('success');
+
+  const showAlert = (message, type = 'success') => {
+      console.log("ALERT FUNCTION CALLED with:", message, type);
+      setAlertMsg(message);
+      setAlertType(type);
+      setShowAlert(true);
+  };
 
   useEffect(() => {
     const fetchAppli = async () => {
@@ -372,6 +384,11 @@ const acceptCoach = async (coach) => {
           </div>
         )}
       </div>
+        <Alert 
+          isOpen={alert} 
+          message={alertMsg}
+          type={alertType}
+          onClose={() => setShowAlert(false)}/>
     </div>
   );
 }

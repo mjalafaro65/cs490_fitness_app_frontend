@@ -12,8 +12,8 @@ function MealLogs(){
   const [user, setUser] = useState(null);
 
   const [alert, setShowAlert] = useState(false);
-    const [alertMsg, setAlertMsg] = useState('');
-    const [alertType, setAlertType] = useState('success');
+  const [alertMsg, setAlertMsg] = useState('');
+  const [alertType, setAlertType] = useState('success');
 
   const showAlert = (message, type = 'success') => {
       console.log("ALERT FUNCTION CALLED with:", message, type);
@@ -72,6 +72,7 @@ function MealLogs(){
       const response = await api.post("/nutrition/nutrition-logs", set);
 
       console.log("SUCCESS:", response.data);
+      setPopOpen(null);
 
       setData(prev => ({
         user_id: prev.user_id,

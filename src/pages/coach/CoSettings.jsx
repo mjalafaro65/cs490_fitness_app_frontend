@@ -3,9 +3,21 @@ import { useNavigate } from "react-router-dom";
 import "../../App.css";
 import api from "../../axios.jsx";
 import { useAuth } from "../../AuthContext.jsx";
+import Alert from "../../components/Alert.jsx";
 
 function CoSettings() {
   const {coachStatus, fetchUser} =useAuth()
+
+  const [alert, setShowAlert] = useState(false);
+  const [alertMsg, setAlertMsg] = useState('');
+  const [alertType, setAlertType] = useState('success');
+
+  const showAlert = (message, type = 'success') => {
+    console.log("ALERT FUNCTION CALLED with:", message, type);
+    setAlertMsg(message);
+    setAlertType(type);
+    setShowAlert(true);
+  };
 
   const [documents, setDocuments] = useState([]);
   const [newDocType, setNewDocType] = useState("");
@@ -76,12 +88,16 @@ function CoSettings() {
     try {
       const response = await api.patch("/coach/coach-profile", fetchData);
       console.log("STATUS:", response.status);
+
+      showAlert("Updated successfully!", "success");
+
     }
     catch (error) {
       console.error("Update failed:", error.response?.data);
-      alert("Update failed, please try again");
+      showAlert(error.response?.data?.message || "Update failed", "error");
     }
   };
+
   const handleAddDocument = async () => {
     if (!newDocType || !newDocUrl) return alert("Enter type and URL");
 
@@ -94,9 +110,11 @@ function CoSettings() {
       setDocuments([...documents, response.data]);
       setNewDocType("");
       setNewDocUrl("");
+      
+      showAlert("Document successfully added", "success");
     } catch (error) {
+      showAlert(error.response?.data?.message || "Failed to add document", "error");
       console.error("Failed to add document:", error.response?.data);
-      alert("Failed to add document");
     }
   };
 
@@ -207,6 +225,11 @@ function CoSettings() {
           </div>
         </section>
       </div>
+       <Alert 
+          isOpen={alert} 
+          message={alertMsg}
+          type={alertType}
+          onClose={() => setShowAlert(false)}/>
     </div>
   );
 

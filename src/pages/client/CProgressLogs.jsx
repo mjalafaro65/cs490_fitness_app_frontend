@@ -3,8 +3,20 @@ import { Link } from "react-router-dom";
 import "../../App.css";
 import PopUp from "../../components/PopUp";
 import api from "../../axios";
+import Alert from "../../components/Alert.jsx";
 
 function ProgressLogs(){
+  const [alert, setShowAlert] = useState(false);
+  const [alertMsg, setAlertMsg] = useState('');
+  const [alertType, setAlertType] = useState('success');
+
+  const showAlert = (message, type = 'success') => {
+        console.log("ALERT FUNCTION CALLED with:", message, type);
+        setAlertMsg(message);
+        setAlertType(type);
+        setShowAlert(true);
+  };
+
   const [isPopOpen, setPopOpen] = useState(null);
   const [daily, setData] = useState({
     daily_goal: "",
@@ -14,6 +26,18 @@ function ProgressLogs(){
     weight_lbs: "", 
     sleep_hours: "", 
     mood_score: ""
+  })
+
+  const [logData, setLogData] = useState({
+    exercise_id: 0,
+    sets: 0,
+    reps: 0, 
+    weight: 0,
+    rpe: 0, 
+    distance: 0, 
+    calories: 0, 
+    duration_minutes: 0, 
+    notes: ""
   })
 
   useEffect(() => {
@@ -47,13 +71,34 @@ function ProgressLogs(){
     fetchUser();
   }, []);
 
+  const handleChange = (e) => {
+        setLogData({
+            ...logData, [e.target.name]: e.target.value
+        });
+    };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try{
-      await api.post("/client/daily-survey", daily);
-      alert("Saved!");
+      await api.post("/workouts/workout-logs", logData);
+      setPopOpen(null);
+      showAlert("Workout logged successfully!", "success");
+
+      setLogData({
+        exercise_id: 0,
+        sets: 0,
+        reps: 0, 
+        weight: 0,
+        rpe: 0, 
+        distance: 0, 
+        calories: 0, 
+        duration_minutes: 0, 
+        notes: ""
+      });
+
     } catch(err){
       console.error("Failed to save survey:", err.response?.data || err)
+      showAlert(error.response?.data?.message || "Failed to log workout", "error");
     }
   };
 
@@ -157,7 +202,7 @@ function ProgressLogs(){
             <h2>Edit Activity</h2>
               <label className="label">
                 Exercise:
-                <input className = "input" type="number" name="exercise" />
+                <input className = "input" type="number" name="exercise_id" />
               </label>
               <label className="label">
                 Sets:
@@ -194,45 +239,54 @@ function ProgressLogs(){
 
       {isPopOpen === "log" && (
       <>
-          <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+          <form onSubmit={handleSubmit} className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
             <h2>Edit Activity</h2>
               <label className="label">
                 Exercise:
-                <input className = "input" type="number" name="exercise" />
+                <input className = "input" type="number" value={logData.exercise_id} name="exercise_id" onChange={handleChange} />
               </label>
               <label className="label">
                 Sets:
-                <input className="input" type="number" name="sets" />
+                <input className="input" type="number" value={logData.sets} name="sets" onChange={handleChange} />
               </label>
               <label className="label">
                 Reps:
-                <input className="input" type="number" name="reps" />
+                <input className="input" type="number" value={logData.reps} name="reps" onChange={handleChange} />
               </label>
               <label className="label">
                 Weight:
-                <input className="input" type="number" name="weight" />
+                <input className="input" type="number" value={logData.weight} name="weight" onChange={handleChange} />
               </label>
               <label className="label">
                 RPE (rate of perceived exertion):
-                <input className="input" type="number" name="rpe" />
+                <input className="input" type="number" value={logData.rpe} name="rpe" onChange={handleChange} />
               </label>
               <label className="label">
                 Distance:
-                <input className="input" type="number" name="distance" />
+                <input className="input" type="number" value={logData.distance} name="distance" onChange={handleChange} />
               </label>
               <label className="label">
                 Calories:
-                <input className="input" type="number" name="calories" />
+                <input className="input" type="number" value={logData.calories} name="calories" onChange={handleChange} />
               </label>
               <label className="label">
                 Duration (mins):
-                <input className="input" type="number" name="duration" />
+                <input className="input" type="number" value={logData.duration_minutes} name="duration" onChange={handleChange} />
+              </label>
+              <label className="label">
+                Notes:
+                <input className="textarea" type="text" value={logData.notes} name="notes" onChange={handleChange} />
               </label>
               <button className="btn btn-primary bg-blue-800" type="submit">Log</button>
-          </fieldset>
+          </form>
       </>
       )}
     </PopUp>
+    <Alert 
+                    isOpen={alert} 
+                    message={alertMsg}
+                    type={alertType}
+                    onClose={() => setShowAlert(false)}/>
   </div>
 
   );

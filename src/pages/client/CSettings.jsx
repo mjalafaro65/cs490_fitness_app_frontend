@@ -163,7 +163,7 @@ function CSettings() {
 
         } catch (error) {
             console.error("Deletion failed:", error.response?.data);
-            alert("Could not delete account.");
+            showAlert("Could not delete account.", "error");
         }
     };
 
@@ -171,9 +171,11 @@ function CSettings() {
         try {
             const response = await api.patch("/client/delete-daily");
             console.log("Daily record reset:", response.data);
+            showAlert("Daily record reset", "success");
             setPopOpen(null);
         } catch (error) {
             console.error("Failed to reset daily record:", error.response?.data || error);
+            showAlert(error.response?.data?.message || "Failed to reset daily record", "error");
         }
     };
 
@@ -759,6 +761,6 @@ function CSettings() {
     //     </div>
     // );
 
-}
+} 
 
 export default CSettings;
