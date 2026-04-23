@@ -4,12 +4,13 @@ import PopUp from "../../components/PopUp";
 import api from "../../axios";
 import BrowseExercises from "../Exercises";
 import { useNavigate } from "react-router-dom";
+import Alert from "../../components/Alert";
 
 function LargeModal({ open, onClose, children, width = "80vw", height = "85vh" }) {
   if (!open) return null;
   return (
     <div
-      className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black/20 flex items-center justify-center z-50"
       onClick={onClose}
     >
       <div
@@ -79,6 +80,17 @@ function ClientWorkoutPlans() {
     day_label: "",
     start_time: "",
   });
+
+  const [alert, setShowAlert] = useState(false);
+  const [alertMsg, setAlertMsg] = useState('');
+  const [alertType, setAlertType] = useState('success');
+
+  const showAlert = (message, type = 'success') => {
+      console.log("ALERT FUNCTION CALLED with:", message, type);
+      setAlertMsg(message);
+      setAlertType(type);
+      setShowAlert(true);
+  };
 
   const saveScheduledWorkoutsToLocal = (workouts) => {
     try {
@@ -246,7 +258,9 @@ function ClientWorkoutPlans() {
       setPopOpen(null);
       setNewPlan({ name: "", description: "", is_public: false });
       await fetchPlansWithDetails();
+      showAlert("New plan successfully created!", "success");
     } catch (err) {
+      showAlert(error.response?.data || "Failed to create plan", "error");
       console.error("Create plan failed:", err.response?.data || err);
     }
   };
@@ -275,7 +289,9 @@ function ClientWorkoutPlans() {
       await api.patch(`/workouts/plans/${selectedPlan.plan_id}`, editData);
       await fetchPlansWithDetails();
       await handleSelectPlan(selectedPlan.plan_id);
+      showAlert("Plan updated successfully!", "success");
     } catch (err) {
+      showAlert(err.response?.data || "Failed to update plan", "error");
       console.error("Update plan failed:", err.response?.data || err);
     }
   };
@@ -301,7 +317,10 @@ function ClientWorkoutPlans() {
       setNewDayByPlan((prev) => ({ ...prev, [plan_id]: {} }));
       await fetchPlansWithDetails();
       await handleSelectPlan(plan_id);
+
+      showAlert("New day added!", "success");
     } catch (err) {
+      showAlert(err.response?.data || "Failed to add day", "error");
       console.error("Add day failed:", err.response?.data || err);
     }
   };
@@ -312,7 +331,11 @@ function ClientWorkoutPlans() {
       await api.delete(`/workouts/plans/${plan_id}/days/${plan_day_id}`);
       await fetchPlansWithDetails();
       await handleSelectPlan(plan_id);
+
+      showAlert("Day deleted!", "success");
+
     } catch (err) {
+      showAlert(err.response?.data || "Failed to delete day", "error");
       console.error("Delete day failed:", err.response?.data || err);
     }
   };
@@ -438,7 +461,7 @@ function ClientWorkoutPlans() {
         return updated;
       });
       
-      alert(`Success! ${calendarResponse.data.calendar_workout_ids?.length || 0} workout(s) scheduled.`);
+      showAlert(`Success: ${calendarResponse.data.calendar_workout_ids?.length || 0} workout(s) scheduled.`, "success");
       
       setShowScheduleCalendar(false);
       setTempActiveDays([]);
@@ -449,7 +472,7 @@ function ClientWorkoutPlans() {
       
     } catch (err) {
       console.error("Schedule failed:", err.response?.data);
-      alert(`Scheduling failed: ${err.response?.data?.message || err.message}`);
+      showAlert(err.response?.data || "Failed to schedule plan", "error");
     }
   };
 
@@ -490,10 +513,12 @@ function ClientWorkoutPlans() {
       setEditScheduleForm({ date: "", day_label: "", start_time: "" });
       
       await fetchPlansWithDetails();
+
+      showAlert("Schedule successfully updated", "success");
       
     } catch (err) {
       console.error("Failed to update schedule:", err);
-      alert("Failed to update schedule");
+      showAlert(err.response?.data || "Failed to update schedule", "error");
     }
   };
 

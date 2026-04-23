@@ -4,11 +4,23 @@ import PopUp from "../../components/PopUp";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../AuthContext";
 import api from "../../axios";
+import Alert from "../../components/Alert";
 
 function MealLogs(){
   const [isPopOpen, setPopOpen] = useState(null);
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+
+  const [alert, setShowAlert] = useState(false);
+  const [alertMsg, setAlertMsg] = useState('');
+  const [alertType, setAlertType] = useState('success');
+
+  const showAlert = (message, type = 'success') => {
+      console.log("ALERT FUNCTION CALLED with:", message, type);
+      setAlertMsg(message);
+      setAlertType(type);
+      setShowAlert(true);
+  };
   
   const [logData, setData] = useState({
     user_id: "",
@@ -51,15 +63,25 @@ function MealLogs(){
 
     const set = {
       ...logData,
-      user_id: user?.id
+      user_id: user?.user_id
     };
 
     try {
       console.log("Sending:", set);
 
-      const response = await api.post("/nutrition/nutrition-logs", logData);
+      const response = await api.post("/nutrition/nutrition-logs", set);
 
       console.log("SUCCESS:", response.data);
+      setPopOpen(null);
+
+      setData(prev => ({
+        user_id: prev.user_id,
+        meal_id: "",
+        servings: "",
+        notes: ""
+      }));
+
+      showAlert("Meal logged sucessfully!", "success");
 
       setData(prev => ({
         user_id: prev.user_id,
@@ -70,6 +92,7 @@ function MealLogs(){
 
     } catch (error) {
       console.error("Update failed:", error.response?.data || error);
+      showAlert(error.response?.data || "Failed to log meal", "error");
     }
   };
 
@@ -165,6 +188,12 @@ function MealLogs(){
         </>
       )}
     </PopUp>
+
+     <Alert 
+      isOpen={alert} 
+      message={alertMsg}
+      type={alertType}
+      onClose={() => setShowAlert(false)}/>
   </div>
 
   );
