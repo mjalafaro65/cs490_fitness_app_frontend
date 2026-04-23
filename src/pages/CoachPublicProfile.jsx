@@ -480,8 +480,11 @@ const CoachPublicProfile = ({ isPublic }) => {
                                                     try {
                                                         setSubmitting(true);
 
-                                                        await api.post(`/client/review-coach/${id}`, {
-                                                            rating: newRating,
+                                                        // Convert 1-5 star rating to 1-100 scale for backend
+                                                        const ratingScale = (newRating / 5) * 100;
+                                                        
+                                                        await api.post(`/client/review-coach/${coach.coach_profile_id}`, {
+                                                            rating: Math.round(ratingScale),
                                                             comment: newComment
                                                         });
 
@@ -493,8 +496,21 @@ const CoachPublicProfile = ({ isPublic }) => {
                                                         setNewRating(5);
 
                                                     } catch (err) {
-                                                        console.error(err.response);
-                                                        alert("Failed to submit review");
+                                                        console.error("Review submission error:", err);
+                                                        console.error("Error response:", err.response);
+                                                        console.error("Error status:", err.response?.status);
+                                                        console.error("Error data:", err.response?.data);
+
+                                                        // Show more specific error message
+                                                        if (err.response?.data?.msg) {
+                                                            alert(`Failed to submit review: ${err.response.data.msg}`);
+                                                        } else if (err.response?.status === 401) {
+                                                            alert("Failed to submit review: Please log in again");
+                                                        } else if (err.response?.status === 400) {
+                                                            alert("Failed to submit review: Invalid data provided");
+                                                        } else {
+                                                            alert("Failed to submit review: Server error. Please try again.");
+                                                        }
                                                     } finally {
                                                         setSubmitting(false);
                                                     }
