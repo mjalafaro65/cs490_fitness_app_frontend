@@ -4,6 +4,7 @@ import "../../App.css";
 import PopUp from "../../components/PopUp";
 import api from "../../axios";
 import { useAuth } from "../../AuthContext";
+import Alert from "../../components/Alert";
 
 function CSettings() {
     const { user } = useAuth()
@@ -13,6 +14,17 @@ function CSettings() {
     const [deleteStep, setDeleteStep] = useState(1);
     const [reason, setReason] = useState("");
     const [detailedReason, setDetailedReason] = useState("");
+
+    const [alert, setShowAlert] = useState(false);
+    const [alertMsg, setAlertMsg] = useState('');
+    const [alertType, setAlertType] = useState('success');
+
+    const showAlert = (message, type = 'success') => {
+        console.log("ALERT FUNCTION CALLED with:", message, type);
+        setAlertMsg(message);
+        setAlertType(type);
+        setShowAlert(true);
+    };
 
     const [initialData, setData] = useState({
         first_name: "",
@@ -51,7 +63,7 @@ function CSettings() {
                     password: data.password || "",
                     phone_number: data.phone_number || "",
                     date_of_birth: data.date_of_birth || "",
-                    gender: data.gender ? data.gender.split(".")[1] : "",
+                    gender: data.gender || "",
                     profile_photo: data.profile_photo || "",
                     bio: data.bio || "",
                     height: data.height || "",
@@ -100,7 +112,6 @@ function CSettings() {
 
         const formattedData = {
             date_of_birth: initialData.date_of_birth,
-            gender: initialData.gender?.split(".")[1] || initialData.gender,
             bio: initialData.bio,
             profile_photo: initialData.profile_photo,
             height: Number(initialData.height),
@@ -115,18 +126,18 @@ function CSettings() {
 
         try {
             const response = await api.put("/client/profile", formattedData);
-            const repsonse2 = await api.patch("/user/me", formattedData2);
+            const response2 = await api.patch("/user/me", formattedData2);
 
             console.log("SUCCESS:", response.data);
-            console.log("SUCCESS:", repsonse2.data);
-            alert("Profile updated successfully!");
+            console.log("SUCCESS:", response2.data);
+
+            showAlert("Profile updated successfully!", "success");
         } catch (error) {
-            console.log("SUBMIT STATE SNAPSHOT:", JSON.parse(JSON.stringify(initialData)));
+        console.error("ERROR occurred:", error);
+        showAlert(error.response?.data?.message || "Failed to update profile", "error");
             if (error.response || error.response2) {
-                console.error("Status:", error.response.status);
-                console.error("Status:", error.response2.status);
                 console.error("Backend errors:", error.response.data);
-                console.error("Backend errors:", error.response2.data);
+                //console.error("Backend errors:", error.response2.data);
             } else {
                 console.error("No response received");
             }
@@ -152,7 +163,7 @@ function CSettings() {
 
         } catch (error) {
             console.error("Deletion failed:", error.response?.data);
-            alert("Could not delete account.");
+            showAlert("Could not delete account.", "error");
         }
     };
 
@@ -160,9 +171,11 @@ function CSettings() {
         try {
             const response = await api.patch("/client/delete-daily");
             console.log("Daily record reset:", response.data);
+            showAlert("Daily record reset", "success");
             setPopOpen(null);
         } catch (error) {
             console.error("Failed to reset daily record:", error.response?.data || error);
+            showAlert(error.response?.data?.message || "Failed to reset daily record", "error");
         }
     };
 
@@ -246,22 +259,6 @@ function CSettings() {
                                     value={initialData.date_of_birth}
                                     onChange={handleChange}
                                 />
-                            </div>
-
-                            <div className="flex flex-col gap-1">
-                                <span className="font-semibold text-gray-600">Gender</span>
-                                <select
-                                    className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    name="gender"
-                                    value={initialData.gender}
-                                    onChange={handleChange}
-                                >
-                                    <option value="">Select</option>
-                                    <option value="female">Female</option>
-                                    <option value="male">Male</option>
-                                    <option value="other">Other</option>
-                                    <option value="prefer_not_to_say">Prefer not to say</option>
-                                </select>
                             </div>
 
                             <div className="flex flex-col md:col-span-2 gap-1">
@@ -575,6 +572,11 @@ function CSettings() {
                     </div>
                 </section>
             </div>
+                <Alert 
+                    isOpen={alert} 
+                    message={alertMsg}
+                    type={alertType}
+                    onClose={() => setShowAlert(false)}/>
         </div>
     );
 
@@ -759,6 +761,6 @@ function CSettings() {
     //     </div>
     // );
 
-}
+} 
 
 export default CSettings;

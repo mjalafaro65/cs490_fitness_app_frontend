@@ -9,13 +9,15 @@ function CProfile() {
 
   const navigate = useNavigate();
 
-
-
   const [bioData, setData] = useState(null);
-
   const [user, setUser] = useState(null);
 
   const [popOpen, setPopOpen] = useState(null);
+
+  const [reviews, setReviews] = useState([]);
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     async function fetchUser() {
@@ -74,9 +76,9 @@ function CProfile() {
   };
 
   const capitalize = (string) => {
-  if (!string) return "—";
-  return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
-};
+    if (!string) return "—";
+    return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+  };
 
   const handleSwitchAccount = async (e) => {
     e.preventDefault();
@@ -111,7 +113,6 @@ function CProfile() {
                 />
               ) : (
                 <div className="w-50 h-50 bg-blue-800  rounded-full  text-primary-content flex items-center justify-center text-4xl font-bold uppercase border-4 border-base-100 shadow-lg">
-                  {/* {user?.first_name?.toUpperCase() || "?"} */}
                 </div>
               )}
             </div>
@@ -122,7 +123,6 @@ function CProfile() {
                 <label className="label font-semibold">Name:</label>
                 <p className="text-xl font-bold">
                   {`${user?.first_name} ${user?.last_name}`|| user?.first_name || user?.last_name || "—"}
-{/* //                   {user?.first_name || user?.last_name || "—"} */}
                 </p>
               </div>
               <div>
