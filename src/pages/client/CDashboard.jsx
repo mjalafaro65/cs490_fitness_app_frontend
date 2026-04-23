@@ -8,6 +8,7 @@ import PopUp from "../../components/PopUp";
 
 import api from "../../axios";
 
+import Alert from "../../components/Alert.jsx";
 
 
 function getWeekDays(anchorDate) {
@@ -29,7 +30,6 @@ function getWeekDays(anchorDate) {
     return date;
 
   });
-
 }
 
 
@@ -72,8 +72,6 @@ function CDashboard() {
 
   const [selectedDay, setSelectedDay] = useState(new Date());
 
-
-
   const [daily, setData] = useState({
 
     daily_goal: "",
@@ -92,7 +90,16 @@ function CDashboard() {
 
   });
 
+  const [alert, setShowAlert] = useState(false);
+  const [alertMsg, setAlertMsg] = useState('');
+  const [alertType, setAlertType] = useState('success');
 
+  const showAlert = (message, type = 'success') => {
+      console.log("ALERT FUNCTION CALLED with:", message, type);
+      setAlertMsg(message);
+      setAlertType(type);
+      setShowAlert(true);
+  };
 
   const [scheduledWorkouts, setScheduledWorkouts] = useState([]);
 
@@ -376,8 +383,6 @@ function CDashboard() {
 
     e.preventDefault();
 
-    
-
     const submitData = {};
 
     Object.keys(daily).forEach(key => {
@@ -390,8 +395,6 @@ function CDashboard() {
 
     });
 
-
-
     try {
 
       console.log("Sending:", submitData);
@@ -402,9 +405,13 @@ function CDashboard() {
 
       setPopOpen(null);
 
+
       console.log("Survey submitted successfully");
+    showAlert("Daily wellness logged successfully!", "success");
 
     } catch (error) {
+
+      showAlert(error.response?.data?.message || "Failed to log", "error");
 
       console.error("Update failed:", error.response?.data || error);
 
@@ -1117,6 +1124,12 @@ function CDashboard() {
         )}
 
       </PopUp>
+
+      <Alert 
+        isOpen={alert} 
+        message={alertMsg}
+        type={alertType}
+        onClose={() => setShowAlert(false)}/>
 
     </div>
 
