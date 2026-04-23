@@ -872,12 +872,20 @@ function ClientWorkoutPlans() {
                 </button>
               </div>
             </div>
+            <div className="flex flex-col gap-4">
             <div className="card bg-base-300 p-4 rounded-box w-64 flex flex-col items-center h-24">
               <h2 className="text-lg font-bold mb-2">Create New Plan</h2>
               <button className="btn btn-primary bg-blue-800 btn-sm" onClick={() => setPopOpen("create")}>
                 Create New
               </button>
             </div>
+            <div className="card bg-base-300 p-4 rounded-box w-64 flex flex-col items-center h-24">
+              <h2 className="text-lg font-bold mb-2">Log Workout</h2>
+              <button className="btn btn-primary bg-blue-800 btn-sm" onClick={() => setPopOpen("create")}>
+                Log Workout
+              </button>
+            </div>
+          </div>
           </div>
         </section>
       </div>
