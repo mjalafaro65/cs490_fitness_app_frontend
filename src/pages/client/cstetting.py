@@ -29,11 +29,11 @@ function CSettings() {
     });
 
 
-    const [users, setUser] = useState({
-        first_name: "",
-        last_name: "",
-        phone_number: ""
-    });
+    // const [user, setUser] = useState({
+    //     first_name: "",
+    //     last_name: "",
+    //     picture: ""
+    // });
 
     useEffect(() => {
         async function fetchUser() {
@@ -43,6 +43,9 @@ function CSettings() {
                 const data = response.data;
 
                 console.log("Response data:", data);
+
+                console.log("RAW GENDER FROM API:", data.gender);
+                console.log("PARSED GENDER:", data.gender ? data.gender.split(".")[1] : "");
 
                 setData({
                     first_name: data.first_name || "",
@@ -58,25 +61,9 @@ function CSettings() {
                     weight: data.weight || "",
                 });
 
-            } catch (err) {
-                console.error("Failed to fetch user:", err.response?.data || err);
-            }
-        }
-
-        fetchUser();
-    }, []);
-
-    useEffect(() => {
-        async function fetchUser() {
-            try {
-                const response = await api.get("/user/me");
-                const data = response.data;
-
-                setUser({
-                    first_name: data.first_name || "",
-                    last_name: data.last_name || "",
-                    phone_number: data.phone_number || ""
-                });
+                setTimeout(() => {
+                    console.log("STATE AFTER SET:", initialData.gender);
+                }, 0);
 
             } catch (err) {
                 console.error("Failed to fetch user:", err.response?.data || err);
@@ -87,9 +74,6 @@ function CSettings() {
     }, []);
 
     const handleChange = (e) => {
-        setUser({
-            ...users, [e.target.name]: e.target.value
-        });
         setData({
             ...initialData, [e.target.name]: e.target.value
         });
@@ -97,6 +81,9 @@ function CSettings() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        console.log("====== SENDING DATA ======");
+        console.log("FULL STATE BEFORE FORMAT:", initialData);
 
         const formattedData = {
             date_of_birth: initialData.date_of_birth,
@@ -107,26 +94,16 @@ function CSettings() {
             weight: Number(initialData.weight),
         };
 
-        const formattedData2 = {
-            first_name: users.first_name,
-            last_name: users.last_name,
-            phone_number: users.phone_number
-        };
-
         try {
             const response = await api.put("/client/profile", formattedData);
-            const repsonse2 = await api.patch("/user/me", formattedData2);
 
             console.log("SUCCESS:", response.data);
-            console.log("SUCCESS:", repsonse2.data);
             alert("Profile updated successfully!");
         } catch (error) {
             console.log("SUBMIT STATE SNAPSHOT:", JSON.parse(JSON.stringify(initialData)));
-            if (error.response || error.response2) {
+            if (error.response) {
                 console.error("Status:", error.response.status);
-                console.error("Status:", error.response2.status);
                 console.error("Backend errors:", error.response.data);
-                console.error("Backend errors:", error.response2.data);
             } else {
                 console.error("No response received");
             }
@@ -136,13 +113,11 @@ function CSettings() {
     const handleDeleteAccount = async () => {
 
         try {
-
             const response = await api.delete("/user/me", {
                 data: {
-                    reason:reason,
+                    reason,
                     detailed_reason: detailedReason
                 }
-
             });
             console.log("Server Response:", response.data);
 
@@ -174,27 +149,27 @@ function CSettings() {
                     <div className="text-2xl font-bold mb-2">Settings</div>
                     <section className="p-10 flex flex-col md:flex-row gap-30 items-start">
                         <div className="flex-shrink-0 ">
-                            {initialData?.profile_photo ? (
+                            {user?.picture ? (
                                 <img
-                                    src={initialData.profile_photo}
+                                    src={user.picture}
                                     alt="Profile"
                                     className="w-32 h-32  rounded-full  object-cover border-2 border-gray-300  "
                                 />
                             ) : (
                                 <div className="w-50 h-50 bg-blue-800  rounded-full  text-primary-content flex items-center justify-center text-4xl font-bold uppercase border-4 border-base-100 shadow-lg">
-                                    {users?.first_name?.[0]?.toUpperCase() || "?"}
+                                    {user?.first_name?.[0]?.toUpperCase() || "?"}
                                 </div>
                             )}
                         </div>
                         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full p-6 bg-white rounded-xl shadow-lg border border-gray-100">
-
+                            {/* Name */}
                             <div className="flex flex-col gap-1">
                                 <span className="font-semibold text-gray-600">First Name</span>
                                 <input
                                     className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     type="text"
                                     name="first_name"
-                                    value={users.first_name}
+                                    value={initialData.first_name}
                                     onChange={handleChange}
                                     placeholder="First Name"
                                 />
@@ -206,37 +181,26 @@ function CSettings() {
                                     className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     type="text"
                                     name="last_name"
-                                    value={users.last_name}
+                                    value={initialData.last_name}
                                     onChange={handleChange}
                                     placeholder="Last Name"
                                 />
                             </div>
 
-                            <div className="flex flex-col md:col-span-2 gap-1">
-                                <span className="font-semibold text-gray-600">Phone Number</span>
-                                <input
-                                    className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    type="text"
-                                    name="phone_number"
-                                    value={users.phone_number}
-                                    onChange={handleChange}
-                                    placeholder="XXX-XXX-XXXX"
-                                />
-                            </div>
-                            {/*
+                            {/* Email */}
                             <div className="flex flex-col md:col-span-2 gap-1">
                                 <span className="font-semibold text-gray-600">Email</span>
                                 <input
-                                className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                type="email"
-                                name="email"
-                                value={initialData.email}
-                                onChange={handleChange}
-                                placeholder="Email"
+                                    className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    type="email"
+                                    name="email"
+                                    value={initialData.email}
+                                    onChange={handleChange}
+                                    placeholder="Email"
                                 />
                             </div>
-                            */}
 
+                            {/* Date of Birth & Gender */}
                             <div className="flex flex-col gap-1">
                                 <span className="font-semibold text-gray-600">Date of Birth</span>
                                 <input
@@ -264,6 +228,7 @@ function CSettings() {
                                 </select>
                             </div>
 
+                            {/* Bio */}
                             <div className="flex flex-col md:col-span-2 gap-1">
                                 <span className="font-semibold text-gray-600">Bio</span>
                                 <textarea
@@ -275,6 +240,7 @@ function CSettings() {
                                 />
                             </div>
 
+                            {/* Height & Weight */}
                             <div className="flex flex-col gap-1">
                                 <span className="font-semibold text-gray-600">Height (cm)</span>
                                 <input
@@ -299,6 +265,7 @@ function CSettings() {
                                 />
                             </div>
 
+                            {/* Save Button */}
                             <div className="md:col-span-2 flex justify-end mt-4">
                                 <button
                                     type="submit"
@@ -527,7 +494,6 @@ function CSettings() {
                             </fieldset>
                         </PopUp>
                     </div>
-                   
                     <div>
                         {!user?.roles?.includes(2) && (
                             <button
