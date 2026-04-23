@@ -11,6 +11,33 @@ const Coaches = ({ isPublic }) => {
   const [coaches, setCoaches] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true)
+  const [favoritedCoaches, setFavoritedCoaches] = useState([]);
+
+  useEffect(() => {
+    // Load favorited coaches from localStorage
+    const favorites = JSON.parse(localStorage.getItem('favoritedCoaches') || '[]');
+    setFavoritedCoaches(favorites);
+  }, []);
+
+  const toggleFavorite = (coachId) => {
+    const favorites = JSON.parse(localStorage.getItem('favoritedCoaches') || '[]');
+    const index = favorites.indexOf(coachId);
+    
+    if (index > -1) {
+      // Remove from favorites
+      favorites.splice(index, 1);
+    } else {
+      // Add to favorites
+      favorites.push(coachId);
+    }
+    
+    localStorage.setItem('favoritedCoaches', JSON.stringify(favorites));
+    setFavoritedCoaches(favorites);
+  };
+
+  const isFavorited = (coachId) => {
+    return favoritedCoaches.includes(coachId);
+  };
 
   useEffect(() => {
     const fetchCoaches = async () => {
@@ -76,8 +103,18 @@ const Coaches = ({ isPublic }) => {
         {filteredCoaches.map((coach) => (
           <div key={coach.coach_profile_id} className="card bg-base-100 shadow-xl border border-base-300 h-52 overflow-hidden relative flex flex-col">
 
-            <button className="btn btn-circle btn-ghost btn-sm absolute top-2 right-2 z-10 hover:bg-base-200">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5 text-gray-500">
+            <button 
+              className="btn btn-circle btn-ghost btn-sm absolute top-2 right-2 z-10 hover:bg-base-200"
+              onClick={() => toggleFavorite(coach.user_id)}
+            >
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                fill={isFavorited(coach.user_id) ? "currentColor" : "none"} 
+                viewBox="0 0 24 24" 
+                strokeWidth={1.5} 
+                stroke="currentColor" 
+                className={`size-5 ${isFavorited(coach.user_id) ? "text-red-500" : "text-gray-500"}`}
+              >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
               </svg>
             </button>
