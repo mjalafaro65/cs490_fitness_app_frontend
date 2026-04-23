@@ -12,6 +12,7 @@ function MyCoach() {
   const [error, setError] = useState(null);
   const [requests, setRequests] = useState([]);
   const [myReviews, setMyReviews] = useState([]);
+    const [hiredCoaches, setHiredCoaches] = useState([]);
   const [editingReview, setEditingReview] = useState(null);
   const [editData, setEditData] = useState({
     rating: "",
@@ -77,6 +78,41 @@ function MyCoach() {
         console.log(err);
       }
     };
+    
+//     const fetchData = async () => {
+//       try {
+//         // Get hired coach IDs from localStorage
+//         const hiredCoachIds = JSON.parse(localStorage.getItem('hiredCoaches') || '[]');
+//         setHiredCoaches(hiredCoachIds);
+        
+//         // Get favorited coach IDs from localStorage
+//         const favoritedCoachIds = JSON.parse(localStorage.getItem('favoritedCoaches') || '[]');
+//         setFavoritedCoaches(favoritedCoachIds);
+        
+//         // Fetch hired coaches details
+//         if (hiredCoachIds.length > 0) {
+//           const coachPromises = hiredCoachIds.map(async (coachId) => {
+//             try {
+//               const response = await api.get(`/coach/coach-profile`, {
+//                 params: { user_id: coachId }
+//               });
+//               const userResponse = await api.get(`/user/${coachId}`);
+              
+//               return {
+//                 ...response.data,
+//                 user: userResponse.data
+//               };
+//             } catch (error) {
+//               console.error(`Failed to fetch coach ${coachId}:`, error);
+//               return null;
+//             }
+//           });
+          
+//           const coaches = await Promise.all(coachPromises);
+//           setCoachDetails(coaches.filter(coach => coach !== null));
+//         }
+//       }
+    
 
 
 
@@ -84,6 +120,23 @@ function MyCoach() {
     fetchMyReviews()
     fetchFavoriteCoaches()
   }, []);
+   if (loading) {
+    return (
+      <div className="drawer lg:drawer-open">
+        <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
+        <div className="drawer-content">
+          <section className="p-6">
+            <div className="text-2xl font-bold mb-6">My Coach</div>
+            <div className="text-center py-8">
+              <div className="loading loading-spinner"></div>
+              <p className="mt-4">Loading your coaches...</p>
+            </div>
+          </section>
+        </div>
+      </div>
+    );
+  }
+
 
   const deleteRequest = async (id) => {
     try {

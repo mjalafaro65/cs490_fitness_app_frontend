@@ -33,6 +33,45 @@ const CoachPublicProfile = ({ isPublic }) => {
     // State for interactive features
     const [activeTab, setActiveTab] = useState("about");
 
+    /*********************************************************************************/
+    /***** TEMPORARY HIRE COACH FUNCTIONALITY - FOR TESTING/DEMO PURPOSES ONLY *****/
+    /*********************************************************************************/
+    const [isHired, setIsHired] = useState(false);
+    const [hireLoading, setHireLoading] = useState(false);
+
+    const handleHireCoach = async () => {
+        setHireLoading(true);
+        
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        try {
+            const hiredCoaches = JSON.parse(localStorage.getItem('hiredCoaches') || '[]');
+            if (!hiredCoaches.includes(id)) {
+                hiredCoaches.push(id);
+                localStorage.setItem('hiredCoaches', JSON.stringify(hiredCoaches));
+                setIsHired(true);
+                
+                // Navigate to My Coach page after successful hire
+                navigate('/client/mycoach');
+            } else {
+                // Already hired - just navigate to My Coach page
+                navigate('/client/mycoach');
+            }
+        } catch (error) {
+            console.error('Hire failed:', error);
+            setHireLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        const hiredCoaches = JSON.parse(localStorage.getItem('hiredCoaches') || '[]');
+        setIsHired(hiredCoaches.includes(id));
+    }, [id]);
+
+    /*********************************************************************************/
+    /***** END OF TEMPORARY HIRE COACH FUNCTIONALITY                           *****/
+    /*********************************************************************************/
+
     const isNotLoggedIn = !localStorage.getItem("token");
 
     useEffect(() => {
@@ -163,6 +202,13 @@ const CoachPublicProfile = ({ isPublic }) => {
 
                                 <button className="btn btn-primary w-full bg-blue-800 mb-3">
                                     {isNotLoggedIn ? "Sign up to Message" : "Message Coach"}
+                                </button>
+                                <button 
+                                    className={`btn btn-block ${isHired ? 'btn-success' : 'btn-outline border-gray-300'} ${hireLoading ? 'loading' : ''}`}
+                                    onClick={handleHireCoach}
+                                    disabled={hireLoading || isHired}
+                                >
+                                    {hireLoading ? 'Hiring...' : isHired ? 'Hired' : 'Hire Coach'}
                                 </button>
 
                                 <button
