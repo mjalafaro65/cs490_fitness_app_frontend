@@ -4,6 +4,7 @@ import "../App.css";
 import api from "../axios.jsx";
 import { Link } from "react-router-dom";
 import VisitorNavbar from "../components/VisitorNavbar.jsx";
+import { useAuth } from "../AuthContext.jsx";
 
 
 const Coaches = ({ isPublic }) => {
@@ -12,6 +13,10 @@ const Coaches = ({ isPublic }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true)
   const [favoritedCoaches, setFavoritedCoaches] = useState([]);
+
+  const {user} = useAuth()
+  const isLoggedIn = !!user;
+
 
   useEffect(() => {
     // Load favorited coaches from localStorage
@@ -57,7 +62,6 @@ const Coaches = ({ isPublic }) => {
 
   if (loading) return <div className="p-4">Loading coaches...</div>
 
-  const isNotLoggedIn = !localStorage.getItem("token");
 
   const filteredCoaches = coaches.filter((coach) =>
     `${coach.first_name} ${coach.last_name}`
@@ -68,7 +72,8 @@ const Coaches = ({ isPublic }) => {
 
     <div >
 
-      {isNotLoggedIn || isPublic ? (
+      {isLoggedIn ?
+       (
         <VisitorNavbar />
       ) : (
         <div className="p-4 border-b border-base-300 flex items-center">
@@ -85,7 +90,7 @@ const Coaches = ({ isPublic }) => {
       )}
 
       <h1 className=" p-8 text-4xl font-bold mb-4">
-        {isNotLoggedIn ? "Our Expert Coaches" : "Find Your New Trainer"}
+        {isLoggedIn ? "Find Your New Trainer" : "Our Expert Coaches"}
       </h1>
       <div className="px-16 mb-4">
         <input
@@ -141,23 +146,22 @@ const Coaches = ({ isPublic }) => {
 
             {/* 3. button*/}
             <div className="p-4 pt-0">
-              <Link
+              {/* <Link
               
                 to={`/client/coach/${coach.user_id}`}
                 className="btn btn-primary btn-sm w-full bg-blue-800 border-none rounded-xl h-10 normal-case flex items-center justify-center"
               >
                View Profile
-              </Link>
-{/* 
+              </Link> */}
+
                <Link
-                to={isPublic
-                  ? `/coach/${coach.user_id}`
-                  : `/client/coach/${coach.user_id}`
+                to={ isLoggedIn? `/client/coach/${coach.user_id}`: `/coach/${coach.user_id}`
+                  
                 }
                 className="btn btn-primary btn-sm w-full bg-blue-800 border-none rounded-xl h-10 normal-case flex items-center justify-center"
               >
                 View Profile
-              </Link> */}
+              </Link>
             </div>
           </div>
         ))}

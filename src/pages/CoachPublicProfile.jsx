@@ -2,8 +2,13 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import api from "../axios.jsx";
 import VisitorNavbar from "../components/VisitorNavbar.jsx";
+import { useAuth } from "../AuthContext.jsx";
 
-const CoachPublicProfile = ({ isPublic }) => {
+const CoachPublicProfile = () => {
+    const {user} = useAuth()
+    const isLoggedIn = !!user;
+
+
     const { id } = useParams();
     const navigate = useNavigate();
     const [coach, setCoach] = useState(null);
@@ -32,48 +37,6 @@ const CoachPublicProfile = ({ isPublic }) => {
 
     // State for interactive features
     const [activeTab, setActiveTab] = useState("about");
-
-    /*********************************************************************************/
-    /***** TEMPORARY HIRE COACH FUNCTIONALITY - FOR TESTING/DEMO PURPOSES ONLY *****/
-    /*********************************************************************************/
-    const [isHired, setIsHired] = useState(false);
-    const [hireLoading, setHireLoading] = useState(false);
-
-    const handleHireCoach = async () => {
-        setHireLoading(true);
-        
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        try {
-            const hiredCoaches = JSON.parse(localStorage.getItem('hiredCoaches') || '[]');
-            if (!hiredCoaches.includes(id)) {
-                hiredCoaches.push(id);
-                localStorage.setItem('hiredCoaches', JSON.stringify(hiredCoaches));
-                setIsHired(true);
-                
-                // Navigate to My Coach page after successful hire
-                navigate('/client/mycoach');
-            } else {
-                // Already hired - just navigate to My Coach page
-                navigate('/client/mycoach');
-            }
-        } catch (error) {
-            console.error('Hire failed:', error);
-            setHireLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        const hiredCoaches = JSON.parse(localStorage.getItem('hiredCoaches') || '[]');
-        setIsHired(hiredCoaches.includes(id));
-    }, [id]);
-
-    /*********************************************************************************/
-    /***** END OF TEMPORARY HIRE COACH FUNCTIONALITY                           *****/
-    /*********************************************************************************/
-
-    const isNotLoggedIn = !localStorage.getItem("token");
-
     useEffect(() => {
         const fetchCoachProfile = async () => {
             try {
@@ -141,6 +104,10 @@ const CoachPublicProfile = ({ isPublic }) => {
                 setError("Payment Plans not found or an error occurred.");
             }
         };
+        if (isLoggedIn){
+            
+        }
+            
         const fetchFavoriteStatus = async () => {
             try {
                 const res = await api.get("/client/favorites/coaches");
@@ -152,8 +119,10 @@ const CoachPublicProfile = ({ isPublic }) => {
                 console.log(err);
             }
         };
+        if(isLoggedIn){
+            fetchFavoriteStatus();
 
-        fetchFavoriteStatus();
+        }
         fetchPaymentPlans();
     }, [coach]);
 
@@ -170,13 +139,35 @@ const CoachPublicProfile = ({ isPublic }) => {
             console.log(err.response?.data);
         }
     };
+    const hireCoach=async ()=>{
+        try {
+            setHiring(true);
+
+            await api.post("/client/hire-request", {
+                coach_profile_id: coach.coach_profile_id,
+                payment_plan_id: selectedPlan.payment_plan_id,
+                auto_pay_enabled: autoPay
+
+            });
+
+            alert("Hire request sent!");
+            setShowHireModal(false);
+
+        } catch (err) {
+            console.error(err.response?.data || err);
+            alert(err.response?.data?.description || "Failed to send request");
+        } finally {
+            setHiring(false);
+        }
+    }
+    
 
     if (loading) return <div className="p-10 text-center">Loading profile...</div>;
     if (error || !coach) return <div className="p-10 text-center text-red-500">{error}</div>;
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {isNotLoggedIn || isPublic ? <VisitorNavbar /> : (
+            {!isLoggedIn ? <VisitorNavbar /> : (
                 <div className="p-4 border-b bg-white flex items-center">
                     <button onClick={() => navigate(-1)} className="btn btn-ghost btn-sm gap-2">Back</button>
                 </div>
@@ -210,13 +201,13 @@ const CoachPublicProfile = ({ isPublic }) => {
                                 >
                                     {hireLoading ? 'Hiring...' : isHired ? 'Hired' : 'Hire Coach'}
                                 </button> */}
-
-                                <button
+                                {!isLoggedIn || ( <button
                                     onClick={toggleFavorite}
                                     className="btn w-full border-none bg-white text-black hover:opacity-90"
                                 >
                                     {isFavorite ? "★ Favorited" : "☆ Add to Favorites"}
-                                </button>
+                                </button>)}
+                               
 
                                 
 
@@ -292,7 +283,8 @@ const CoachPublicProfile = ({ isPublic }) => {
                                                             setShowHireModal(true);
                                                         }}
                                                     >
-                                                        Hire Coach
+                                                        {" Hire Coach" }
+                                                       
                                                     </button>
                                                 </div>
                                             ))}
@@ -350,31 +342,11 @@ const CoachPublicProfile = ({ isPublic }) => {
                                             >
                                                 Cancel
                                             </button>
-
+                                          
                                             <button
                                                 className="btn btn-primary"
                                                 disabled={hiring || !selectedPlan}
-                                                onClick={async () => {
-                                                    try {
-                                                        setHiring(true);
-
-                                                        await api.post("/client/hire-request", {
-                                                            coach_profile_id: coach.coach_profile_id,
-                                                            payment_plan_id: selectedPlan.payment_plan_id,
-                                                            auto_pay_enabled: autoPay
-
-                                                        });
-
-                                                        alert("Hire request sent!");
-                                                        setShowHireModal(false);
-
-                                                    } catch (err) {
-                                                        console.error(err.response?.data || err);
-                                                        alert(err.response?.data?.description || "Failed to send request");
-                                                    } finally {
-                                                        setHiring(false);
-                                                    }
-                                                }}
+                                                onClick={() => hireCoach()}
                                             >
                                                 {hiring ? "Sending..." : "Hire"}
                                             </button>
