@@ -142,7 +142,7 @@ const Coaches = ({ isPublic }) => {
             {/* 3. button (Full Width under everything) */}
             <div className="p-4 pt-0">
               <Link
-                to={`/client/coach/${coach.user_id}`}
+                to={`/coach/${coach.user_id}`}
                 className="btn btn-primary btn-sm w-full bg-blue-800 border-none rounded-xl h-10 normal-case flex items-center justify-center"
               >
                View Profile
