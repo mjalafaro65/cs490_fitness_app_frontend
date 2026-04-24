@@ -104,9 +104,7 @@ const CoachPublicProfile = () => {
                 setError("Payment Plans not found or an error occurred.");
             }
         };
-        if (isLoggedIn){
-            
-        }
+     
             
         const fetchFavoriteStatus = async () => {
             try {
