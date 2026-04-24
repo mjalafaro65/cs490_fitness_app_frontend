@@ -179,6 +179,43 @@ function CSettings() {
         }
     };
 
+    const handleOpenWidget = () => {
+        if (!window.cloudinary) {
+            console.error("Cloudinary script not found. Is it in index.html?");
+            return;
+        }
+
+        const myCloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+        const myPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+        const widget = window.cloudinary.createUploadWidget(
+            {
+                cloudName: myCloudName,
+                uploadPreset: myPreset,
+                sources: ["local", "url", "camera"],
+                multiple: false,
+                cropping: true,
+                clientAllowedFormats: ["jpg", "png", "jpeg", "pdf"],
+                zIndex: 2000
+            },
+            (error, result) => {
+                if (!error && result && result.event === "success") {
+                    setData(prev => ({
+                        ...prev,
+                        profile_photo: result.info.secure_url
+                    }));
+                    showAlert("Photo uploaded successfully! Don't forget to save your changes.", "success");
+                }
+                if (error) {
+                    console.error("Cloudinary Widget Error:", error);
+                    showAlert("Failed to upload photo", "error");
+                }
+            }
+        );
+
+        widget.open();
+    };
+
     return (
         <div className="drawer lg:drawer-open">
             <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
@@ -186,7 +223,7 @@ function CSettings() {
                 <section className="p-6 flex flex-col gap-6">
                     <div className="text-2xl font-bold mb-2">Settings</div>
                     <section className="p-10 flex flex-col md:flex-row gap-30 items-start">
-                        <div className="flex-shrink-0 ">
+                        <div className="flex-shrink-0 flex flex-col items-center">
                             {initialData?.profile_photo ? (
                                 <img
                                     src={initialData.profile_photo}
@@ -198,6 +235,15 @@ function CSettings() {
                                     {users?.first_name?.[0]?.toUpperCase() || "?"}
                                 </div>
                             )}
+                            <div className="mt-6">
+                                <button
+                                    type="button"
+                                    onClick={handleOpenWidget}
+                                    className="btn btn-outline border-blue-800 text-blue-800 hover:bg-blue-800 hover:text-white bg-white"
+                                >
+                                Edit Image
+                                </button>
+                            </div>
                         </div>
                         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full p-6 bg-white rounded-xl shadow-lg border border-gray-100">
 
