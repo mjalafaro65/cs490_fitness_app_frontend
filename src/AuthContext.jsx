@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }) => {
       const res = await api.get("/auth/me");
       console.log(res.data)
       setUser(res.data);
-
+      return res.data;
 
     } catch (error) {
       console.warn("Session expired or invalid");

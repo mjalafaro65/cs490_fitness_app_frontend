@@ -279,6 +279,11 @@ const CoachPublicProfile = () => {
                                                     <button
                                                         className="btn btn-sm btn-block btn-primary"
                                                         onClick={() => {
+                                                            if (!isLoggedIn) {
+                                                                navigate("/login");
+                                                                return;
+                                                            }
+                                                        
                                                             setSelectedPlan(plan);
                                                             setShowHireModal(true);
                                                         }}
