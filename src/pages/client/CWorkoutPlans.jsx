@@ -50,6 +50,18 @@ function ClientWorkoutPlans() {
     is_public: false,
   });
 
+    const [logData, setLogData] = useState({
+    exercise_id: 0,
+    sets: 0,
+    reps: 0, 
+    weight: 0,
+    rpe: 0, 
+    distance: 0, 
+    calories: 0, 
+    duration_minutes: 0, 
+    notes: ""
+  })
+
   const [currentWeight, setCurrentWeight] = useState(null);
 
   const [newPlan, setNewPlan] = useState({
@@ -537,6 +549,37 @@ function ClientWorkoutPlans() {
     }));
   };
 
+  const handleLogChange = (e) => {
+      setLogData({
+          ...logData, [e.target.name]: e.target.value
+      });
+  };
+
+  const handleLogSubmit = async (e) => {
+    e.preventDefault();
+    try{
+      await api.post("/workouts/workout-logs", logData);
+      setPopOpen(null);
+      showAlert("Workout logged successfully!", "success");
+
+      setLogData({
+        exercise_id: 0,
+        sets: 0,
+        reps: 0, 
+        weight: 0,
+        rpe: 0, 
+        distance: 0, 
+        calories: 0, 
+        duration_minutes: 0, 
+        notes: ""
+      });
+
+    } catch(err){
+      console.error("Failed to save survey:", err.response?.data || err)
+      showAlert(error.response?.data?.message || "Failed to log workout", "error");
+    }
+  };
+
   const getWorkoutsByPlanAndAssignment = () => {
     const groupedByPlan = {};
     
@@ -702,6 +745,8 @@ function ClientWorkoutPlans() {
                     ) : (
                       <p className="text-xs opacity-70">No exercises added</p>
                     )}
+                    <br></br>
+                    <button className="btn btn-sm bg-blue-800 text-white">Log Workout</button>
                   </div>
                 ))
               )}
@@ -906,7 +951,7 @@ function ClientWorkoutPlans() {
             </div>
             <div className="card bg-base-300 p-4 rounded-box w-64 flex flex-col items-center h-24">
               <h2 className="text-lg font-bold mb-2">Log Workout</h2>
-              <button className="btn btn-primary bg-blue-800 btn-sm" onClick={() => setPopOpen("create")}>
+              <button className="btn btn-primary bg-blue-800 btn-sm" onClick={() => setPopOpen("log")}>
                 Log Workout
               </button>
             </div>
@@ -936,6 +981,51 @@ function ClientWorkoutPlans() {
             <button className="btn bg-blue-800 text-white w-full" type="submit">Create</button>
           </form>
         </div>
+      </PopUp>
+
+      <PopUp isOpen={isPopOpen === "log"} onClose={() => setPopOpen(null)}>
+        <form onSubmit={handleLogSubmit} className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">Log Workout</h2>
+              </div>
+              <label className="label">
+                Exercise:
+                <input className = "input" type="number" value={logData.exercise_id} name="exercise_id" onChange={handleLogChange} />
+              </label>
+              <label className="label">
+                Sets:
+                <input className="input" type="number" value={logData.sets} name="sets" onChange={handleLogChange} />
+              </label>
+              <label className="label">
+                Reps:
+                <input className="input" type="number" value={logData.reps} name="reps" onChange={handleLogChange} />
+              </label>
+              <label className="label">
+                Weight:
+                <input className="input" type="number" value={logData.weight} name="weight" onChange={handleLogChange} />
+              </label>
+              <label className="label">
+                RPE (rate of perceived exertion):
+                <input className="input" type="number" value={logData.rpe} name="rpe" onChange={handleLogChange} />
+              </label>
+              <label className="label">
+                Distance:
+                <input className="input" type="number" value={logData.distance} name="distance" onChange={handleLogChange} />
+              </label>
+              <label className="label">
+                Calories:
+                <input className="input" type="number" value={logData.calories} name="calories" onChange={handleLogChange} />
+              </label>
+              <label className="label">
+                Duration (mins):
+                <input className="input" type="number" value={logData.duration_minutes} name="duration" onChange={handleLogChange} />
+              </label>
+              <label className="label">
+                Notes:
+                <input className="textarea" type="text" value={logData.notes} name="notes" onChange={handleLogChange} />
+              </label>
+              <button className="btn btn-primary bg-blue-800" type="submit">Log</button>
+          </form>
       </PopUp>
 
       <LargeModal open={isPopOpen === "details"} onClose={() => setPopOpen(null)}>
