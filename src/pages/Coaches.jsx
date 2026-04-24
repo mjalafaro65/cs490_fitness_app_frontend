@@ -14,9 +14,8 @@ const Coaches = ({ isPublic }) => {
   const [loading, setLoading] = useState(true)
   const [favoritedCoaches, setFavoritedCoaches] = useState([]);
 
-  const {user} = useAuth()
+  const {user} = useAuth();
   const isLoggedIn = !!user;
-
 
   useEffect(() => {
     // Load favorited coaches from localStorage

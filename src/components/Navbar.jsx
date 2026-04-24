@@ -25,6 +25,7 @@ function Navbar() {
     };
 
     const Icons = {
+        Landing: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="size-4 shrink-0"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>,
         Dashboard: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="size-4 shrink-0"><rect width="7" height="9" x="3" y="3" rx="1" /><rect width="7" height="5" x="14" y="3" rx="1" /><rect width="7" height="9" x="14" y="12" rx="1" /><rect width="7" height="5" x="3" y="16" rx="1" /></svg>,
         Profile: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="size-4 shrink-0"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>,
         Coach: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="size-4 shrink-0"><path d="M18 20V6a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14" /><path d="M2 20h20" /><path d="M14 12v.01" /><path d="M10 12v.01" /><path d="M10 16v.01" /><path d="M14 16v.01" /></svg>,
@@ -143,9 +144,19 @@ function Navbar() {
 
     return (
         <div className="group flex flex-col h-page  bg-info-content w-14 hover:w-64 transition-all duration-300 overflow-hidden text-white">
+            <div className="flex items-center justify-center py-6 border-b border-white/20">
+                <Link to="/" className="flex items-center justify-center w-full gap-2">
+                    <div className="flex justify-center w-full group-hover:w-auto">
+                    {Icons.Landing}
+                    </div>
+                    <span className="text-xl font-bold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden group-hover:inline">
+                    FitNet
+                    </span>
+                </Link>
+            </div>
             <ul className="menu flex-1 p-2">
                 {allPages.map((tab, index) => (
-                    <li key={index} className="my-2.5">
+                    <li key={index} className="my-2.5 hover:shadow-xl hover:bg-white/10 rounded-lg transition-all duration-300">
                         {tab.isButton ? (
                             /* RENDER AS BUTTON FOR LOGOUT */
                             <button
