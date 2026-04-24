@@ -112,6 +112,12 @@ function Log_In() {
                             required
                         />
                         <button className="btn btn-neutral mt-4" type="submit">Log In</button>
+                        <div className="text-center mt-4">
+                        <Link to="/signup" className="text-sm text-blue-600 hover:text-blue-800 hover:underline">
+                            Don't have an account? Sign up
+                        </Link>
+                        </div>
+
                         {error && (
                             <div className="alert alert-error mt-4">
                                 <span>{error}</span>

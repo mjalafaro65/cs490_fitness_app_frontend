@@ -72,7 +72,7 @@ const Coaches = ({ isPublic }) => {
 
     <div >
 
-      {isLoggedIn ?
+      {!isLoggedIn ?
        (
         <VisitorNavbar />
       ) : (

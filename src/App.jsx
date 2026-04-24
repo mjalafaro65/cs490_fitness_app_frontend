@@ -50,9 +50,10 @@ function App() {
         <Route path="about-us" element={<AboutUs />} />
         <Route path="signup" element ={<Sign_Up />}/>
         <Route path="login" element ={<Log_In />}/>
-        <Route path="coaches" element ={<Coaches isPublic={true} />}/>
+        <Route path="coaches" element ={<Coaches />}/>
         <Route path="setup" element ={<SetupPage />}/>
         <Route path="plans" element ={<Plans isPublic={true} />}/>
+        <Route path="coach/:id" element={<CoachPublicProfile />} />
         
 
         <Route  element={<Layout />}>
@@ -68,7 +69,7 @@ function App() {
             <Route path="mycoach" element={<MyCoach />} />
             <Route path="coach-apply" element={<CoachApply />}/>
             <Route path="coaches" isPublic={false}  element ={<Coaches  isPublic={false}/>}/>
-            <Route path="coach/:id" element={<CoachPublicProfile />} />
+            <Route path="coach/:id" element={<CoachPublicProfile />} /> 
             <Route path="profile" element={<ClientProfile />} />
             <Route path="workoutplans" element={<ClientWorkoutPlans />} />
             <Route path="meallogs" element={<ClientMealLogs />} />

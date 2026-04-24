@@ -167,7 +167,7 @@ const CoachPublicProfile = () => {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {!isLoggedIn ? <VisitorNavbar /> : (
+            {isLoggedIn ? <VisitorNavbar /> : (
                 <div className="p-4 border-b bg-white flex items-center">
                     <button onClick={() => navigate(-1)} className="btn btn-ghost btn-sm gap-2">Back</button>
                 </div>
