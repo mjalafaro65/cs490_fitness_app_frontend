@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "../../App.css";
 import api from "../../axios";
 import PopUp from "../../components/PopUp";
+import Alert from "../../components/Alert";
 
 function AProfile() {
   const navigate = useNavigate();
@@ -14,6 +15,17 @@ function AProfile() {
   const [currentPage, setCurrentPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(true);
   const [hasPrevPage, setHasPrevPage] = useState(false);
+
+  const [alert, setShowAlert] = useState(false);
+  const [alertMsg, setAlertMsg] = useState('');
+  const [alertType, setAlertType] = useState('success');
+
+  const showAlert = (message, type = 'success') => {
+      console.log("ALERT FUNCTION CALLED with:", message, type);
+      setAlertMsg(message);
+      setAlertType(type);
+      setShowAlert(true);
+  };
   
   const [user, setUser] = useState({
     first_name: "",
@@ -96,7 +108,7 @@ function AProfile() {
 
         setUser2({
           date_of_birth: data2.date_of_birth || "",
-           gender: data2.gender ? data2.gender.split(".")[1] : "",
+          gender: data2.gender ? data2.gender.split(".")[1] : "",
           bio: data2.bio || "",
           profile_photo: data2.profile_photo || "",
           height: data2.height || "",
@@ -116,10 +128,10 @@ function AProfile() {
     
     try {
       const response = await api.delete("/admin/purge-user", {
-        data: { user_id: userId }
+        data: {user_id: userId}
       });
       console.log("User deleted:", response.data);
-      alert("User deleted successfully");
+      showAlert("User deleted successfully", "success");
       
       const fetchResponse = await api.get("/admin/users", {
         params: {
@@ -150,7 +162,48 @@ function AProfile() {
       }
     } catch (error) {
       console.error("Failed to delete user:", error.response?.data || error);
-      alert("Failed to delete user");
+      showAlert(error.response?.data?.message || "Failed to delete user", "error");
+    }
+  };
+
+  const handleUser = async (userId, currentStatus) => {
+    const shouldActivate = !currentStatus;
+    if (!window.confirm(`Are you sure you want to ${shouldActivate ? 'activate': 'deactivate'} this user?`)) return;
+    
+    try {
+      const response = await api.patch("/admin/users/disable", {
+        user_id: userId,
+        is_active: shouldActivate
+      });
+      console.log(`User ${shouldActivate ? 'activated' : 'deactivated'}:`, response.data);
+      showAlert(`User ${shouldActivate ? 'activated' : 'deactivated'} successfully`, "success");
+
+      const fetchResponse = await api.get("/admin/users", {
+        params: {
+          page: currentPage,
+          per_page: 20
+        }
+      });
+      
+      const newData = fetchResponse.data;
+      let usersArray = [];
+      if (Array.isArray(newData)) {
+        usersArray = newData;
+      } else if (newData.users && Array.isArray(newData.users)) {
+        usersArray = newData.users;
+      } else if (newData.data && Array.isArray(newData.data)) {
+        usersArray = newData.data;
+      }
+      
+      setUsers(usersArray);
+      
+      if (usersArray.length === 0 && currentPage > 1) {
+        setCurrentPage(currentPage - 1);
+      }
+
+    } catch (error) {
+      console.error("Failed to delete user:", error.response?.data || error);
+      showAlert(error.response?.data?.message || "Failed to deactivate user", "error");
     }
   };
 
@@ -203,7 +256,6 @@ function AProfile() {
                         <th className="p-3 text-left">User ID</th>
                         <th className="p-3 text-left">First Name</th>
                         <th className="p-3 text-left">Last Name</th>
-                        <th className="p-3 text-left">Phone Number</th>
                         <th className="p-3 text-left">Status</th>
                         <th className="p-3 text-left">Actions</th>
                       </tr>
@@ -214,7 +266,6 @@ function AProfile() {
                           <td className="p-3">{user.user_id}</td>
                           <td className="p-3">{user.first_name || "—"}</td>
                           <td className="p-3">{user.last_name || "—"}</td>
-                          <td className="p-3">{user.phone_number || "—"}</td>
                           <td className="p-3">
                             <span className={`badge ${user.is_active ? 'badge-success' : 'badge-error'}`}>
                               {user.is_active ? 'Active' : 'Inactive'}
@@ -227,6 +278,16 @@ function AProfile() {
                                 className="btn btn-sm bg-blue-800 text-white"
                               >
                                 View
+                              </button>
+                              <button 
+                                onClick={() => handleUser(user.user_id, user.is_active)}
+                                className={`btn btn-sm ${
+                                  user.is_active 
+                                    ? 'bg-warning text-warning-content'  
+                                    : 'bg-warning text-warning-content' 
+                                }`}
+                              >
+                                {user.is_active ? 'Deactivate' : 'Activate'}
                               </button>
                               <button 
                                 onClick={() => handleDeleteUser(user.user_id)}
@@ -246,7 +307,7 @@ function AProfile() {
                 <button
                   onClick={prevPage}
                   disabled={!hasPrevPage}
-                  className={`px-6 py-2 rounded-md font-medium ${
+                  className={`px-6 py-2 rounded-md font-medium cursor-pointer ${
                     hasPrevPage
                       ? 'bg-blue-800 text-white hover:bg-blue-700'
                       : 'bg-gray-200 text-gray-500 cursor-not-allowed'
@@ -262,7 +323,7 @@ function AProfile() {
                   <button
                     onClick={nextPage}
                     disabled={!hasNextPage}
-                    className={`px-6 py-2 rounded-md font-medium ${
+                    className={`px-6 py-2 rounded-md font-medium cursor-pointer ${
                       hasNextPage
                         ? 'bg-blue-800 text-white hover:bg-blue-700'
                         : 'bg-gray-200 text-gray-500 cursor-not-allowed'
@@ -319,6 +380,11 @@ function AProfile() {
           </PopUp>
         </div>
       </div>
+      <Alert 
+        isOpen={alert} 
+        message={alertMsg}
+        type={alertType}
+        onClose={() => setShowAlert(false)}/>
     </div>
   );
 }

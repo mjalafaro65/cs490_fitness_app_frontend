@@ -5,6 +5,8 @@ import PopUp from "../../components/PopUp";
 import api from "../../axios";
 import Alert from "../../components/Alert.jsx";
 
+//i think we need endpoint for before and after picture?? 
+
 function ProgressLogs(){
   const [alert, setShowAlert] = useState(false);
   const [alertMsg, setAlertMsg] = useState('');
@@ -16,6 +18,7 @@ function ProgressLogs(){
         setAlertType(type);
         setShowAlert(true);
   };
+
 
   const [isPopOpen, setPopOpen] = useState(null);
   const [daily, setData] = useState({
@@ -102,6 +105,43 @@ function ProgressLogs(){
     }
   };
 
+    const handleOpenWidget = () => {
+        if (!window.cloudinary) {
+            console.error("Cloudinary script not found. Is it in index.html?");
+            return;
+        }
+
+     
+        const myCloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+        const myPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+        const widget = window.cloudinary.createUploadWidget(
+            {
+                cloudName: myCloudName,
+                uploadPreset: myPreset,
+                sources: ["local", "url", "camera"],
+                multiple: false,
+                cropping: true,
+                clientAllowedFormats: ["jpg", "png", "jpeg", "pdf"],
+                // so widget stays on top of other elements
+                zIndex: 2000
+            },
+            (error, result) => {
+                if (!error && result && result.event === "success") {
+                    setProfileData(prev => ({
+                        ...prev,
+                        profile_photo: result.info.secure_url
+                    }));
+                }
+                if (error) {
+                    console.error("Cloudinary Widget Error:", error);
+                }
+            }
+        );
+
+        widget.open();
+    };
+
   return (
     <div className="drawer lg:drawer-open">
       <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
@@ -150,6 +190,35 @@ function ProgressLogs(){
                 </div>
             </div>
           </div>
+        </section>
+        <section className="p-7 flex flex-col md:flex-row items-start gap-6">
+            <form className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full p-6 bg-white rounded-xl shadow-lg border border-gray-100">
+
+                  <div className="form-control md:col-span-2">
+                    <label className="label font-semibold text-gray-600">Before:</label>
+                    <div className="flex items-center gap-4">
+                        <button
+                            type="button"
+                            onClick={handleOpenWidget}
+                            className="btn btn-outline border-blue-800 text-blue-800 hover:bg-blue-800 hover:text-white bg-white"
+                        >
+                          Add Image
+                        </button>
+                    </div>
+                </div>
+                <div className="form-control md:col-span-2">
+                    <label className="label font-semibold text-gray-600">After:</label>
+                    <div className="flex items-center gap-4">
+                        <button
+                            type="button"
+                            onClick={handleOpenWidget}
+                            className="btn btn-outline border-blue-800 text-blue-800 hover:bg-blue-800 hover:text-white bg-white"
+                        >
+                          Add Image
+                        </button>
+                    </div>
+                </div>
+            </form>
         </section>
       </div>
 
