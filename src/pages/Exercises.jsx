@@ -246,11 +246,6 @@ function BrowseExercises({ planId, dayId, weekday, onExerciseAdded, onClose }) {
               + New Exercise
             </button>
           )}
-          {onClose && (
-            <button className="btn btn-sm btn-ghost" onClick={onClose}>
-              ✕
-            </button>
-          )}
         </div>
       </div>
 
