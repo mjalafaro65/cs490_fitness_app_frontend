@@ -192,7 +192,7 @@ function ADashboard(){
                 <div className="bg-white rounded-lg border border-green-100 shadow-sm p-5 hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-medium text-green-600 uppercase tracking-wide mb-5">ALL Users</p>
+                      <p className="text-xs font-medium text-green-600 uppercase tracking-wide">ALL Users</p>
                       <p className="text-3xl font-bold text-gray-800 mt-2">{stats.active_users}</p>
                     </div>
                     <div className="w-10 h-10 bg-green-50 rounded-full flex items-center justify-center">

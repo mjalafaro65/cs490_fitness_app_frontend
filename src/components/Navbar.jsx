@@ -111,7 +111,7 @@ function Navbar() {
             to: "/admin/dashboard", label: "Dashboard", icon: (Icons.Dashboard)
         },
         {
-            to: "/admin/profile", label: "Users", icon: (Icons.Profile)
+            to: "/admin/profile", label: "Users", icon: (Icons.Settings)
         },
         {
             to: "/admin/coach", label: "Coach", icon: (Icons.Coach)
@@ -119,13 +119,12 @@ function Navbar() {
         {
             to: "/admin/workouts", label: "Workouts", icon: (Icons.Workout)
         },
-        //{
-        //     to: "/admin/progresslogs", label: "Progress Logs", icon:(Icons.Logs)
-        // },
-        // {
-        //     to: "/admin/meallogs", label: "Meals", icon: (Icons.Meal)
-        //     )
-        // },
+        {
+             to: "/admin/reviews", label: "Reviews", icon:(Icons.Profile)
+        },
+        {
+             to: "/admin/progresslogs", label: "Progress Logs", icon: (Icons.Logs)
+        },
         //{
         //    to: "/admin/settings", label: "Settings", icon: (Icons.Settings)
         //},

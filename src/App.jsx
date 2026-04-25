@@ -40,7 +40,8 @@ import AdminProfile from "./pages/admin/AProfile";
 import AWorkouts from "./pages/admin/AWorkouts";
 import AdminCoach from "./pages/admin/ACoach";
 import AdminMealLogs from "./pages/admin/AMealLogs";
-import AdminProgressLogs from "./pages/admin/AProgressLogs";  
+import AdminReviews from "./pages/admin/AReviews";  
+import AdminProgressLogs from "./pages/admin/AProgressLogs";
 
 
 function App() {
@@ -96,7 +97,8 @@ function App() {
             <Route path="profile" element={<AdminProfile />} />
             <Route path="workouts" element={<AWorkouts />} />
             <Route path="meallogs" element={<AdminMealLogs />} />
-            <Route path="progresslogs" element={<AdminProgressLogs />} />
+            <Route path="progresslogs" element={<AdminProgressLogs/>} />
+            <Route path="reviews" element={<AdminReviews />} />
             <Route path="settings" element={<AdminSettings />} />
             <Route path="coach" element={<AdminCoach />} />
           </Route>

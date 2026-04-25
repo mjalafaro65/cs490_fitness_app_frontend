@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import "../../App.css";
 import api from "../../axios";
 
 function AWorkoutPlans() {
@@ -15,7 +14,6 @@ function AWorkoutPlans() {
     exercise_ids: "",
     exercise_match: "any"
   });
-  const [showPlansFilters, setShowPlansFilters] = useState(false);
   
   const [exercises, setExercises] = useState([]);
   const [exercisesLoading, setExercisesLoading] = useState(false);
@@ -168,12 +166,6 @@ const fetchExercises = async () => {
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     <button
-                      onClick={() => setShowPlansFilters(!showPlansFilters)}
-                      className="px-3 py-2 text-sm bg-gray-100 rounded-md hover:bg-gray-200 cursor-pointer"
-                    >
-                      {showPlansFilters ? "Hide Filters" : "Show Filters"}
-                    </button>
-                    <button
                       onClick={clearPlansFilters}
                       className="px-3 py-2 text-sm bg-gray-100 rounded-md hover:bg-gray-200 cursor-pointer"
                     >
@@ -181,7 +173,6 @@ const fetchExercises = async () => {
                     </button>
                   </div>
 
-                  {showPlansFilters && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 p-3 bg-gray-50 rounded-md">
                       <select
                         name="muscle_group"
@@ -248,7 +239,6 @@ const fetchExercises = async () => {
                         <option value="all">Match All Exercises</option>
                       </select>
                     </div>
-                  )}
                 </div>
 
                 {plansLoading ? (
@@ -286,20 +276,12 @@ const fetchExercises = async () => {
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     <button
-                      onClick={() => setShowExercisesFilters(!showExercisesFilters)}
-                      className="px-3 py-2 text-sm bg-gray-100 rounded-md hover:bg-gray-200 cursor-pointer"
-                    >
-                      {showExercisesFilters ? "Hide Filters" : "Show Filters"}
-                    </button>
-                    <button
                       onClick={clearExercisesFilters}
                       className="px-3 py-2 text-sm bg-gray-100 rounded-md hover:bg-gray-200 cursor-pointer"
                     >
                       Clear
                     </button>
                   </div>
-                  
-                  {showExercisesFilters && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 bg-gray-50 rounded-md">
                       <select
                         name="muscle_group"
@@ -347,7 +329,6 @@ const fetchExercises = async () => {
                         <option value="cardio">Cardio</option>
                       </select>
                     </div>
-                  )}
                 </div>
 
                 {exercisesLoading ? (

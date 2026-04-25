@@ -441,6 +441,13 @@ function CSettings() {
                                         <p className="text-red-600 font-bold">
                                             Final confirmation: This cannot be undone.
                                         </p>
+                                        <label className="font-bold">Enter your password:</label>
+                                        <input
+                                            className="border p-2 w-full"
+                                            placeholder=""
+                                            value={detailedReason}
+                                            onChange={(e) => setDetailedReason(e.target.value)}
+                                        />
 
                                         <div className="flex gap-2 mt-4">
                                             <button

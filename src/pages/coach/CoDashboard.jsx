@@ -127,7 +127,7 @@ function CoDashboard() {
               <h2 className="text-lg font-bold text-blue-800 mb-4">
                 My Clients
               </h2>
-
+ 
               <div className="space-y-3">
                 {clients.map((client) => (
                   <div
