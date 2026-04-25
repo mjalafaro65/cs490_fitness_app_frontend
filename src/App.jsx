@@ -9,6 +9,7 @@ import Sign_Up from "./pages/Sign_Up";
 import Log_In from "./pages/Log_In";
 import Initial_Survey from "./pages/InitialSurvey";
 import Coaches from "./pages/Coaches";
+import LandingExercises from "./pages/LandingExercises";
 import Messages from "./pages/Messages";
 import Notifications from "./pages/Notifications";
 import SetupPage from "./pages/SetupPage";
@@ -53,6 +54,7 @@ function App() {
       <Route path="setup" element={<SetupPage />} />
       <Route path="plans" element={<Plans isPublic={true} />} />
       <Route path="coaches" element={<Coaches/>}/>
+      <Route path="exercises" element={<LandingExercises />}/>
       <Route path="coach/:id" element={<CoachPublicProfile />} />
 
 
