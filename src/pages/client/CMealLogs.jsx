@@ -82,7 +82,7 @@ function MealLogs(){
     try {
       console.log("Sending:", set);
 
-      const response = await api.post("/nutrition/nutrition-logs", set);
+      const response = await api.post("/nutrition/meal-logs", set);
 
       console.log("SUCCESS:", response.data);
       setPopOpen(null);
@@ -90,6 +90,7 @@ function MealLogs(){
       setData(prev => ({
         user_id: prev.user_id,
         meal_id: "",
+        calories: "",
         servings: "",
         notes: ""
       }));
@@ -189,6 +190,10 @@ function MealLogs(){
               <label className="label">
                 Meal:
                 <input className = "input" type="number" name="meal_id" value={logData.meal_id} onChange={handleChange} />
+              </label>
+              <label className="label">
+                Calories:
+                <input className="input" type="number" name="calories" value={logData.calories} onChange={handleChange} />
               </label>
               <label className="label">
                 Servings:
