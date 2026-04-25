@@ -31,6 +31,7 @@ return (
                 <li><Link to="/">Home</Link></li>
                 <li><Link to="/about-us">About Us</Link></li>
                 <li><Link to="/coaches">Coaches</Link></li>
+                <li><Link to="/exercises">Exercises</Link></li>
                 {user && <li><Link to={getDashboardPath()}>My Space</Link></li>}
 
             </ul>
