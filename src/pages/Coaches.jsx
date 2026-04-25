@@ -91,6 +91,7 @@ const Coaches = ({ isPublic }) => {
       if (filters.day_of_week) params.day_of_week = filters.day_of_week;
 
       const response = await api.get("/coach/coachbrowse/filters", { params });
+      console.log(response.data)
       setCoaches(response.data);
       setShowFilters(false);
     } catch (error) {
@@ -220,7 +221,7 @@ const Coaches = ({ isPublic }) => {
               </Link> */}
 
                <Link
-                to={ isLoggedIn? `/client/coach/${coach.user_id}`: `/coach/${coach.user_id}`
+                to={ `/coach/${coach.user_id}`
                   
                 }
                 className="btn btn-primary btn-sm w-full bg-blue-800 border-none rounded-xl h-10 normal-case flex items-center justify-center"

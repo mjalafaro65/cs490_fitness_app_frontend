@@ -149,7 +149,7 @@ function Navbar() {
     }
 
     return (
-        <div className="group flex flex-col h-page  bg-info-content w-14 hover:w-64 transition-all duration-300 overflow-hidden text-white">
+        <div className="group flex flex-col h-page  bg-blue-950 w-14 hover:w-64 transition-all duration-300 overflow-hidden text-white">
             <div className="flex items-center justify-center py-6 border-b border-white/20">
                 <Link to="/" className="flex items-center justify-center w-full gap-2">
                     <div className="flex justify-center w-full group-hover:w-auto">

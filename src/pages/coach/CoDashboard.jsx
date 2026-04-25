@@ -171,7 +171,7 @@ function CoDashboard() {
                       border-2
                       ${
                         isSelected
-                          ? "border-primary bg-primary/10"
+                          ? "border-primary bg-blue-800 bg-primary/10"
                           : isToday
                           ? "border-neutral bg-neutral/10"
                           : "border-transparent bg-base-200 hover:bg-base-100"
