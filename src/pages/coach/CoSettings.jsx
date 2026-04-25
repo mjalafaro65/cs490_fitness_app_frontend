@@ -140,6 +140,42 @@ function CoSettings() {
     }
   };
 
+  const handleOpenWidget = () => {
+    if (!window.cloudinary) {
+        console.error("Cloudinary script not found. Is it in index.html?");
+        return;
+    }
+
+    const myCloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+    const myPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+    const widget = window.cloudinary.createUploadWidget(
+        {
+            cloudName: myCloudName,
+            uploadPreset: myPreset,
+            sources: ["local", "url", "camera"],
+            multiple: false,
+            cropping: true,
+            clientAllowedFormats: ["jpg", "png", "jpeg", "pdf"],
+            zIndex: 2000
+        },
+        (error, result) => {
+            if (!error && result && result.event === "success") {
+                setData(prev => ({
+                    ...prev,
+                    profile_photo: result.info.secure_url
+                }));
+              showAlert("Photo uploaded successfully! Don't forget to save your changes.", "success");
+            }
+            if (error) {
+                console.error("Cloudinary Widget Error:", error);
+                showAlert("Failed to upload photo", "error");
+            }
+        }
+    );
+
+    widget.open();
+  };
 
   return (
 
@@ -149,7 +185,7 @@ function CoSettings() {
         <section className="p-6 flex flex-col gap-6">
           <div className="text-2xl font-bold mb-2">Settings</div>
           <section className="p-10 flex flex-col md:flex-row gap-30 items-start">
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 flex flex-col items-center">
               {fetchData.profile_photo ? (
                 <img
                   src={fetchData.profile_photo}
@@ -161,6 +197,15 @@ function CoSettings() {
                   {user.first_name?.[0] || "?"}
                 </div>
               )}
+                <div className="mt-6">
+                  <button
+                      type="button"
+                      onClick={handleOpenWidget}
+                      className="btn btn-outline border-blue-800 text-blue-800 hover:bg-blue-800 hover:text-white bg-white"
+                  >
+                  Edit Image
+                  </button>
+              </div>
             </div>
             <fieldset className="fieldset rounded-box w-full flex-1">
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">

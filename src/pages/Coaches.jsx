@@ -17,7 +17,6 @@ const Coaches = ({ isPublic }) => {
   const {user} = useAuth()
   const isLoggedIn = !!user;
 
-
   useEffect(() => {
     // Load favorited coaches from localStorage
     const favorites = JSON.parse(localStorage.getItem('favoritedCoaches') || '[]');
@@ -72,7 +71,7 @@ const Coaches = ({ isPublic }) => {
 
     <div >
 
-      {isLoggedIn ?
+      {!isLoggedIn ?
        (
         <VisitorNavbar />
       ) : (
