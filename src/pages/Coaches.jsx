@@ -13,6 +13,14 @@ const Coaches = ({ isPublic }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true)
   const [favoritedCoaches, setFavoritedCoaches] = useState([]);
+  const [showFilters, setShowFilters] = useState(false);
+  const [specialties, setSpecialties] = useState([]);
+  const [filters, setFilters] = useState({
+    specialty_id: "",
+    min_price: "",
+    max_price: "",
+    day_of_week: "",
+  });
 
   const {user} = useAuth()
   const isLoggedIn = !!user;
@@ -59,8 +67,60 @@ const Coaches = ({ isPublic }) => {
     fetchCoaches();
   }, []);
 
-  if (loading) return <div className="p-4">Loading coaches...</div>
+  useEffect(() => {
+    const fetchSpecialties = async () => {
+      try {
+        const response = await api.get("/coach/specialties");
+        setSpecialties(response.data);
+      } catch (error) {
+        console.error("Error fetching specialties:", error);
+      }
+    };
 
+    fetchSpecialties();
+  }, []);
+
+  const applyFilters = async () => {
+    try {
+      setLoading(true);
+
+      const params = {};
+      if (filters.specialty_id) params.specialty_id = filters.specialty_id;
+      if (filters.min_price) params.min_price = filters.min_price;
+      if (filters.max_price) params.max_price = filters.max_price;
+      if (filters.day_of_week) params.day_of_week = filters.day_of_week;
+
+      const response = await api.get("/coach/coachbrowse/filters", { params });
+      setCoaches(response.data);
+      setShowFilters(false);
+    } catch (error) {
+      console.error("Error applying coach filters:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const clearFilters = async () => {
+    setFilters({
+      specialty_id: "",
+      min_price: "",
+      max_price: "",
+      day_of_week: "",
+    });
+
+    try {
+      setLoading(true);
+      const response = await api.get("/coach/coachbrowse");
+      setCoaches(response.data);
+      setShowFilters(false);
+    } catch (error) {
+      console.error("Error clearing coach filters:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) return <div className="p-4">Loading coaches...</div>
 
   const filteredCoaches = coaches.filter((coach) =>
     `${coach.first_name} ${coach.last_name}`
@@ -91,7 +151,7 @@ const Coaches = ({ isPublic }) => {
       <h1 className=" p-8 text-4xl font-bold mb-4">
         {isLoggedIn ? "Find Your New Trainer" : "Our Expert Coaches"}
       </h1>
-      <div className="px-16 mb-4">
+      <div className="px-16 mb-4 flex gap-2">
         <input
           type="text"
           placeholder="Search coaches..."
@@ -99,6 +159,12 @@ const Coaches = ({ isPublic }) => {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
+        <button
+          className="btn btn-outline"
+          onClick={() => setShowFilters(true)}
+        >
+          Filters
+        </button>
       </div>
       {filteredCoaches.length === 0 && (
         <p className="px-16 text-gray-500">No coaches found.</p>
@@ -165,6 +231,77 @@ const Coaches = ({ isPublic }) => {
           </div>
         ))}
       </div>
+
+      {showFilters && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+            <h2 className="text-xl font-bold mb-4">Filter Coaches</h2>
+
+            <label className="label font-semibold">Specialty</label>
+            <select
+              className="select select-bordered w-full mb-3"
+              value={filters.specialty_id}
+              onChange={(e) => setFilters({ ...filters, specialty_id: e.target.value })}
+            >
+              <option value="">All Specialties</option>
+              {specialties.map((specialty) => (
+                <option key={specialty.specialty_id} value={specialty.specialty_id}>
+                  {specialty.name}
+                </option>
+              ))}
+            </select>
+
+            <label className="label font-semibold">Price Range</label>
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <input
+                type="number"
+                placeholder="Min"
+                className="input input-bordered w-full"
+                value={filters.min_price}
+                onChange={(e) => setFilters({ ...filters, min_price: e.target.value })}
+              />
+              <input
+                type="number"
+                placeholder="Max"
+                className="input input-bordered w-full"
+                value={filters.max_price}
+                onChange={(e) => setFilters({ ...filters, max_price: e.target.value })}
+              />
+            </div>
+
+            <label className="label font-semibold">Availability</label>
+            <select
+              className="select select-bordered w-full mb-3"
+              value={filters.day_of_week}
+              onChange={(e) => setFilters({ ...filters, day_of_week: e.target.value })}
+            >
+              <option value="">Any Day</option>
+              <option value="0">Sunday</option>
+              <option value="1">Monday</option>
+              <option value="2">Tuesday</option>
+              <option value="3">Wednesday</option>
+              <option value="4">Thursday</option>
+              <option value="5">Friday</option>
+              <option value="6">Saturday</option>
+            </select>
+
+            <div className="flex justify-end gap-2 mt-4">
+              <button className="btn btn-ghost" onClick={clearFilters}>
+                Clear
+              </button>
+              <button className="btn btn-ghost" onClick={() => setShowFilters(false)}>
+                Cancel
+              </button>
+              <button
+                className="btn btn-primary bg-blue-800 border-none"
+                onClick={applyFilters}
+              >
+                Apply
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
