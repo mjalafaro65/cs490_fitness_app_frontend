@@ -69,8 +69,8 @@ function App() {
           <Route path="initial-survey" element={<Initial_Survey />} />
           <Route path="dashboard" element={<ClientDashboard />} />
           <Route path="mycoach" element={<MyCoach />} />
-          <Route path="coaches" element={<Coaches isPublic={false} />} />
-          <Route path="coach/:id" element={<CoachPublicProfile />} />
+          {/* <Route path="coaches" element={<Coaches isPublic={false} />} />
+          <Route path="coach/:id" element={<CoachPublicProfile />} /> */}
           <Route path="coach-apply" element={<CoachApply />} />
           <Route path="profile" element={<ClientProfile />} />
           <Route path="workoutplans" element={<ClientWorkoutPlans />} />
