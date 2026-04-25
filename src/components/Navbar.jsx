@@ -123,7 +123,7 @@ function Navbar() {
              to: "/admin/reviews", label: "Reviews", icon:(Icons.Profile)
         },
         {
-             to: "/admin/progresslogs", label: "Progress Logs", icon: (Icons.Logs)
+             to: "/admin/progresslogs", label: "Statistics", icon: (Icons.Logs)
         },
         //{
         //    to: "/admin/settings", label: "Settings", icon: (Icons.Settings)
