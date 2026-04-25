@@ -212,7 +212,7 @@ function CSettings() {
                 }
             }
         );
-
+ 
         widget.open();
     };
 

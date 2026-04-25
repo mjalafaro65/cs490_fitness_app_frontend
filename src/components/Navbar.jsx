@@ -3,13 +3,12 @@ import { useAuth } from "../AuthContext";
 import { useNavigate } from "react-router-dom";
 import api from "../axios";
 import { useEffect, useState } from "react";
-
+import PopUp from "./PopUp";
 
 function Navbar() {
     const { user, loading, coachStatus } = useAuth();
     const navigate = useNavigate();
-
-
+    const [isPopOpen, setPopOpen] = useState(null);
 
     if (loading) return null;
 
@@ -22,6 +21,15 @@ function Navbar() {
         navigate("/", { replace: true });
 
         window.location.reload();
+    };
+
+    const handleConfirmLogout = () => {
+        setPopOpen(null);
+        handleLogout();
+    };
+
+    const handleCancelLogout = () => {
+        setPopOpen(null);
     };
 
     const Icons = {
@@ -47,11 +55,9 @@ function Navbar() {
         },
         {
             label: "Log Out",
-            onClick: handleLogout,
+            onClick: () => setPopOpen("confirm"),
             isButton: true,
-            icon: (Icons.LogOut
-                
-            )
+            icon: (Icons.LogOut)
         },
     ];
 
@@ -185,6 +191,26 @@ function Navbar() {
                     </li>
                 ))}
             </ul>
+            <PopUp isOpen={isPopOpen === "confirm"} onClose={() => setPopOpen(null)}>
+                <div className="fieldset">
+                    <h3 className="fieldset-legend px-3 text-xl font-bold text-black rounded-md">Confirm Logout</h3>
+                    <p className="text-gray-700 font-medium my-2">Are you sure you want to log out?</p>
+                    <div className="flex gap-3 justify-end">
+                        <button
+                            onClick={handleCancelLogout}
+                            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleConfirmLogout}
+                            className="px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors cursor-pointer"
+                        >
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            </PopUp>
         </div>
     );
 }
