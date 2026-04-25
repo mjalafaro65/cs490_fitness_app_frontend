@@ -314,8 +314,8 @@ function MyCoach() {
                   </div>
 
                   <Link
-                    to={`/client/coach/${coach.user.user_id}`}
-                    className="btn btn-sm btn-primary"
+                    to={`/coach/${coach.user.user_id}`}
+                    className="btn btn-sm  bg-blue-800  btn-primary"
                   >
                     View Profile
                   </Link>

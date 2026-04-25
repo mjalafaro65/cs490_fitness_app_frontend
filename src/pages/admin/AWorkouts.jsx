@@ -44,7 +44,7 @@ function AWorkoutPlans() {
     } catch (err) {
       console.error("Failed to fetch plans:", err.response?.data || err);
     } finally {
-      setPlansLoading(false);
+  PlansLoading(false);
     }
   };
 
