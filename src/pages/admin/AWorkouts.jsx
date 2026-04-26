@@ -78,7 +78,7 @@ function AWorkoutPlans() {
       console.error("Failed to fetch plans:", err.response?.data || err);
       showAlert(err.response?.data?.message || "Failed to fetch plans", "error");
     } finally {
-      setPlansLoading(false);
+  PlansLoading(false);
     }
   };
 
