@@ -50,8 +50,8 @@ function ClientWorkoutPlans() {
     is_public: false,
   });
 
-    const [logData, setLogData] = useState({
-    exercise_id: 0,
+  const [logData, setLogData] = useState({
+    calendar_workout_id: 0,
     sets: 0,
     reps: 0, 
     weight: 0,
@@ -104,89 +104,46 @@ function ClientWorkoutPlans() {
       setShowAlert(true);
   };
 
-  const saveScheduledWorkoutsToLocal = (workouts) => {
-    try {
-      const workoutsToStore = workouts.map(w => ({
-        id: w.id,
-        assignment_id: w.assignment_id,
-        plan_id: w.plan_id,
-        plan_name: w.plan_name,
-        day_label: w.day_label,
-        day_id: w.day_id,
-        scheduled_start: w.scheduled_start,
-        exercises: w.exercises || [],
-        date_str: new Date(w.scheduled_start).toDateString()
-      }));
-      localStorage.setItem('scheduledWorkouts', JSON.stringify(workoutsToStore));
-    } catch (err) {
-      console.error("Failed to save workouts to localStorage:", err);
-    }
-  };
-
-  const loadScheduledWorkoutsFromLocal = () => {
-    try {
-      const stored = localStorage.getItem('scheduledWorkouts');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        setScheduledWorkouts(parsed);
-        return parsed;
-      }
-    } catch (err) {
-      console.error("Failed to load workouts from localStorage:", err);
-    }
-    return [];
-  };
-
-  const fetchExistingCalendarWorkouts = async () => {
+  // NEW ENDPOINT: GET /workouts/calendar-workouts-view
+  const fetchCalendarWorkouts = async (date = null, view = "week") => {
+    console.log("[DEBUG] fetchCalendarWorkouts called with date:", date, "view:", view);
     setIsLoading(true);
     try {
-      const localWorkouts = loadScheduledWorkoutsFromLocal();
-      
-      const plansRes = await api.get("/workouts/plans/mine");
-      const userPlans = plansRes.data.plans || [];
-      const allWorkouts = [];
-      
-      for (const plan of userPlans) {
-        try {
-          const planRes = await api.get(`/workouts/plans/${plan.plan_id}`);
-          const planData = planRes.data;
-          
-          if (planData.days) {
-            planData.days.forEach(day => {
-              if (day.occurrences && day.occurrences.length > 0) {
-                day.occurrences.forEach(occ => {
-                  allWorkouts.push({
-                    id: occ.id,
-                    assignment_id: occ.assignment_id || null,
-                    plan_id: plan.plan_id,
-                    plan_name: plan.name,
-                    day_label: day.day_label,
-                    day_id: day.plan_day_id,
-                    scheduled_start: occ.scheduled_start,
-                    exercises: day.exercises || [],
-                    date_str: new Date(occ.scheduled_start).toDateString(),
-                    session_time: day.session_time
-                  });
-                });
-              }
-            });
-          }
-        } catch (err) {
-          console.error(`Failed to fetch plan ${plan.plan_id}:`, err);
-        }
+      const params = {};
+      if (date) {
+        params.date = date instanceof Date ? date.toISOString().split('T')[0] : date;
+      }
+      if (view) {
+        params.view = view;
       }
       
-      if (allWorkouts.length > 0) {
-        setScheduledWorkouts(allWorkouts);
-        saveScheduledWorkoutsToLocal(allWorkouts);
-      } else if (localWorkouts.length > 0) {
-        setScheduledWorkouts(localWorkouts);
-      }
+      console.log("[DEBUG] Request params:", params);
+      const response = await api.get("/workouts/calendar-workouts-view", { params });
+      const workouts = response.data || [];
+      console.log("[DEBUG] Calendar workouts response:", workouts);
+      console.log("[DEBUG] Number of workouts received:", workouts.length);
       
-      return allWorkouts;
+      // Transform the data to match the expected format
+      const transformedWorkouts = workouts.map(workout => ({
+        id: workout.calendar_workout_id,
+        assignment_id: workout.assignment_id,
+        plan_id: workout.plan_day?.plan?.plan_id,
+        plan_name: workout.plan_day?.plan?.name,
+        day_label: workout.plan_day?.day_label,
+        day_id: workout.plan_day?.plan_day_id,
+        scheduled_start: workout.scheduled_start,
+        exercises: workout.plan_day?.exercises || [],
+        date_str: new Date(workout.scheduled_start).toDateString(),
+        session_time: workout.plan_day?.session_time
+      }));
+      
+      console.log("[DEBUG] Transformed workouts:", transformedWorkouts);
+      setScheduledWorkouts(transformedWorkouts);
+      return transformedWorkouts;
     } catch (err) {
-      console.error("Failed to fetch existing workouts:", err);
-      const localWorkouts = loadScheduledWorkoutsFromLocal();
+      console.error("[ERROR] Failed to fetch calendar workouts:", err);
+      console.error("[ERROR] Error details:", err.response?.data);
+      showAlert("Failed to fetch calendar workouts", "error");
       return [];
     } finally {
       setIsLoading(false);
@@ -194,56 +151,69 @@ function ClientWorkoutPlans() {
   };
 
   const fetchPlansWithDetails = async () => {
+    console.log("[DEBUG] fetchPlansWithDetails called");
+    setIsLoading(true);
     try {
       const res = await api.get("/workouts/plans/mine");
       const userPlans = res.data.plans || [];
+      console.log("[DEBUG] User plans response:", userPlans);
+      console.log("[DEBUG] Number of plans:", userPlans.length);
       
       const plansWithDetails = await Promise.all(
         userPlans.map(async (plan) => {
+          console.log("[DEBUG] Fetching details for plan:", plan.plan_id);
           const planRes = await api.get(`/workouts/plans/${plan.plan_id}`);
           return planRes.data;
         })
       );
       
+      console.log("[DEBUG] Plans with details:", plansWithDetails.length);
       setPlans(plansWithDetails);
       return plansWithDetails;
     } catch (err) {
-      console.error("Failed to fetch plans:", err.response?.data || err);
+      console.error("[ERROR] Failed to fetch plans:", err.response?.data || err);
+      showAlert("Failed to fetch plans", "error");
       return [];
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const fetchAllData = async () => {
+    console.log("[DEBUG] fetchAllData called - fetching plans and calendar workouts");
+    await Promise.all([
+      fetchPlansWithDetails(),
+      fetchCalendarWorkouts(currentDate, "month")
+    ]);
+    console.log("[DEBUG] fetchAllData completed");
+  };
+
   const handleDeletePlan = async (plan_id) => {
+    console.log("[DEBUG] handleDeletePlan called for plan_id:", plan_id);
     if (!window.confirm("Are you sure you want to delete this entire workout plan? This action cannot be undone.")) return;
     try {
       await api.delete(`/workouts/plans/${plan_id}`);
-      await fetchPlansWithDetails();
+      console.log("[DEBUG] Plan deleted successfully:", plan_id);
+      await fetchAllData();
   
-      setScheduledWorkouts(prev => prev.filter(w => w.plan_id !== plan_id));
       if (selectedPlan?.plan_id === plan_id) {
         setPopOpen(null);
         setSelectedPlan(null);
       }
-      alert("Plan deleted successfully.");
+      showAlert("Plan deleted successfully.", "success");
     } catch (err) {
-      console.error("Delete plan failed:", err.response?.data || err);
-      alert(`Failed to delete plan: ${err.response?.data?.message || err.message}`);
+      console.error("[ERROR] Delete plan failed:", err.response?.data || err);
+      showAlert(`Failed to delete plan: ${err.response?.data?.message || err.message}`, "error");
     }
   };
 
   useEffect(() => {
     const initialize = async () => {
-      await fetchPlansWithDetails();
-      await fetchExistingCalendarWorkouts();
+      console.log("[DEBUG] Component initialized - fetching initial data");
+      await fetchAllData();
     };
     initialize();
   }, []);
-
-  useEffect(() => {
-    if (scheduledWorkouts.length > 0) {
-      saveScheduledWorkoutsToLocal(scheduledWorkouts);
-    }
-  }, [scheduledWorkouts]);
 
   useEffect(() => {
     const fetchDailySurvey = async () => {
@@ -255,8 +225,10 @@ function ClientWorkoutPlans() {
       
       try {
         const res = await api.get("/client/daily-survey");
+        console.log("[DEBUG] Daily survey response:", res.data);
         setCurrentWeight(res.data.weight_lbs || null);
       } catch (err) {
+        console.error("[ERROR] Failed to fetch daily survey:", err);
         setCurrentWeight(null);
       }
     };
@@ -264,23 +236,27 @@ function ClientWorkoutPlans() {
   }, []);
 
   const handleCreate = async (e) => {
+    console.log("[DEBUG] handleCreate called");
     e.preventDefault();
     try {
-      await api.post("/workouts/plans", newPlan);
+      const response = await api.post("/workouts/plans", newPlan);
+      console.log("[DEBUG] Plan created successfully:", response.data);
       setPopOpen(null);
       setNewPlan({ name: "", description: "", is_public: false });
-      await fetchPlansWithDetails();
+      await fetchAllData();
       showAlert("New plan successfully created!", "success");
     } catch (err) {
-      showAlert(error.response?.data || "Failed to create plan", "error");
-      console.error("Create plan failed:", err.response?.data || err);
+      console.error("[ERROR] Create plan failed:", err.response?.data || err);
+      showAlert(err.response?.data || "Failed to create plan", "error");
     }
   };
 
   const handleSelectPlan = async (plan_id) => {
+    console.log("[DEBUG] handleSelectPlan called for plan_id:", plan_id);
     try {
       const res = await api.get(`/workouts/plans/${plan_id}`);
       const plan = res.data;
+      console.log("[DEBUG] Plan details fetched:", plan);
       setSelectedPlan(plan);
       setEditData({
         name: plan.name,
@@ -292,23 +268,27 @@ function ClientWorkoutPlans() {
       setShowScheduleCalendar(false);
       setPopOpen("details");
     } catch (err) {
-      console.error("Failed to fetch plan details:", err);
+      console.error("[ERROR] Failed to fetch plan details:", err);
+      showAlert("Failed to fetch plan details", "error");
     }
   };
 
   const handleUpdate = async () => {
+    console.log("[DEBUG] handleUpdate called for plan:", selectedPlan?.plan_id);
     try {
       await api.patch(`/workouts/plans/${selectedPlan.plan_id}`, editData);
-      await fetchPlansWithDetails();
+      console.log("[DEBUG] Plan updated successfully");
+      await fetchAllData();
       await handleSelectPlan(selectedPlan.plan_id);
       showAlert("Plan updated successfully!", "success");
     } catch (err) {
+      console.error("[ERROR] Update plan failed:", err.response?.data || err);
       showAlert(err.response?.data || "Failed to update plan", "error");
-      console.error("Update plan failed:", err.response?.data || err);
     }
   };
 
   const handleDayChange = (planId, field, value) => {
+    console.log("[DEBUG] handleDayChange - planId:", planId, "field:", field, "value:", value);
     setNewDayByPlan((prev) => ({
       ...prev,
       [planId]: { ...prev[planId], [field]: value },
@@ -316,9 +296,11 @@ function ClientWorkoutPlans() {
   };
 
   const handleAddDay = async (plan_id) => {
+    console.log("[DEBUG] handleAddDay called for plan_id:", plan_id);
     const dayData = newDayByPlan[plan_id] || {};
     const plan = plans.find((p) => p.plan_id === plan_id) || selectedPlan;
     const nextOrder = (plan?.days?.length || 0) + 1;
+    console.log("[DEBUG] Day data:", dayData, "nextOrder:", nextOrder);
     try {
       await api.post(`/workouts/plans/${plan_id}/days`, {
         day_label: dayData.day_label || `Day ${nextOrder}`,
@@ -326,37 +308,42 @@ function ClientWorkoutPlans() {
         weekday: Number(dayData.weekday) || 0,
         session_time: dayData.session_time || null,
       });
+      console.log("[DEBUG] Day added successfully");
       setNewDayByPlan((prev) => ({ ...prev, [plan_id]: {} }));
-      await fetchPlansWithDetails();
+      await fetchAllData();
       await handleSelectPlan(plan_id);
 
       showAlert("New day added!", "success");
     } catch (err) {
+      console.error("[ERROR] Add day failed:", err.response?.data || err);
       showAlert(err.response?.data || "Failed to add day", "error");
-      console.error("Add day failed:", err.response?.data || err);
     }
   };
 
   const handleDeleteDay = async (plan_id, plan_day_id) => {
+    console.log("[DEBUG] handleDeleteDay called - plan_id:", plan_id, "plan_day_id:", plan_day_id);
     if (!window.confirm("Remove this day and all its exercises?")) return;
     try {
       await api.delete(`/workouts/plans/${plan_id}/days/${plan_day_id}`);
-      await fetchPlansWithDetails();
+      console.log("[DEBUG] Day deleted successfully");
+      await fetchAllData();
       await handleSelectPlan(plan_id);
 
       showAlert("Day deleted!", "success");
 
     } catch (err) {
+      console.error("[ERROR] Delete day failed:", err.response?.data || err);
       showAlert(err.response?.data || "Failed to delete day", "error");
-      console.error("Delete day failed:", err.response?.data || err);
     }
   };
 
   const [editingExercise, setEditingExercise] = useState(null);
 
   const handleUpdateDayExercise = async () => {
+    console.log("[DEBUG] handleUpdateDayExercise called");
     if (!editingExercise) return;
     const { plan_id, day_id, de_id, ...fields } = editingExercise;
+    console.log("[DEBUG] Exercise update data:", { plan_id, day_id, de_id, fields });
     try {
       await api.patch(
         `/workouts/plans/${plan_id}/days/${day_id}/exercises/${de_id}`,
@@ -369,23 +356,30 @@ function ClientWorkoutPlans() {
           sort_order: Number(fields.sort_order ?? 0),
         }
       );
+      console.log("[DEBUG] Exercise updated successfully");
       setEditingExercise(null);
-      await fetchPlansWithDetails();
+      await fetchAllData();
       await handleSelectPlan(plan_id);
+      showAlert("Exercise updated!", "success");
     } catch (err) {
-      console.error("Update exercise failed:", err.response?.data || err);
+      console.error("[ERROR] Update exercise failed:", err.response?.data || err);
+      showAlert("Failed to update exercise", "error");
     }
   };
 
   const handleDeleteDayExercise = async (plan_id, day_id, de_id) => {
+    console.log("[DEBUG] handleDeleteDayExercise called:", { plan_id, day_id, de_id });
     if (!window.confirm("Remove this exercise?")) return;
     try {
       await api.delete(`/workouts/plans/${plan_id}/days/${day_id}/exercises/${de_id}`);
+      console.log("[DEBUG] Exercise deleted successfully");
       if (editingExercise?.de_id === de_id) setEditingExercise(null);
-      await fetchPlansWithDetails();
+      await fetchAllData();
       await handleSelectPlan(plan_id);
+      showAlert("Exercise removed!", "success");
     } catch (err) {
-      console.error("Delete exercise failed:", err.response?.data || err);
+      console.error("[ERROR] Delete exercise failed:", err.response?.data || err);
+      showAlert("Failed to remove exercise", "error");
     }
   };
 
@@ -399,6 +393,7 @@ function ClientWorkoutPlans() {
   };
 
   const handleShowScheduleCalendar = () => {
+    console.log("[DEBUG] handleShowScheduleCalendar called");
     if (!assignData.start_date || !assignData.end_date) {
       alert("Please select start and end dates first.");
       return;
@@ -413,6 +408,7 @@ function ClientWorkoutPlans() {
   };
 
   const handleAssignPlan = async () => {
+    console.log("[DEBUG] handleAssignPlan called with tempActiveDays:", tempActiveDays);
     if (tempActiveDays.length === 0) {
       alert("Please assign at least one workout day to a date.");
       return;
@@ -426,6 +422,7 @@ function ClientWorkoutPlans() {
       });
 
       const assignmentId = assignmentResponse.data.assignment_id;
+      console.log("[DEBUG] Assignment created:", assignmentId);
       
       const occurrences = tempActiveDays.map(({ date, day }) => {
         const year = date.getFullYear();
@@ -450,45 +447,29 @@ function ClientWorkoutPlans() {
         };
       });
 
+      console.log("[DEBUG] Occurrences to create:", occurrences);
       const calendarResponse = await api.post(`/workouts/plans/${selectedPlan.plan_id}/calendar`, {
         occurrences: occurrences
       });
       
-      const workoutsToAdd = tempActiveDays.map(({ date, day }) => ({
-        id: Date.now() + Math.random(),
-        assignment_id: assignmentId,
-        plan_id: selectedPlan.plan_id,
-        plan_name: selectedPlan.name,
-        day_label: day.day_label,
-        day_id: getPlanDayId(day),
-        scheduled_start: date.toISOString(),
-        exercises: day.exercises || [],
-        date_str: date.toDateString(),
-        session_time: day.session_time
-      }));
-      
-      setScheduledWorkouts(prev => {
-        const updated = [...prev, ...workoutsToAdd];
-        saveScheduledWorkoutsToLocal(updated);
-        return updated;
-      });
-      
+      console.log("[DEBUG] Calendar response:", calendarResponse.data);
       showAlert(`Success: ${calendarResponse.data.calendar_workout_ids?.length || 0} workout(s) scheduled.`, "success");
       
       setShowScheduleCalendar(false);
       setTempActiveDays([]);
       setTempSelectedCalendarDay(null);
       
-      await fetchPlansWithDetails();
+      await fetchAllData();
       await handleSelectPlan(selectedPlan.plan_id);
       
     } catch (err) {
-      console.error("Schedule failed:", err.response?.data);
+      console.error("[ERROR] Schedule failed:", err.response?.data);
       showAlert(err.response?.data || "Failed to schedule plan", "error");
     }
   };
 
   const openEditSchedule = (workout) => {
+    console.log("[DEBUG] openEditSchedule called for workout:", workout.id);
     const date = new Date(workout.scheduled_start);
     const hours = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');
@@ -503,6 +484,7 @@ function ClientWorkoutPlans() {
   };
 
   const handleUpdateSchedule = async () => {
+    console.log("[DEBUG] handleUpdateSchedule called");
     if (!editingSchedule) return;
     
     try {
@@ -510,35 +492,40 @@ function ClientWorkoutPlans() {
       const [hours, minutes] = editScheduleForm.start_time.split(':');
       const newDate = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hours), parseInt(minutes), 0));
       
-      setScheduledWorkouts(prev => prev.map(w => {
-        if (w.id === editingSchedule.id) {
-          return {
-            ...w,
-            scheduled_start: newDate.toISOString(),
-            date_str: newDate.toDateString(),
-          };
-        }
-        return w;
-      }));
+      console.log("[DEBUG] Updating schedule to new date:", newDate.toISOString());
+      // Update the calendar workout via API
+      await api.patch(`/workouts/calendar-workouts/${editingSchedule.id}`, {
+        scheduled_start: newDate.toISOString()
+      });
+      
+      console.log("[DEBUG] Schedule updated successfully");
+      await fetchAllData();
       
       setEditingSchedule(null);
       setEditScheduleForm({ date: "", day_label: "", start_time: "" });
-      
-      await fetchPlansWithDetails();
 
       showAlert("Schedule successfully updated", "success");
       
     } catch (err) {
-      console.error("Failed to update schedule:", err);
+      console.error("[ERROR] Failed to update schedule:", err);
       showAlert(err.response?.data || "Failed to update schedule", "error");
     }
   };
 
   const handleDeleteSchedule = async (workoutId) => {
+    console.log("[DEBUG] handleDeleteSchedule called for workoutId:", workoutId);
     if (!confirm("Are you sure you want to remove this scheduled workout?")) return;
     
-    setScheduledWorkouts(prev => prev.filter(w => w.id !== workoutId));
-    setEditingSchedule(null);
+    try {
+      await api.delete(`/workouts/calendar-workouts/${workoutId}`);
+      console.log("[DEBUG] Workout removed successfully");
+      await fetchAllData();
+      setEditingSchedule(null);
+      showAlert("Workout removed successfully", "success");
+    } catch (err) {
+      console.error("[ERROR] Failed to delete workout:", err);
+      showAlert(err.response?.data || "Failed to remove workout", "error");
+    }
   };
 
   const handleChange = (e, setter) => {
@@ -556,14 +543,16 @@ function ClientWorkoutPlans() {
   };
 
   const handleLogSubmit = async (e) => {
+    console.log("[DEBUG] handleLogSubmit called with data:", logData);
     e.preventDefault();
     try{
-      await api.post("/workouts/workout-logs", logData);
+      const response = await api.post("/workouts/workout-logs", logData);
+      console.log("[DEBUG] Workout log saved:", response.data);
       setPopOpen(null);
       showAlert("Workout logged successfully!", "success");
 
       setLogData({
-        exercise_id: 0,
+        calendar_workout_id: 0,
         sets: 0,
         reps: 0, 
         weight: 0,
@@ -573,10 +562,41 @@ function ClientWorkoutPlans() {
         duration_minutes: 0, 
         notes: ""
       });
+      
+      await fetchAllData();
 
     } catch(err){
-      console.error("Failed to save survey:", err.response?.data || err)
-      showAlert(error.response?.data?.message || "Failed to log workout", "error");
+      console.error("[ERROR] Failed to save workout log:", err.response?.data || err);
+      showAlert(err.response?.data?.message || "Failed to log workout", "error");
+    }
+  };
+
+    const handleEditLog = async (e) => {
+    console.log("[DEBUG] handleEditLog called with data:", logData);
+    e.preventDefault();
+    try{
+      const response = await api.patch("/workouts/workout-log-entries/", logData);
+      console.log("[DEBUG] Workout log saved:", response.data);
+      setPopOpen(null);
+      showAlert("Workout logged successfully!", "success");
+
+      setLogData({
+        calendar_workout_id: 0,
+        sets: 0,
+        reps: 0, 
+        weight: 0,
+        rpe: 0, 
+        distance: 0, 
+        calories: 0, 
+        duration_minutes: 0, 
+        notes: ""
+      });
+      
+      await fetchAllData();
+
+    } catch(err){
+      console.error("[ERROR] Failed to save workout log:", err.response?.data || err);
+      showAlert(err.response?.data?.message || "Failed to log workout", "error");
     }
   };
 
@@ -659,6 +679,15 @@ function ClientWorkoutPlans() {
   const selectedWorkouts = selectedDate ? getWorkoutsForDate(selectedDate) : [];
   const groupedData = getWorkoutsByPlanAndAssignment();
 
+  // Helper function to get workout count for a date
+  const getWorkoutCountForDate = (date) => {
+    const targetDateStr = date.toDateString();
+    return scheduledWorkouts.filter((workout) => {
+      const workoutDate = new Date(workout.scheduled_start);
+      return workoutDate.toDateString() === targetDateStr;
+    }).length;
+  };
+
   return (
     <div className="drawer lg:drawer-open">
       <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
@@ -680,75 +709,158 @@ function ClientWorkoutPlans() {
           </div>
 
           <div className="flex w-full gap-4">
+            {/* Calendar Section - Visual Monthly Grid */}
             <div className="card bg-base-300 rounded-box w-1/2 p-4">
               <h2 className="text-lg font-bold mb-2">Calendar</h2>
               <div className="flex justify-between items-center mb-3">
-                <button className="btn btn-sm" onClick={() => setCurrentDate(new Date(year, month - 1, 1))}>←</button>
+                <button 
+                  className="btn btn-sm" 
+                  onClick={() => {
+                    console.log("[DEBUG] Previous month button clicked");
+                    const newDate = new Date(year, month - 1, 1);
+                    setCurrentDate(newDate);
+                    fetchCalendarWorkouts(newDate, "month");
+                  }}
+                >←</button>
                 <span className="font-semibold text-lg">{monthName} {year}</span>
-                <button className="btn btn-sm" onClick={() => setCurrentDate(new Date(year, month + 1, 1))}>→</button>
+                <button 
+                  className="btn btn-sm" 
+                  onClick={() => {
+                    console.log("[DEBUG] Next month button clicked");
+                    const newDate = new Date(year, month + 1, 1);
+                    setCurrentDate(newDate);
+                    fetchCalendarWorkouts(newDate, "month");
+                  }}
+                >→</button>
               </div>
 
-              <div className="grid grid-cols-7 gap-2 text-center">
-                {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
-                  <div key={i} className="font-bold text-xs opacity-70">{d}</div>
+              {/* Day labels */}
+              <div className="grid grid-cols-7 gap-1 text-center mb-2">
+                {WEEKDAY_NAMES.map((day, i) => (
+                  <div key={i} className="font-bold text-xs opacity-70 py-1">{day.slice(0, 3)}</div>
                 ))}
-                {Array.from({ length: firstDay }).map((_, i) => <div key={`empty-${i}`} />)}
+              </div>
+
+              {/* Calendar Grid */}
+              <div className="grid grid-cols-7 gap-1">
+                {Array.from({ length: firstDay }).map((_, i) => (
+                  <div key={`empty-${i}`} className="h-16 p-1 bg-base-200 rounded opacity-30"></div>
+                ))}
                 {Array.from({ length: daysInMonth }).map((_, i) => {
                   const day = new Date(year, month, i + 1);
                   const isToday = new Date().toDateString() === day.toDateString();
                   const isSelected = selectedDate?.toDateString() === day.toDateString();
-                  const hasWorkout = hasWorkoutOnDate(day);
+                  const workoutCount = getWorkoutCountForDate(day);
+                  const hasWorkout = workoutCount > 0;
 
                   return (
                     <div
                       key={`day-${year}-${month}-${i}`}
-                      className={`h-10 flex items-center justify-center rounded-lg cursor-pointer transition relative
-                        ${isSelected ? "bg-primary text-white" : isToday ? "bg-neutral text-white" : hasWorkout ? "bg-blue-300 text-white" : "bg-base-200 hover:bg-base-300"}`}
-                      onClick={() => setSelectedDate(day)}
+                      onClick={() => {
+                        console.log("[DEBUG] Date selected:", day.toDateString());
+                        setSelectedDate(day);
+                      }}
+                      className={`h-16 p-1 rounded-lg cursor-pointer transition-all relative
+                        ${isSelected ? 'ring-2 ring-primary bg-primary/10' : ''}
+                        ${isToday && !isSelected ? 'border-2 border-blue-500' : ''}
+                        hover:bg-base-100
+                      `}
                     >
-                      {i + 1}
-                      {hasWorkout && <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-yellow-400 rounded-full"></div>}
+                      <div className={`text-right text-sm font-semibold p-0.5 rounded-full w-6 h-6 flex items-center justify-center ml-auto
+                        ${isToday ? 'bg-blue-500 text-white' : ''}
+                      `}>
+                        {i + 1}
+                      </div>
+                      {hasWorkout && (
+                        <div className="mt-1 flex flex-col items-center">
+                          <div className="bg-blue-500 text-white text-xs rounded-full px-1.5 py-0.5">
+                            {workoutCount} workout{workoutCount !== 1 ? 's' : ''}
+                          </div>
+                          <div className="w-1 h-1 bg-yellow-400 rounded-full mt-0.5"></div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
               </div>
+              
+              {/* Legend */}
+              <div className="flex gap-4 mt-4 text-xs justify-center">
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                  <span className="opacity-70">Has Workout</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 border-2 border-blue-500 rounded"></div>
+                  <span className="opacity-70">Today</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-primary/20 ring-2 ring-primary rounded"></div>
+                  <span className="opacity-70">Selected</span>
+                </div>
+              </div>
             </div>
 
+            {/* Workouts for Selected Date */}
             <div className="card bg-base-300 rounded-box flex-1 p-4">
-              <h2 className="text-lg font-bold mb-2">Workouts for {selectedDate?.toLocaleDateString()}</h2>
+              <h2 className="text-lg font-bold mb-2">Workouts for {selectedDate?.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</h2>
               {isLoading ? (
                 <p className="text-sm opacity-70">Loading workouts...</p>
               ) : selectedWorkouts.length === 0 ? (
-                <p className="text-sm opacity-70">No workouts planned for this day.</p>
+                <div className="text-center py-8">
+                  <p className="text-sm opacity-70">No workouts planned for this day.</p>
+                  <p className="text-xs opacity-50 mt-2">Click on a date with workout dots to see details.</p>
+                </div>
               ) : (
-                selectedWorkouts.map((workout, idx) => (
-                  <div 
-                    key={workout.occurrenceId || idx}
-                    className="mb-4 p-3 border rounded bg-base-200"
-                  >
-                    <p className="font-semibold text-sm">{workout.planName} - {workout.dayLabel}</p>
-                    <p className="text-xs opacity-60 mb-2">
-                      Time: {workout.time}
-                    </p>
-                    {workout.exercises.length > 0 ? (
-                      <ul className="ml-4 list-disc text-sm">
-                        {workout.exercises.map((ex, exIdx) => {
-                          const exId = ex.day_exercise_id || ex.exercise_id || exIdx;
-                          return (
-                            <li key={exId}>
-                              {ex.exercise?.name || ex.name} — {ex.sets} sets × {ex.reps} reps
-                              {ex.weight ? ` @ ${ex.weight} lbs` : ""}
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    ) : (
-                      <p className="text-xs opacity-70">No exercises added</p>
-                    )}
-                    <br></br>
-                    <button className="btn btn-sm bg-blue-800 text-white">Log Workout</button>
-                  </div>
-                ))
+                <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                  {selectedWorkouts.map((workout, idx) => (
+                    <div 
+                      key={workout.occurrenceId || idx}
+                      className="p-3 border rounded bg-base-200 hover:bg-base-100 transition"
+                    >
+                      <p className="font-semibold text-sm">{workout.planName} - {workout.dayLabel}</p>
+                      <p className="text-xs opacity-60 mb-2">
+                        Time: {workout.time}
+                      </p>
+                      {workout.exercises.length > 0 ? (
+                        <ul className="ml-4 list-disc text-sm">
+                          {workout.exercises.slice(0, 3).map((ex, exIdx) => {
+                            const exId = ex.day_exercise_id || ex.exercise_id || exIdx;
+                            return (
+                              <li key={exId} className="text-xs">
+                                {ex.exercise?.name || ex.name} — {ex.sets} sets × {ex.reps} reps
+                                {ex.weight ? ` @ ${ex.weight} lbs` : ""}
+                              </li>
+                            );
+                          })}
+                          {workout.exercises.length > 3 && (
+                            <li className="text-xs opacity-70">+{workout.exercises.length - 3} more exercises</li>
+                          )}
+                        </ul>
+                      ) : (
+                        <p className="text-xs opacity-70 italic">No exercises added yet. Click "Edit Plan" to add exercises.</p>
+                      )}
+                      <div className="flex gap-2 mt-2">
+                        <button 
+                          className="btn btn-xs bg-blue-800 text-white"
+                          onClick={() => handleSelectPlan(workout.planId)}
+                        >
+                          Edit Plan
+                        </button>
+                        <button 
+                          className="btn btn-xs bg-green-700 text-white"
+                          onClick={() => {
+                            console.log("[DEBUG] Log workout button clicked for calendar_workout_id:", workout.occurrenceId);
+                            setLogData({ ...logData, calendar_workout_id: workout.occurrenceId });
+                            setPopOpen("log");
+                          }}
+                        >
+                          Log Workout
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           </div>
@@ -794,6 +906,7 @@ function ClientWorkoutPlans() {
                               className="btn btn-xs bg-blue-800 text-white"
                               onClick={async (e) => {
                                 e.stopPropagation();
+                                console.log("[DEBUG] Edit Plan button clicked for plan:", planGroup.plan_id);
                                 await handleSelectPlan(planGroup.plan_id);
                               }}
                             >
@@ -803,6 +916,7 @@ function ClientWorkoutPlans() {
                               className="btn btn-xs bg-red-700 text-white"
                               onClick={async (e) => {
                                 e.stopPropagation();
+                                console.log("[DEBUG] Delete Plan button clicked for plan:", planGroup.plan_id);
                                 await handleDeletePlan(planGroup.plan_id);
                               }}
                             >
@@ -871,7 +985,7 @@ function ClientWorkoutPlans() {
                                                   <span className="font-medium text-sm">{formattedDate}</span>
                                                   <div className="flex gap-1 mt-1">
                                                     {workoutsOnDate.map(w => (
-                                                      <span key={w.id} className="text-xs badge badge-m bg-yellow-400">
+                                                      <span key={w.id} className="text-xs badge bg-yellow-400">
                                                         {w.day_label}
                                                       </span>
                                                     ))}
@@ -886,11 +1000,7 @@ function ClientWorkoutPlans() {
                                                   </button>
                                                   <button 
                                                     className="btn btn-xs btn-ghost text-error"
-                                                    onClick={() => {
-                                                      if (confirm("Remove this scheduled workout?")) {
-                                                        setScheduledWorkouts(prev => prev.filter(w => w.id !== firstWorkout?.id));
-                                                      }
-                                                    }}
+                                                    onClick={() => handleDeleteSchedule(firstWorkout.id)}
                                                   >
                                                     X
                                                   </button>
@@ -989,40 +1099,40 @@ function ClientWorkoutPlans() {
                 <h2 className="text-xl font-bold">Log Workout</h2>
               </div>
               <label className="label">
-                Exercise:
-                <input className = "input" type="number" value={logData.exercise_id} name="exercise_id" onChange={handleLogChange} />
+                Calendar Workout ID:
+                <input className="input" type="number" value={logData.calendar_workout_id} name="calendar_workout_id" onChange={handleLogChange} required />
               </label>
               <label className="label">
                 Sets:
-                <input className="input" type="number" value={logData.sets} name="sets" onChange={handleLogChange} />
+                <input className="input" type="number" value={logData.sets} name="sets" onChange={handleLogChange} required />
               </label>
               <label className="label">
                 Reps:
-                <input className="input" type="number" value={logData.reps} name="reps" onChange={handleLogChange} />
+                <input className="input" type="number" value={logData.reps} name="reps" onChange={handleLogChange} required />
               </label>
               <label className="label">
-                Weight:
-                <input className="input" type="number" value={logData.weight} name="weight" onChange={handleLogChange} />
+                Weight (lbs):
+                <input className="input" type="number" step="0.5" value={logData.weight} name="weight" onChange={handleLogChange} />
               </label>
               <label className="label">
-                RPE (rate of perceived exertion):
-                <input className="input" type="number" value={logData.rpe} name="rpe" onChange={handleLogChange} />
+                RPE (0-10):
+                <input className="input" type="number" step="0.5" min="0" max="10" value={logData.rpe} name="rpe" onChange={handleLogChange} />
               </label>
               <label className="label">
-                Distance:
-                <input className="input" type="number" value={logData.distance} name="distance" onChange={handleLogChange} />
+                Distance (miles):
+                <input className="input" type="number" step="0.01" value={logData.distance} name="distance" onChange={handleLogChange} />
               </label>
               <label className="label">
                 Calories:
                 <input className="input" type="number" value={logData.calories} name="calories" onChange={handleLogChange} />
               </label>
               <label className="label">
-                Duration (mins):
-                <input className="input" type="number" value={logData.duration_minutes} name="duration" onChange={handleLogChange} />
+                Duration (minutes):
+                <input className="input" type="number" value={logData.duration_minutes} name="duration_minutes" onChange={handleLogChange} />
               </label>
               <label className="label">
                 Notes:
-                <input className="textarea" type="text" value={logData.notes} name="notes" onChange={handleLogChange} />
+                <textarea className="textarea" value={logData.notes} name="notes" onChange={handleLogChange} rows="3" />
               </label>
               <button className="btn btn-primary bg-blue-800" type="submit">Log</button>
           </form>
@@ -1272,7 +1382,7 @@ function ClientWorkoutPlans() {
             dayId={assigningDay?.plan_day_id}
             weekday={assigningDay?.weekday}
             onExerciseAdded={async () => {
-              await fetchPlansWithDetails();
+              await fetchAllData();
               await handleSelectPlan(selectedPlan.plan_id);
               setBrowsePopOpen(false);
               setAssigningDay(null);
@@ -1281,6 +1391,13 @@ function ClientWorkoutPlans() {
           />
         </LargeModal>
       )}
+
+      <Alert 
+        isOpen={alert} 
+        message={alertMsg}
+        type={alertType}
+        onClose={() => setShowAlert(false)}
+      />
     </div>
   );
 }

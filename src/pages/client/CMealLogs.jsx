@@ -29,6 +29,11 @@ function MealLogs(){
     notes: ""
   });
 
+  const [newMeal, setNewMeal] = useState({
+    name: "", 
+    description: ""
+  });
+
   const fetchUser = async () => {
     try {
       const res = await api.get("/user/me");
@@ -58,7 +63,15 @@ function MealLogs(){
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleMealPlanChange = (e) => {
+    const { name, value } = e.target;
+    setMealPlanData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleLogSubmit = async (e) => {
     e.preventDefault();
 
     const set = {
@@ -69,7 +82,7 @@ function MealLogs(){
     try {
       console.log("Sending:", set);
 
-      const response = await api.post("/nutrition/nutrition-logs", set);
+      const response = await api.post("/nutrition/meal-logs", set);
 
       console.log("SUCCESS:", response.data);
       setPopOpen(null);
@@ -77,6 +90,7 @@ function MealLogs(){
       setData(prev => ({
         user_id: prev.user_id,
         meal_id: "",
+        calories: "",
         servings: "",
         notes: ""
       }));
@@ -93,6 +107,30 @@ function MealLogs(){
     } catch (error) {
       console.error("Update failed:", error.response?.data || error);
       showAlert(error.response?.data || "Failed to log meal", "error");
+    }
+  };
+
+  const handleCreateMealPlan = async (e) => {
+    e.preventDefault();
+    
+    try {
+      console.log("Creating meal plan:", newMeal);
+      
+      const response = await api.post("/nutrition/mealplans", newMeal);
+      
+      console.log("Meal plan created:", response.data);
+      setPopOpen(null);
+      
+      setNewMeal({
+        name: "",
+        description: ""
+      });
+      
+      showAlert("Meal plan created successfully!", "success");
+      
+    } catch (error) {
+      console.error("Creation failed:", error.response?.data || error);
+      showAlert(error.response?.data || "Failed to create meal plan", "error");
     }
   };
 
@@ -130,36 +168,32 @@ function MealLogs(){
 
     <PopUp isOpen={isPopOpen !== null} onClose={() => setPopOpen(null)}>
        {isPopOpen === "create" && (
-      <>
+        <form onSubmit={handleCreateMealPlan}>
           <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
             <h2>Create New Meal Plan</h2>
               <label className="label">
-                Daily Goal:
-                <input className = "input" type="text" name="daily_goal" />
+                Name:
+                <input className = "input" type="text" name="name" value={newMeal.name} onChange={handleMealPlanChange} />
               </label>
               <label className="label">
-                Energy Level:
-                <input className="input" type="number" name="energy_level" />
+                Description:
+                <input className="input" type="textarea" name="description" value={newMeal.description} onChange={handleMealPlanChange} rows="3" required/>
               </label>
-              <label className="label">
-                Target Focus:
-                <input className="input" type="text" name="target_focus" />
-              </label>
-              <label className="label">
-                Water (in oz):
-                <input className="input" type="number" name="water_oz" />
-              </label>
-              <button className="btn btn-primary bg-blue-800" type="submit">Update</button>
+              <button className="btn btn-primary bg-blue-800" type="submit">Create</button>
           </fieldset>
-        </>
+        </form>
       )}
       {isPopOpen === "log" && (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleLogSubmit}>
           <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
             <h2>Log Meal</h2>
               <label className="label">
                 Meal:
                 <input className = "input" type="number" name="meal_id" value={logData.meal_id} onChange={handleChange} />
+              </label>
+              <label className="label">
+                Calories:
+                <input className="input" type="number" name="calories" value={logData.calories} onChange={handleChange} />
               </label>
               <label className="label">
                 Servings:
