@@ -222,7 +222,7 @@ const acceptCoach = async (coach) => {
             <div className="bg-white p-6 rounded-lg w-11/12 max-w-2xl relative max-h-[90vh] overflow-y-auto">
 
               <button
-                className="absolute top-2 right-2 btn btn-sm btn-ghost"
+                className="absolute top-2 right-2 btn btn-sm bg-red-600 text-white"
                 onClick={closeModal}
               >
                 X
@@ -232,7 +232,7 @@ const acceptCoach = async (coach) => {
                 Review Application: {names[selectedCoach.user_id] || "Coach"}
               </h2>
 
-              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+              <div className="mb-6 p-4 bg-gray-100 rounded-lg">
                 <h3 className="font-semibold mb-2">Application Summary</h3>
                 <p><strong>Experience:</strong> {selectedCoach.years_experience} years</p>
                 <p><strong>Specialty:</strong> {selectedCoach.specialty_name || "Unknown"}</p>
@@ -259,12 +259,12 @@ const acceptCoach = async (coach) => {
                   ))}
                 </ul>
               ) : (
-                <p className="mb-6 text-yellow-600">No documents uploaded</p>
+                <p className="mb-6 text-gray-600">No documents uploaded</p>
               )}
 
               <div className="flex gap-3 pt-4 border-t">
                 <button
-                  className="flex-1 btn btn-success"
+                  className="flex-1 btn btn bg-blue-800 text-white"
                   onClick={() => acceptCoach(selectedCoach)}
                   disabled={processingAction[selectedCoach.coach_profile_id]}
                 >

@@ -78,7 +78,7 @@ function AWorkoutPlans() {
       console.error("Failed to fetch plans:", err.response?.data || err);
       showAlert(err.response?.data?.message || "Failed to fetch plans", "error");
     } finally {
-  PlansLoading(false);
+  setPlansLoading(false);
     }
   };
 
@@ -327,13 +327,13 @@ const handleViewPlan = async (plan) => {
           <div className="flex gap-2">
             <button
               onClick={() => setActiveTab("plans")}
-              className={`btn btn-sm ${activeTab === "plans" ? "btn-primary" : "btn-ghost"}`}
+              className={`btn btn-sm ${activeTab === "plans" ? "btn bg-blue-800 text-white" : "btn-ghost"}`}
             >
               Plans
             </button>
             <button
               onClick={() => setActiveTab("exercises")}
-              className={`btn btn-sm ${activeTab === "exercises" ? "btn-primary" : "btn-ghost"}`}
+              className={`btn btn-sm ${activeTab === "exercises" ? "btn bg-blue-800 text-white" : "btn-ghost"}`}
             >
               Exercises
             </button>
@@ -546,13 +546,13 @@ const handleViewPlan = async (plan) => {
                         )}
                         <div className="flex flex-wrap gap-2 mb-3">
                           {exercise.muscle_group && (
-                            <span className="badge badge-primary badge-sm">{exercise.muscle_group}</span>
+                            <span className="badge badge-sm">{exercise.muscle_group}</span>
                           )}
                           {exercise.equipment && (
-                            <span className="badge badge-secondary badge-sm">{exercise.equipment}</span>
+                            <span className="badge badge-sm bg-blue-800 text-white">{exercise.equipment}</span>
                           )}
                           {exercise.training_type && (
-                            <span className="badge badge-accent badge-sm">{exercise.training_type}</span>
+                            <span className="badge badge-sm bg-blue-900 text-white">{exercise.training_type}</span>
                           )}
                         </div>
                       </div>
@@ -569,15 +569,10 @@ const handleViewPlan = async (plan) => {
   <div className="card bg-base-200 border-base-300 border p-6 rounded-box w-full max-w-2xl max-h-[80vh] overflow-y-auto">
     <h2 className="text-xl font-bold mb-4">Plan Details</h2>
     <div className="space-y-4">
-      {/* Basic Info */}
-      <div className="grid grid-cols-2 gap-3 pb-3 border-b border-base-300">
+      <div className="grid gap-3 pb-3 border-b border-base-300">
         <div>
           <span className="font-semibold opacity-70 text-sm">Name:</span>
           <p className="font-medium mt-1">{selectedPlan?.name}</p>
-        </div>
-        <div>
-          <span className="font-semibold opacity-70 text-sm">Plan ID:</span>
-          <p className="font-medium mt-1">{selectedPlan?.plan_id}</p>
         </div>
       </div>
 
@@ -586,7 +581,6 @@ const handleViewPlan = async (plan) => {
         <p className="mt-1">{selectedPlan?.description || "N/A"}</p>
       </div>
 
-      {/* Owner Info */}
       <div className="grid grid-cols-2 gap-3 pb-3 border-b border-base-300">
         <div>
           <span className="font-semibold opacity-70 text-sm">Owner:</span>
@@ -595,36 +589,13 @@ const handleViewPlan = async (plan) => {
         <div>
           <span className="font-semibold opacity-70 text-sm">Public Status:</span>
           <p className="mt-1">
-            <span className={`badge ${selectedPlan?.is_public ? 'badge-success' : 'badge-warning'} badge-sm`}>
+            <span className={`badge bage-sm text-white ${selectedPlan?.is_public ? 'bg-blue-800' : 'bg-blue-600'}`}>
               {selectedPlan?.is_public ? 'Public' : 'Private'}
             </span>
           </p>
         </div>
       </div>
 
-      {/* Tags */}
-      <div className="grid grid-cols-3 gap-3 pb-3 border-b border-base-300">
-        <div>
-          <span className="font-semibold opacity-70 text-sm">Muscle Group:</span>
-          <div className="mt-1">
-            <span className="badge badge-primary badge-sm">{selectedPlan?.muscle_group || "N/A"}</span>
-          </div>
-        </div>
-        <div>
-          <span className="font-semibold opacity-70 text-sm">Equipment:</span>
-          <div className="mt-1">
-            <span className="badge badge-secondary badge-sm">{selectedPlan?.equipment || "N/A"}</span>
-          </div>
-        </div>
-        <div>
-          <span className="font-semibold opacity-70 text-sm">Training Type:</span>
-          <div className="mt-1">
-            <span className="badge badge-accent badge-sm">{selectedPlan?.training_type || "N/A"}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Days/Workouts Section */}
       {selectedPlan?.days && selectedPlan.days.length > 0 && (
         <div className="pb-3">
           <span className="font-semibold opacity-70 text-sm block mb-2">
@@ -690,7 +661,7 @@ const handleViewPlan = async (plan) => {
           closePopUp();
           handleEditPlan(selectedPlan);
         }} 
-        className="btn btn-primary flex-1"
+        className="btn bg-blue-800 text-white flex-1"
       >
         Edit Plan
       </button>
@@ -700,12 +671,9 @@ const handleViewPlan = async (plan) => {
             handleDeletePlan(selectedPlan?.plan_id, selectedPlan?.name);
           }
         }} 
-        className="btn btn-error flex-1"
+        className="btn bg-red-600 text-white flex-1"
       >
-        Delete Plan
-      </button>
-      <button onClick={closePopUp} className="btn btn-ghost">
-        Close
+        Delete
       </button>
     </div>
   </div>
@@ -846,20 +814,20 @@ const handleViewPlan = async (plan) => {
               <span className="font-medium">{selectedExercise?.name}</span>
             </div>
             <div className="flex justify-between border-b border-base-300 pb-2">
-              <span className="font-semibold opacity-70">Description:</span>
+              <span className="font-semibold opacity-70">Description: </span>
               <span className="font-medium">{selectedExercise?.description || "N/A"}</span>
             </div>
             <div className="flex justify-between border-b border-base-300 pb-2">
               <span className="font-semibold opacity-70">Muscle Group:</span>
-              <span className="badge badge-primary badge-sm">{selectedExercise?.muscle_group || "N/A"}</span>
+              <span className="font-semibold">{selectedExercise?.muscle_group || "N/A"}</span>
             </div>
             <div className="flex justify-between border-b border-base-300 pb-2">
               <span className="font-semibold opacity-70">Equipment:</span>
-              <span className="badge badge-secondary badge-sm">{selectedExercise?.equipment || "N/A"}</span>
+              <span className="font-semibold">{selectedExercise?.equipment || "N/A"}</span>
             </div>
             <div className="flex justify-between border-b border-base-300 pb-2">
               <span className="font-semibold opacity-70">Training Type:</span>
-              <span className="badge badge-accent badge-sm">{selectedExercise?.training_type || "N/A"}</span>
+              <span className="font-semibold">{selectedExercise?.training_type || "N/A"}</span>
             </div>
           </div>
           <div className="flex gap-2 mt-6">
@@ -871,7 +839,7 @@ const handleViewPlan = async (plan) => {
             </button>
             <button onClick={() => {
               handleDeleteExercise(selectedExercise);
-            }} className="btn bg-red-600 flex-1">
+            }} className="btn bg-red-600 text-white flex-1">
               Delete
             </button>
           </div>

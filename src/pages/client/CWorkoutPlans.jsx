@@ -45,13 +45,14 @@ function ClientWorkoutPlans() {
   });
 
   const [logData, setLogData] = useState({
+    calendar_workout_id: 0,
+    plan_day_exercise_id: 0,
     exercise_id: 0,
     sets: 0,
     reps: 0, 
     weight: 0,
     rpe: 0, 
     distance: 0, 
-    calories: 0, 
     duration_minutes: 0, 
     notes: ""
   });
@@ -76,7 +77,12 @@ function ClientWorkoutPlans() {
   const [expandedPlan, setExpandedPlan] = useState(null);
   const [selectedScheduledWorkout, setSelectedScheduledWorkout] = useState(null);
   const [isBrowsePopOpen, setBrowsePopOpen] = useState(false);
-  const [scheduledWorkouts, setScheduledWorkouts] = useState([]);
+  const [calendarWorkouts, setCalendarWorkouts] = useState([]);
+  const [selectedCalendarWorkout, setSelectedCalendarWorkout] = useState(null);
+  const [workoutLogs, setWorkoutLogs] = useState([]);
+  const [selectedWorkoutLog, setSelectedWorkoutLog] = useState(null);
+  const [calendarView, setCalendarView] = useState("week");
+  const [currentViewDate, setCurrentViewDate] = useState(new Date());
 
   const [alert, setShowAlert] = useState(false);
   const [alertMsg, setAlertMsg] = useState('');
@@ -86,6 +92,101 @@ function ClientWorkoutPlans() {
     setAlertMsg(message);
     setAlertType(type);
     setShowAlert(true);
+  };
+
+  const fetchCalendarWorkouts = async (date = null, view = "week") => {
+    try {
+      const params = {};
+      if (date) {
+        params.date = date instanceof Date ? date.toISOString().split('T')[0] : date;
+      }
+      if (view) {
+        params.view = view;
+      }
+      
+      const response = await api.get("/workouts/calendar-workouts-view", { params });
+      setCalendarWorkouts(response.data || []);
+      return response.data || [];
+    } catch (err) {
+      console.error("Failed to fetch calendar workouts:", err);
+      showAlert("Failed to fetch calendar workouts", "error");
+      return [];
+    }
+  };
+
+  const fetchCalendarWorkoutDetails = async (calendarWorkoutId) => {
+    try {
+      const response = await api.get(`/workouts/calendar-workouts/${calendarWorkoutId}`);
+      setSelectedCalendarWorkout(response.data);
+      return response.data;
+    } catch (err) {
+      console.error("Failed to fetch calendar workout details:", err);
+      showAlert("Failed to fetch workout details", "error");
+      return null;
+    }
+  };
+
+  const fetchWorkoutLogs = async (clientId = null, calendarWorkoutId = null) => {
+    try {
+      const params = {};
+      if (clientId) params.client_id = clientId;
+      if (calendarWorkoutId) params.calendar_workout_id = calendarWorkoutId;
+      
+      const response = await api.get("/workouts/workout-logs", { params });
+      setWorkoutLogs(response.data || []);
+      return response.data || [];
+    } catch (err) {
+      console.error("Failed to fetch workout logs:", err);
+      showAlert("Failed to fetch workout logs", "error");
+      return [];
+    }
+  };
+
+  const fetchWorkoutLogEntry = async (entryId) => {
+    try {
+      const response = await api.get(`/workouts/workout-log-entries/${entryId}`);
+      return response.data;
+    } catch (err) {
+      console.error("Failed to fetch workout log entry:", err);
+      showAlert("Failed to fetch log entry", "error");
+      return null;
+    }
+  };
+
+  const createWorkoutLogEntry = async (logEntryData) => {
+    try {
+      const response = await api.post("/workouts/workout-logs", logEntryData);
+      showAlert("Workout logged successfully!", "success");
+      return response.data;
+    } catch (err) {
+      console.error("Failed to save workout log:", err.response?.data || err);
+      showAlert(err.response?.data?.message || "Failed to log workout", "error");
+      return null;
+    }
+  };
+
+  const updateWorkoutLogEntry = async (entryId, updateData) => {
+    try {
+      const response = await api.patch(`/workouts/workout-log-entries/${entryId}`, updateData);
+      showAlert("Workout log updated successfully!", "success");
+      return response.data;
+    } catch (err) {
+      console.error("Failed to update workout log:", err.response?.data || err);
+      showAlert(err.response?.data?.message || "Failed to update workout log", "error");
+      return null;
+    }
+  };
+
+  const deleteWorkoutLogEntry = async (entryId) => {
+    try {
+      await api.delete(`/workouts/workout-log-entries/${entryId}`);
+      showAlert("Workout log entry deleted successfully!", "success");
+      return true;
+    } catch (err) {
+      console.error("Failed to delete workout log:", err.response?.data || err);
+      showAlert(err.response?.data?.message || "Failed to delete workout log", "error");
+      return false;
+    }
   };
 
   const fetchPlansWithDetails = async () => {
@@ -112,56 +213,12 @@ function ClientWorkoutPlans() {
     }
   };
 
-  const fetchScheduledWorkouts = async () => {
-    try {
-      // Fetch all calendar workouts for the user
-      const response = await api.get("/workouts/calendar");
-      setScheduledWorkouts(response.data.workouts || []);
-      return response.data.workouts || [];
-    } catch (err) {
-      console.error("Failed to fetch scheduled workouts:", err);
-      // If endpoint doesn't exist, try to get from plan assignments
-      try {
-        const plansRes = await api.get("/workouts/plans/mine");
-        const userPlans = plansRes.data.plans || [];
-        const allWorkouts = [];
-        
-        for (const plan of userPlans) {
-          const planRes = await api.get(`/workouts/plans/${plan.plan_id}`);
-          const planData = planRes.data;
-          
-          if (planData.assignments) {
-            for (const assignment of planData.assignments) {
-              if (assignment.occurrences) {
-                for (const occurrence of assignment.occurrences) {
-                  allWorkouts.push({
-                    id: occurrence.id,
-                    plan_id: plan.plan_id,
-                    plan_name: plan.name,
-                    scheduled_start: occurrence.scheduled_start,
-                    plan_day_id: occurrence.plan_day_id,
-                    exercises: []
-                  });
-                }
-              }
-            }
-          }
-        }
-        setScheduledWorkouts(allWorkouts);
-        return allWorkouts;
-      } catch (err2) {
-        console.error("Failed to fetch scheduled workouts from assignments:", err2);
-        return [];
-      }
-    }
-  };
-
   const handleDeletePlan = async (plan_id) => {
     if (!window.confirm("Are you sure you want to delete this entire workout plan? This action cannot be undone.")) return;
     try {
       await api.delete(`/workouts/plans/${plan_id}`);
       await fetchPlansWithDetails();
-      await fetchScheduledWorkouts();
+      await fetchCalendarWorkouts(currentViewDate, calendarView);
   
       if (selectedPlan?.plan_id === plan_id) {
         setPopOpen(null);
@@ -177,7 +234,8 @@ function ClientWorkoutPlans() {
   useEffect(() => {
     const initialize = async () => {
       await fetchPlansWithDetails();
-      await fetchScheduledWorkouts();
+      await fetchCalendarWorkouts(currentViewDate, calendarView);
+      await fetchWorkoutLogs();
     };
     initialize();
   }, []);
@@ -209,7 +267,6 @@ function ClientWorkoutPlans() {
       await fetchPlansWithDetails();
       showAlert("New plan successfully created!", "success");
       
-      // Automatically open the new plan to schedule it
       if (response.data.plan_id) {
         await handleSelectPlan(response.data.plan_id);
       }
@@ -277,14 +334,12 @@ function ClientWorkoutPlans() {
     }
 
     try {
-      // First create the assignment
       const assignmentResponse = await api.post(`/workouts/plans/${selectedPlan.plan_id}/assignments`, {
         start_date: assignData.start_date,
         end_date: assignData.end_date,
         repeat_rule: "weekly",
       });
 
-      // Create occurrences for each scheduled date
       const occurrences = tempActiveDays.map(({ date, day }) => {
         const year = date.getFullYear();
         const month = date.getMonth();
@@ -318,7 +373,7 @@ function ClientWorkoutPlans() {
       setTempSelectedCalendarDay(null);
       
       await fetchPlansWithDetails();
-      await fetchScheduledWorkouts();
+      await fetchCalendarWorkouts(currentViewDate, calendarView);
       await handleSelectPlan(selectedPlan.plan_id);
       
     } catch (err) {
@@ -327,8 +382,8 @@ function ClientWorkoutPlans() {
     }
   };
 
-  const handleAddExercisesToScheduledWorkout = async (scheduledWorkout) => {
-    setSelectedScheduledWorkout(scheduledWorkout);
+  const handleAddExercisesToScheduledWorkout = async (calendarWorkout) => {
+    setSelectedScheduledWorkout(calendarWorkout);
     setBrowsePopOpen(true);
   };
 
@@ -342,41 +397,66 @@ function ClientWorkoutPlans() {
 
   const handleLogChange = (e) => {
     setLogData({
-      ...logData, [e.target.name]: e.target.value
+      ...logData, 
+      [e.target.name]: e.target.type === "number" ? parseFloat(e.target.value) : e.target.value
     });
   };
 
   const handleLogSubmit = async (e) => {
     e.preventDefault();
-    try{
-      await api.post("/workouts/workout-logs", logData);
+    const result = await createWorkoutLogEntry(logData);
+    if (result) {
       setPopOpen(null);
-      showAlert("Workout logged successfully!", "success");
-
       setLogData({
+        calendar_workout_id: 0,
+        plan_day_exercise_id: 0,
         exercise_id: 0,
         sets: 0,
         reps: 0, 
         weight: 0,
         rpe: 0, 
         distance: 0, 
-        calories: 0, 
         duration_minutes: 0, 
         notes: ""
       });
-
-    } catch(err){
-      console.error("Failed to save survey:", err.response?.data || err);
-      showAlert(err.response?.data?.message || "Failed to log workout", "error");
+      await fetchWorkoutLogs();
+      await fetchCalendarWorkouts(currentViewDate, calendarView);
     }
+  };
+
+  const handleViewWorkoutDetails = async (calendarWorkoutId) => {
+    const details = await fetchCalendarWorkoutDetails(calendarWorkoutId);
+    if (details) {
+      setPopOpen("workoutDetails");
+    }
+  };
+
+  const handleViewWorkoutLogs = async (calendarWorkoutId) => {
+    const logs = await fetchWorkoutLogs(null, calendarWorkoutId);
+    if (logs.length > 0) {
+      setSelectedWorkoutLog(logs[0]);
+      setPopOpen("viewLogs");
+    } else {
+      showAlert("No logs found for this workout", "info");
+    }
+  };
+
+  const changeViewDate = (direction) => {
+    const newDate = new Date(currentViewDate);
+    if (calendarView === "week") {
+      newDate.setDate(newDate.getDate() + (direction * 7));
+    } else {
+      newDate.setMonth(newDate.getMonth() + direction);
+    }
+    setCurrentViewDate(newDate);
+    fetchCalendarWorkouts(newDate, calendarView);
   };
 
   const WEEKDAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-  // Group scheduled workouts by date
-  const getScheduledWorkoutsByDate = () => {
+  const groupWorkoutsByDate = () => {
     const grouped = {};
-    scheduledWorkouts.forEach(workout => {
+    calendarWorkouts.forEach(workout => {
       const date = new Date(workout.scheduled_start).toDateString();
       if (!grouped[date]) {
         grouped[date] = [];
@@ -386,7 +466,7 @@ function ClientWorkoutPlans() {
     return grouped;
   };
 
-  const scheduledByDate = getScheduledWorkoutsByDate();
+  const workoutsByDate = groupWorkoutsByDate();
 
   return (
     <div className="drawer lg:drawer-open">
@@ -408,40 +488,113 @@ function ClientWorkoutPlans() {
             </div>
           </div>
 
-          {/* Scheduled Workouts Section */}
-          {Object.keys(scheduledByDate).length > 0 && (
-            <div className="card bg-base-300 rounded-box p-4">
-              <h2 className="text-lg font-bold mb-4">Upcoming Scheduled Workouts</h2>
+          {/* Calendar Navigation */}
+          <div className="card bg-base-300 rounded-box p-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold">Workout Calendar</h2>
+              <div className="flex gap-2">
+                <button 
+                  className="btn btn-sm bg-blue-800 text-white"
+                  onClick={() => changeViewDate(-1)}
+                >
+                  Previous {calendarView === "week" ? "Week" : "Month"}
+                </button>
+                <button 
+                  className="btn btn-sm bg-blue-800 text-white"
+                  onClick={() => {
+                    const today = new Date();
+                    setCurrentViewDate(today);
+                    fetchCalendarWorkouts(today, calendarView);
+                  }}
+                >
+                  Today
+                </button>
+                <button 
+                  className="btn btn-sm bg-blue-800 text-white"
+                  onClick={() => changeViewDate(1)}
+                >
+                  Next {calendarView === "week" ? "Week" : "Month"}
+                </button>
+              </div>
+              <div className="flex gap-2">
+                <button 
+                  className={`btn btn-sm ${calendarView === "week" ? "btn-primary bg-blue-800" : "btn-ghost"}`}
+                  onClick={() => {
+                    setCalendarView("week");
+                    fetchCalendarWorkouts(currentViewDate, "week");
+                  }}
+                >
+                  Week
+                </button>
+                <button 
+                  className={`btn btn-sm ${calendarView === "month" ? "btn-primary bg-blue-800" : "btn-ghost"}`}
+                  onClick={() => {
+                    setCalendarView("month");
+                    fetchCalendarWorkouts(currentViewDate, "month");
+                  }}
+                >
+                  Month
+                </button>
+              </div>
+            </div>
+            
+            <div className="text-center mb-2">
+              <span className="font-semibold">
+                {currentViewDate.toLocaleDateString(undefined, { 
+                  year: 'numeric', 
+                  month: 'long',
+                  ...(calendarView === "week" && { day: 'numeric' })
+                })}
+              </span>
+            </div>
+
+            {/* Scheduled Workouts Section */}
+            {Object.keys(workoutsByDate).length > 0 && (
               <div className="space-y-4 max-h-[400px] overflow-y-auto">
-                {Object.entries(scheduledByDate).map(([dateStr, workouts]) => (
+                {Object.entries(workoutsByDate).map(([dateStr, workouts]) => (
                   <div key={dateStr} className="border rounded-lg p-3 bg-base-200">
-                    <h3 className="font-semibold text-md mb-2">{new Date(dateStr).toLocaleDateString()}</h3>
+                    <h3 className="font-semibold text-md mb-2">{new Date(dateStr).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</h3>
                     <div className="space-y-2">
                       {workouts.map(workout => (
-                        <div key={workout.id} className="flex justify-between items-center bg-base-100 rounded p-2">
-                          <div>
-                            <p className="font-medium">{workout.plan_name}</p>
+                        <div key={workout.calendar_workout_id} className="flex justify-between items-center bg-base-100 rounded p-2">
+                          <div className="flex-1">
+                            <p className="font-medium">{workout.plan_day?.plan?.name || "Workout"}</p>
                             <p className="text-xs opacity-70">
+                              {workout.plan_day?.day_label || "Workout"} • 
                               {new Date(workout.scheduled_start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </p>
-                            {workout.exercises && workout.exercises.length > 0 && (
-                              <p className="text-xs mt-1">{workout.exercises.length} exercise(s) added</p>
+                            {workout.plan_day?.exercises && workout.plan_day.exercises.length > 0 && (
+                              <p className="text-xs mt-1">{workout.plan_day.exercises.length} exercise(s)</p>
                             )}
                           </div>
-                          <button 
-                            className="btn btn-xs bg-blue-800 text-white"
-                            onClick={() => handleAddExercisesToScheduledWorkout(workout)}
-                          >
-                            {workout.exercises && workout.exercises.length > 0 ? "Edit Exercises" : "Add Exercises"}
-                          </button>
+                          <div className="flex gap-2">
+                            <button 
+                              className="btn btn-xs bg-blue-800 text-white"
+                              onClick={() => handleViewWorkoutDetails(workout.calendar_workout_id)}
+                            >
+                              View Details
+                            </button>
+                            <button 
+                              className="btn btn-xs bg-green-700 text-white"
+                              onClick={() => handleViewWorkoutLogs(workout.calendar_workout_id)}
+                            >
+                              View Logs
+                            </button>
+                            <button 
+                              className="btn btn-xs bg-purple-700 text-white"
+                              onClick={() => handleAddExercisesToScheduledWorkout(workout)}
+                            >
+                              {workout.plan_day?.exercises && workout.plan_day.exercises.length > 0 ? "Edit Exercises" : "Add Exercises"}
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* All Plans Section */}
           <div className="card bg-base-300 rounded-box p-4">
@@ -551,6 +704,7 @@ function ClientWorkoutPlans() {
         </section>
       </div>
 
+      {/* Create Plan Popup */}
       <PopUp isOpen={isPopOpen === "create"} onClose={() => setPopOpen(null)}>
         <div className="bg-base-200 p-6 rounded-box">
           <div className="flex justify-between items-center mb-4">
@@ -574,11 +728,20 @@ function ClientWorkoutPlans() {
         </div>
       </PopUp>
 
+      {/* Log Workout Popup */}
       <PopUp isOpen={isPopOpen === "log"} onClose={() => setPopOpen(null)}>
         <form onSubmit={handleLogSubmit} className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">Log Workout</h2>
           </div>
+          <label className="label">
+            Calendar Workout ID:
+            <input className="input" type="number" value={logData.calendar_workout_id} name="calendar_workout_id" onChange={handleLogChange} required />
+          </label>
+          <label className="label">
+            Plan Day Exercise ID:
+            <input className="input" type="number" value={logData.plan_day_exercise_id} name="plan_day_exercise_id" onChange={handleLogChange} required />
+          </label>
           <label className="label">
             Exercise ID:
             <input className="input" type="number" value={logData.exercise_id} name="exercise_id" onChange={handleLogChange} required />
@@ -604,10 +767,6 @@ function ClientWorkoutPlans() {
             <input className="input" type="number" step="0.01" value={logData.distance} name="distance" onChange={handleLogChange} />
           </label>
           <label className="label">
-            Calories:
-            <input className="input" type="number" value={logData.calories} name="calories" onChange={handleLogChange} />
-          </label>
-          <label className="label">
             Duration (minutes):
             <input className="input" type="number" value={logData.duration_minutes} name="duration_minutes" onChange={handleLogChange} />
           </label>
@@ -618,6 +777,72 @@ function ClientWorkoutPlans() {
           <button className="btn btn-primary bg-blue-800" type="submit">Log</button>
         </form>
       </PopUp>
+
+      {/* Workout Details Popup */}
+      <LargeModal open={isPopOpen === "workoutDetails"} onClose={() => { setPopOpen(null); setSelectedCalendarWorkout(null); }}>
+        {selectedCalendarWorkout && (
+          <div>
+            <h2 className="text-2xl font-bold mb-4">Workout Details</h2>
+            <div className="space-y-4">
+              <div className="bg-base-300 p-4 rounded">
+                <p><strong>Plan:</strong> {selectedCalendarWorkout.plan_day?.plan?.name}</p>
+                <p><strong>Workout Day:</strong> {selectedCalendarWorkout.plan_day?.day_label}</p>
+                <p><strong>Scheduled Time:</strong> {new Date(selectedCalendarWorkout.scheduled_start).toLocaleString()}</p>
+                <p><strong>Status:</strong> {selectedCalendarWorkout.status}</p>
+              </div>
+              
+              {selectedCalendarWorkout.plan_day?.exercises && selectedCalendarWorkout.plan_day.exercises.length > 0 && (
+                <div className="bg-base-300 p-4 rounded">
+                  <h3 className="font-bold mb-3">Exercises</h3>
+                  <div className="space-y-3">
+                    {selectedCalendarWorkout.plan_day.exercises.map((exercise, idx) => (
+                      <div key={idx} className="border-b pb-2">
+                        <p className="font-semibold">{exercise.exercise?.name}</p>
+                        <p className="text-sm">
+                          {exercise.sets} sets × {exercise.reps} reps
+                          {exercise.weight > 0 && ` @ ${exercise.weight} lbs`}
+                          {exercise.duration_minutes > 0 && ` • ${exercise.duration_minutes} min`}
+                        </p>
+                        {exercise.notes && <p className="text-xs opacity-70">Notes: {exercise.notes}</p>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </LargeModal>
+
+      {/* View Logs Popup */}
+      <LargeModal open={isPopOpen === "viewLogs"} onClose={() => { setPopOpen(null); setSelectedWorkoutLog(null); }}>
+        {selectedWorkoutLog && (
+          <div>
+            <h2 className="text-2xl font-bold mb-4">Workout Logs</h2>
+            <div className="bg-base-300 p-4 rounded">
+              <p><strong>Log ID:</strong> {selectedWorkoutLog.workout_log_id}</p>
+              {selectedWorkoutLog.notes && <p><strong>Notes:</strong> {selectedWorkoutLog.notes}</p>}
+              
+              <h3 className="font-bold mt-4 mb-2">Exercise Entries</h3>
+              <div className="space-y-3">
+                {selectedWorkoutLog.entries?.map((entry, idx) => (
+                  <div key={idx} className="border-b pb-2">
+                    <p><strong>Exercise ID:</strong> {entry.exercise_id}</p>
+                    <p className="text-sm">
+                      {entry.sets} sets × {entry.reps} reps
+                      {entry.weight > 0 && ` @ ${entry.weight} lbs`}
+                      {entry.rpe > 0 && ` • RPE: ${entry.rpe}`}
+                      {entry.distance > 0 && ` • Distance: ${entry.distance} miles`}
+                      {entry.duration_minutes > 0 && ` • Duration: ${entry.duration_minutes} min`}
+                    </p>
+                    {entry.notes && <p className="text-xs opacity-70">Notes: {entry.notes}</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </LargeModal>
 
       <LargeModal open={isPopOpen === "details"} onClose={() => setPopOpen(null)}>
         {selectedPlan && (
@@ -826,11 +1051,12 @@ function ClientWorkoutPlans() {
         <LargeModal open={isBrowsePopOpen} onClose={() => { setBrowsePopOpen(false); setSelectedScheduledWorkout(null); }}>
           <BrowseExercises
             planId={selectedPlan?.plan_id}
-            dayId={selectedScheduledWorkout?.plan_day_id}
+            dayId={selectedScheduledWorkout?.plan_day?.plan_day_id}
+            calendarWorkoutId={selectedScheduledWorkout?.calendar_workout_id}
             weekday={selectedScheduledWorkout ? new Date(selectedScheduledWorkout.scheduled_start).getDay() : null}
             onExerciseAdded={async () => {
               await fetchPlansWithDetails();
-              await fetchScheduledWorkouts();
+              await fetchCalendarWorkouts(currentViewDate, calendarView);
               setBrowsePopOpen(false);
               setSelectedScheduledWorkout(null);
               showAlert("Exercises added to workout!", "success");

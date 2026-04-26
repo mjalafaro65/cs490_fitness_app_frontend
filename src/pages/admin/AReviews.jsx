@@ -171,32 +171,32 @@ function AReviews() {
             </div>
           )}
 
-          <h2 className="text-2xl font-bold mb-6">Manage Coach Reviews</h2>
+          <h2 className="text-2xl font-bold mb-6">Coach Reviews</h2>
           
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-            <div className="bg-white rounded-lg border border-blue-100 shadow-sm p-5 hover:shadow-md transition-shadow">
+            <div className="card bg-base-300 rounded-box p-5 border border-gray-200 shadow-sm p-5 hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium text-blue-600 uppercase tracking-wide">Total Reviews</p>
-                  <p className="text-3xl font-bold text-gray-800 mt-2">{reviews.length}</p>
+                  <p className="text-xs font-medium text-blue-800 uppercase tracking-wide">Total Reviews</p>
+                  <p className="text-3xl font-bold text-black-800 mt-2">{reviews.length}</p>
                 </div>
-                <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center">
-                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-10 h-10 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                   </svg>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-lg border border-red-100 shadow-sm p-5 hover:shadow-md transition-shadow">
+            <div className="card bg-base-300 rounded-box p-5 border border-gray-200 shadow-sm p-5 hover:shadow-md transition-shadow-shadow">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium text-red-600 uppercase tracking-wide">Flagged Reviews</p>
-                  <p className="text-3xl font-bold text-gray-800 mt-2">{reviews.filter(r => r.is_flagged).length}</p>
+                  <p className="text-xs font-medium text-blue-800 uppercase tracking-wide">Flagged Reviews</p>
+                  <p className="text-3xl font-bold text-black-800 mt-2">{reviews.filter(r => r.is_flagged).length}</p>
                 </div>
-                <div className="w-10 h-10 bg-red-50 rounded-full flex items-center justify-center">
-                  <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-10 h-10 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
                   </svg>
                 </div>
@@ -267,7 +267,6 @@ function AReviews() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comment</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
@@ -276,13 +275,7 @@ function AReviews() {
                     <tr>
                       <td colSpan="8" className="px-6 py-12 text-center">
                         <div className="flex flex-col items-center gap-2">
-                          <svg className="h-16 w-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
                           <p className="text-gray-500">No reviews found</p>
-                          <button onClick={clearFilters} className="text-sm text-blue-600 hover:text-blue-700">
-                            Clear filters
-                          </button>
                         </div>
                       </td>
                     </tr>
@@ -320,15 +313,14 @@ function AReviews() {
                             </span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(review.created_at)}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleToggleFlag(review.review_id, review.is_flagged)}
                               className={`px-3 py-1 rounded-md text-sm font-medium transition-colors cursor-pointer ${
                                 review.is_flagged 
-                                  ? 'bg-green-600 text-white hover:bg-green-700' 
-                                  : 'bg-red-600 text-white hover:bg-red-700'
+                                  ? 'bg-blue-800 text-white hover:bg-blue-700' 
+                                  : 'bg-black-600 text-white hover:bg-black-700'
                               }`}
                               title={review.is_flagged ? 'Remove flag' : 'Flag review'}
                             >
@@ -338,8 +330,8 @@ function AReviews() {
                               onClick={() => handleToggleVisibility(review.review_id, review.is_visible)}
                               className={`px-3 py-1 rounded-md text-sm font-medium transition-colors cursor-pointer ${
                                 review.is_visible 
-                                  ? 'bg-orange-600 text-white hover:bg-orange-700' 
-                                  : 'bg-blue-600 text-white hover:bg-blue-700'
+                                  ? 'bg-blue-800 text-white hover:bg-blue-700' 
+                                  : 'bg-black-600 text-white hover:bg-black-700'
                               }`}
                               title={review.is_visible ? 'Hide review' : 'Show review'}
                             >

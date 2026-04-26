@@ -117,14 +117,14 @@ function ADashboard() {
           <div className="text-2xl font-bold mb-6">Dashboard</div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-            {/* Pending Requests Card */}
+
             <div className="card bg-base-300 rounded-box p-5">
               <div className="flex items-center justify-between mb-2">
-                <h2 className="text-sm font-semibold opacity-70 uppercase tracking-wide">
+                <h2 className="text-sm text-black font-semibold opacity-70 uppercase tracking-wide">
                   Pending Requests
                 </h2>
-                <div className="w-8 h-8 rounded-full flex items-center justify-center bg-warning/10">
-                  <svg className="w-4 h-4 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center">
+                  <svg className="w-4 h-4 bg-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
@@ -145,48 +145,12 @@ function ADashboard() {
               </p>
 
               <button
-                className="mt-4 btn btn-primary btn-sm"
+                className="mt-4 btn bg-blue-800 text-white btn-sm"
                 onClick={() => navigate("/admin/coach")}
               >
                 View Requests
               </button>
             </div>
-
-            {/* Optional Training Content Card - Uncomment if needed */}
-            {/*
-            <div className="card bg-base-300 rounded-box p-5">
-              <h2 className="text-sm font-semibold opacity-70 uppercase tracking-wide mb-2">
-                Training Content
-              </h2>
-              <div className="flex gap-6 mt-2">
-                <div className="flex-1">
-                  <p className="text-xs opacity-50">Workouts</p>
-                  <p className="text-2xl font-bold">
-                    {stats?.total_workouts ?? 0}
-                  </p>
-                  <button
-                    className="mt-2 btn btn-xs btn-primary"
-                    onClick={() => navigate("/admin/workouts")}
-                  >
-                    View
-                  </button>
-                </div>
-
-                <div className="flex-1 border-l border-base-100 pl-4">
-                  <p className="text-xs opacity-50">Exercises</p>
-                  <p className="text-2xl font-bold">
-                    {stats?.total_exercises ?? 0}
-                  </p>
-                  <button
-                    className="mt-2 btn btn-xs btn-primary"
-                    onClick={() => navigate("/admin/exercises")}
-                  >
-                    View
-                  </button>
-                </div>
-              </div>
-            </div>
-            */}
           </div>
 
           {loading ? (
@@ -207,7 +171,7 @@ function ADashboard() {
                       </div>
                       <div className="w-full bg-base-100 rounded-full h-2">
                         <div 
-                          className="bg-success h-2 rounded-full transition-all duration-500" 
+                          className="bg-blue-400 h-2 rounded-full transition-all duration-500" 
                           style={{ width: `${(stats.active_users / stats.total_users) * 100}%` }}
                         ></div>
                       </div>
@@ -222,7 +186,7 @@ function ADashboard() {
                       </div>
                       <div className="w-full bg-base-100 rounded-full h-2">
                         <div 
-                          className="bg-warning h-2 rounded-full transition-all duration-500" 
+                          className="bg-blue-200 h-2 rounded-full transition-all duration-500" 
                           style={{ width: `${(stats.inactive_users / stats.total_users) * 100}%` }}
                         ></div>
                       </div>
@@ -231,7 +195,7 @@ function ADashboard() {
 
                   <div className="mt-6 pt-4 border-t border-base-100 grid grid-cols-2 gap-4">
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-primary">
+                      <p className="text-2xl font-bold text-black">
                         {((stats.active_users / stats.total_users) * 100).toFixed(0)}%
                       </p>
                       <p className="text-xs opacity-60 mt-1">Engagement Rate</p>

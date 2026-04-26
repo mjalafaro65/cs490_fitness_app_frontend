@@ -171,7 +171,7 @@ function CoDashboard() {
                       border-2
                       ${
                         isSelected
-                          ? "border-primary bg-primary/10"
+                          ? "border-primary bg-blue-800 bg-primary/10"
                           : isToday
                           ? "border-neutral bg-neutral/10"
                           : "border-transparent bg-base-200 hover:bg-base-100"
@@ -221,9 +221,15 @@ function CoDashboard() {
                   day: "numeric",
                 })}
               </h2>
- 
-              <div className="space-y-3">
-                {clients.map((client) => (
+
+              {isLoadingDashboard ? (
+                <p className="text-sm opacity-50">Loading workouts...</p>
+              ) : selectedWorkouts.length === 0 ? (
+                <p className="text-sm opacity-50">
+                  No client workouts scheduled for this day.
+                </p>
+              ) : (
+                selectedWorkouts.map((s, si) => (
                   <div
                     key={`workout-${si}`}
                     className="mb-3 p-3 bg-base-200 rounded-lg"

@@ -42,7 +42,6 @@ import AdminCoach from "./pages/admin/ACoach";
 import AdminMealLogs from "./pages/admin/AMealLogs";
 import AdminReviews from "./pages/admin/AReviews";  
 import AdminProgressLogs from "./pages/admin/AProgressLogs";
-import AdminProgressLogs from "./pages/admin/AProgressLogs";
 
 
 function App() {
@@ -88,20 +87,7 @@ function App() {
           <Route path="settings" element={<CoachSettings />} />
           <Route path="progresslogs" element={<CoachProgressLogs />} />
         </Route>
-
-        {/* admin Routes */}
-        <Route path="/admin" element={<ProtectedRoute allowedRoles={["3"]} />}>
-          <Route path="dashboard" element={<AdminDashboard />} />
-          <Route path="coaches" isPublic={false} element={<Coaches isPublic={false} />} />
-          <Route path="profile" element={<AdminProfile />} />
-          <Route path="workouts" element={<AWorkouts />} />
-          <Route path="meallogs" element={<AdminMealLogs />} />
-          <Route path="progresslogs" element={<AdminProgressLogs />} />
-          <Route path="settings" element={<AdminSettings />} />
-          <Route path="coach" element={<AdminCoach />} />
-        </Route>
-
-      </Route>
+        
           {/* admin Routes */}
           <Route path="/admin" element={<ProtectedRoute allowedRoles={["3"]} />}>
             <Route path="dashboard" element={<AdminDashboard />} />
@@ -115,7 +101,7 @@ function App() {
             <Route path="coach" element={<AdminCoach />} />
           </Route>
           
-        </Route>
+      </Route>
     </Routes>
   );
 }
