@@ -422,7 +422,6 @@ function AProgressLogs() {
       </div>
 
       <PopUp isOpen={popOpen !== null} onClose={closePopUp}>
-        {/* Add your popup content here if needed */}
       </PopUp>
 
       <Alert 

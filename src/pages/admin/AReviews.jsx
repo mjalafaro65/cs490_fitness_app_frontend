@@ -7,8 +7,8 @@ function AReviews() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
-  
-  // Simple filters
+
+
   const [filters, setFilters] = useState({
     isFlagged: 'all',
     isVisible: 'all'
@@ -71,12 +71,10 @@ function AReviews() {
     });
   };
 
-  // PATCH function to update review (can update both flag and visibility)
   const updateReview = async (reviewId, updates) => {
     try {
       const response = await api.patch(`/admin/manage-reviews/${reviewId}`, updates);
 
-      // Update the review in state
       setReviews(reviews.map(review =>
         review.review_id === reviewId ? response.data : review
       ));
@@ -88,7 +86,6 @@ function AReviews() {
     }
   };
 
-  // Toggle flag status
   const handleToggleFlag = async (reviewId, currentFlagStatus) => {
     try {
       await updateReview(reviewId, { is_flagged: !currentFlagStatus });
@@ -98,7 +95,6 @@ function AReviews() {
     }
   };
 
-  // Toggle visibility status
   const handleToggleVisibility = async (reviewId, currentVisibility) => {
     try {
       await updateReview(reviewId, { is_visible: !currentVisibility });
@@ -314,13 +310,13 @@ function AReviews() {
                           <div className="flex gap-1 flex-wrap">
                             {review.is_flagged && (
                               <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-                                🚩 Flagged
+                                Flagged
                               </span>
                             )}
                             <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                               review.is_visible ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
                             }`}>
-                              {review.is_visible ? '👁️ Visible' : '👁️‍🗨️ Hidden'}
+                              {review.is_visible ? 'Visible' : 'Hidden'}
                             </span>
                           </div>
                         </td>
@@ -336,7 +332,7 @@ function AReviews() {
                               }`}
                               title={review.is_flagged ? 'Remove flag' : 'Flag review'}
                             >
-                              {review.is_flagged ? '🏁 Unflag' : '🚩 Flag'}
+                              {review.is_flagged ? 'Unflag' : 'Flag'}
                             </button>
                             <button
                               onClick={() => handleToggleVisibility(review.review_id, review.is_visible)}
@@ -347,7 +343,7 @@ function AReviews() {
                               }`}
                               title={review.is_visible ? 'Hide review' : 'Show review'}
                             >
-                              {review.is_visible ? '👁️ Hide' : '👁️‍🗨️ Show'}
+                              {review.is_visible ? 'Hide' : 'Show'}
                             </button>
                           </div>
                         </td>
