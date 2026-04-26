@@ -20,13 +20,10 @@ function AProfile() {
   const [alertMsg, setAlertMsg] = useState('');
   const [alertType, setAlertType] = useState('success');
 
-  // State for coach profile
   const [hasCoachProfile, setHasCoachProfile] = useState(false);
   const [coachProfile, setCoachProfile] = useState(null);
   const [profileType, setProfileType] = useState(null);
-  const [coachDebug, setCoachDebug] = useState(null); // For debug info
   
-  // New state to store coach status for each user in the table
   const [userCoachStatus, setUserCoachStatus] = useState({});
 
   const showAlert = (message, type = 'success') => {
@@ -51,53 +48,7 @@ function AProfile() {
     weight: ""
   });
 
-  // Debug helper function
-  const debugLog = (title, data, isError = false) => {
-    console.group(`🐛 DEBUG: ${title}`);
-    if (isError) {
-      console.error('❌ Error:', data);
-    } else {
-      console.log('📦 Data:', data);
-      console.log('📊 Type:', typeof data);
-      console.log('🔍 Is Array:', Array.isArray(data));
-      if (data && typeof data === 'object') {
-        console.log('🔑 Keys:', Object.keys(data));
-        console.log('📏 Length:', data.length || Object.keys(data).length);
-      }
-    }
-    console.groupEnd();
-  };
-
-  // Axios interceptors for debugging
-  useEffect(() => {
-    const requestInterceptor = api.interceptors.request.use(request => {
-      console.log(`🌐 ${request.method?.toUpperCase()} ${request.url}`);
-      if (request.params) console.log('📤 Request params:', request.params);
-      if (request.data) console.log('📤 Request data:', request.data);
-      return request;
-    });
-    
-    const responseInterceptor = api.interceptors.response.use(
-      response => {
-        console.log(`✅ Response from ${response.config.url}:`, response.status);
-        return response;
-      },
-      error => {
-        console.error(`❌ Error in ${error.config?.url}:`, error.response?.status);
-        console.error('Error details:', error.response?.data);
-        return Promise.reject(error);
-      }
-    );
-    
-    return () => {
-      api.interceptors.request.eject(requestInterceptor);
-      api.interceptors.response.eject(responseInterceptor);
-    };
-  }, []);
-
-  // Function to check if a user has a coach profile
   const checkUserCoachStatus = async (userId) => {
-    // Return cached status if available
     if (userCoachStatus[userId] !== undefined) {
       return userCoachStatus[userId];
     }
@@ -111,15 +62,14 @@ function AProfile() {
       setUserCoachStatus(prev => ({ ...prev, [userId]: hasCoach }));
       return hasCoach;
     } catch (err) {
-      // If error (404, etc.), user doesn't have coach profile
+
       setUserCoachStatus(prev => ({ ...prev, [userId]: false }));
       return false;
     }
   };
 
-  // Batch check coach status for all users on current page
   const batchCheckCoachStatus = async (usersArray) => {
-    console.log(`🔍 Batch checking coach status for ${usersArray.length} users...`);
+    console.log(`Batch checking coach status for ${usersArray.length} users...`);
     
     const promises = usersArray.map(async (user) => {
       if (userCoachStatus[user.user_id] !== undefined) {
@@ -144,7 +94,7 @@ function AProfile() {
     });
     
     setUserCoachStatus(prev => ({ ...prev, ...newStatuses }));
-    console.log(`✅ Batch check complete. Found ${Object.values(newStatuses).filter(v => v === true).length} coaches`);
+    console.log(`Batch check complete. Found ${Object.values(newStatuses).filter(v => v === true).length} coaches`);
   };
 
 useEffect(() => {
@@ -192,208 +142,44 @@ useEffect(() => {
   fetchUsers();
 }, [currentPage]);
 
-  useEffect(() => {
-    async function fetchUserInfo() {
-      if (!selectedUser) return;
+useEffect(() => {
+  if (!selectedUser) return;
+  
+  const fetchUserInfo = async () => {
+    try {
+      setHasCoachProfile(false);
+      setCoachProfile(null);
+      setProfileType(null);
       
-      console.log('\n' + '='.repeat(80));
-      console.log(`🔍 STARTING COACH PROFILE CHECK FOR USER: ${selectedUser}`);
-      console.log('='.repeat(80) + '\n');
+      const [userResponse, coachResponse] = await Promise.all([
+        api.get(`/user/${selectedUser}`),
+        api.get("/coach/coach-profile", { params: { user_id: selectedUser } }).catch(() => ({ data: null }))
+      ]);
       
-      try {
-        // Reset states
-        setHasCoachProfile(false);
-        setCoachProfile(null);
-        setProfileType(null);
-        setCoachDebug(null);
-        
-        // Fetch basic user info
-        console.group(`📡 1. Fetching basic user info for ${selectedUser}`);
-        const response = await api.get(`/user/${selectedUser}`);
-        const data = response.data;
-        console.log('✅ User data received:', data);
-        console.log('🔑 User data keys:', Object.keys(data));
-        console.log('👤 User name:', data.first_name, data.last_name);
-        console.groupEnd();
-
-        setUser({
-          first_name: data.first_name || "",
-          last_name: data.last_name || "",
-          phone_number: data.phone_number || ""
-        });
-
-        // CHECK FOR COACH PROFILE - DETAILED DEBUGGING
-        console.group(`📡 2. CHECKING COACH PROFILE for user_id: ${selectedUser}`);
-        console.log('🔄 Making API call to: /coach/coach-profile');
-        console.log('📤 With params:', { user_id: selectedUser });
-        
-        try {
-          const coachResponse = await api.get("/coach/coach-profile", {
-            params: { user_id: selectedUser }
-          });
-          
-          console.log('✅ Coach API Response Status:', coachResponse.status);
-          console.log('✅ Coach API Response Headers:', coachResponse.headers);
-          console.log('✅ Coach API Response Data:', coachResponse.data);
-          console.log('🔑 Coach response keys:', Object.keys(coachResponse.data));
-          
-          // Check if response has coach_profile_id
-          if (coachResponse.data && coachResponse.data.coach_profile_id) {
-            console.log('🎉 SUCCESS: User HAS a coach profile!');
-            console.log('📋 Coach Profile Details:');
-            console.log('  - coach_profile_id:', coachResponse.data.coach_profile_id);
-            console.log('  - specialty_name:', coachResponse.data.specialty_name);
-            console.log('  - years_experience:', coachResponse.data.years_experience);
-            console.log('  - status:', coachResponse.data.status);
-            console.log('  - bio:', coachResponse.data.bio);
-            console.log('  - profile_photo:', coachResponse.data.profile_photo);
-            console.log('  - approved_at:', coachResponse.data.approved_at);
-            console.log('  - created_at:', coachResponse.data.created_at);
-            
-            setHasCoachProfile(true);
-            setCoachProfile(coachResponse.data);
-            setCoachDebug({
-              status: 'success',
-              message: 'Coach profile found',
-              data: coachResponse.data
-            });
-          } else {
-            console.log('⚠️ Response received but no coach_profile_id found');
-            console.log('Response structure:', coachResponse.data);
-            console.log('Available fields:', Object.keys(coachResponse.data));
-            setHasCoachProfile(false);
-            setCoachDebug({
-              status: 'no_profile_id',
-              message: 'Response missing coach_profile_id',
-              data: coachResponse.data
-            });
-          }
-          
-        } catch (coachErr) {
-          console.error('❌ Coach profile fetch FAILED');
-          console.error('Error object:', coachErr);
-          console.error('Error response status:', coachErr.response?.status);
-          console.error('Error response statusText:', coachErr.response?.statusText);
-          console.error('Error response data:', coachErr.response?.data);
-          console.error('Error message:', coachErr.message);
-          
-          // Detailed error analysis
-          if (coachErr.response?.status === 404) {
-            console.log('📝 INTERPRETATION: User is NOT a coach (404 Not Found)');
-            console.log('   This is expected for users without coach profiles');
-          } else if (coachErr.response?.status === 422) {
-            console.log('📝 INTERPRETATION: Invalid request or user may not exist');
-            console.log('   Error details:', coachErr.response?.data);
-          } else if (coachErr.response?.status === 401) {
-            console.log('🔒 INTERPRETATION: Authentication error - you may not have permission');
-          } else if (coachErr.response?.status === 403) {
-            console.log('🚫 INTERPRETATION: Authorization error - admin permission required');
-          } else if (coachErr.response?.status === 500) {
-            console.log('💥 INTERPRETATION: Server error');
-          }
-          
-          setHasCoachProfile(false);
-          setCoachDebug({
-            status: 'error',
-            message: coachErr.message,
-            statusCode: coachErr.response?.status,
-            errorData: coachErr.response?.data
-          });
-        }
-        console.groupEnd();
-
-        // Try alternative coach profile endpoints for debugging
-        console.group(`📡 3. TESTING ALTERNATIVE ENDPOINTS (for debugging)`);
-        
-        // Try without user_id parameter
-        console.log('🔄 Testing /coach/coach-profile without params...');
-        try {
-          const noParamResponse = await api.get("/coach/coach-profile");
-          console.log('Response without params:', noParamResponse.data);
-          console.log('This returns the authenticated user\'s coach profile, not user', selectedUser);
-        } catch (err) {
-          console.log('Failed without params:', err.response?.status);
-        }
-        
-        // Try with different parameter name
-        console.log(`🔄 Testing /coach/coach-profile?coach_id=${selectedUser}...`);
-        try {
-          const coachIdResponse = await api.get("/coach/coach-profile", {
-            params: { coach_id: selectedUser }
-          });
-          console.log('Response with coach_id param:', coachIdResponse.data);
-        } catch (err) {
-          console.log('Failed with coach_id param:', err.response?.status);
-        }
-        
-        // Try with different parameter format
-        console.log(`🔄 Testing /coach/coach-profile/${selectedUser}...`);
-        try {
-          const pathResponse = await api.get(`/coach/coach-profile/${selectedUser}`);
-          console.log('Response with path param:', pathResponse.data);
-        } catch (err) {
-          console.log('Failed with path param:', err.response?.status);
-        }
-        
-        console.groupEnd();
-
-        // Try to fetch client profile (for debugging)
-        console.group(`📡 4. CHECKING CLIENT PROFILE (for info)`);
-        try {
-          const clientResponse = await api.get("/client/profile");
-          console.log('Client profile response (authenticated user):', clientResponse.data);
-          const data2 = clientResponse.data;
-          setUser2({
-            date_of_birth: data2.date_of_birth || "",
-            gender: data2.gender ? data2.gender.split(".")[1] : data2.gender || "",
-            bio: data2.bio || "",
-            profile_photo: data2.profile_photo || "",
-            height: data2.height || "",
-            weight: data2.weight || ""
-          });
-        } catch (clientErr) {
-          console.log('Client profile not available:', clientErr.message);
-        }
-        console.groupEnd();
-
-        // Determine profile type based on findings
-        console.group(`📡 5. FINAL PROFILE TYPE DETERMINATION`);
-        console.log('hasCoachProfile:', hasCoachProfile);
-        console.log('hasClientProfile:', !!user2.date_of_birth);
-        
-        if (hasCoachProfile && user2.date_of_birth) {
-          setProfileType('both');
-          console.log('🎯 RESULT: User has BOTH coach and client profiles');
-        } else if (hasCoachProfile) {
-          setProfileType('coach');
-          console.log('🎯 RESULT: User has ONLY coach profile');
-        } else if (user2.date_of_birth) {
-          setProfileType('client');
-          console.log('🎯 RESULT: User has ONLY client profile');
-        } else {
-          setProfileType('basic');
-          console.log('🎯 RESULT: User has basic account only (no coach or client profile)');
-        }
-        console.groupEnd();
-        
-        console.log('\n' + '='.repeat(80));
-        console.log(`🔍 COACH PROFILE CHECK COMPLETE FOR USER: ${selectedUser}`);
-        console.log(`📊 FINAL RESULT: hasCoachProfile = ${hasCoachProfile}`);
-        if (hasCoachProfile && coachProfile) {
-          console.log(`📊 Coach Profile ID: ${coachProfile.coach_profile_id}`);
-          console.log(`📊 Specialty: ${coachProfile.specialty_name}`);
-        }
-        console.log('='.repeat(80) + '\n');
-
-      } catch (err) {
-        console.error("Failed to fetch user:", err.response?.data || err);
-        debugLog('User Info Fetch Error', err, true);
-        showAlert('Failed to fetch user details', 'error');
+      const userData = userResponse.data;
+      setUser({
+        first_name: userData.first_name || "",
+        last_name: userData.last_name || "",
+        phone_number: userData.phone_number || ""
+      });
+   
+      const hasCoach = coachResponse.data?.coach_profile_id;
+      if (hasCoach) {
+        setHasCoachProfile(true);
+        setCoachProfile(coachResponse.data);
+        setProfileType('coach');
+      } else {
+        setProfileType('client');
       }
+      
+    } catch (err) {
+      console.error("Failed to fetch user:", err);
+      showAlert('Failed to fetch user details', 'error');
     }
-
-    fetchUserInfo();
-  }, [selectedUser]);
+  };
+  
+  fetchUserInfo();
+}, [selectedUser]);
 
   const handleDeleteUser = async (userId) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
@@ -422,8 +208,7 @@ useEffect(() => {
         usersArray = newData.data;
       }
       
-      const sortedUsers = sortUsersByUserId(usersArray);
-      setUsers(sortedUsers);
+      setUsers(usersArray);
       
       setUserCoachStatus(prev => {
         const newStatus = { ...prev };
@@ -463,8 +248,7 @@ useEffect(() => {
         user.user_id === userId ? { ...user, is_active: shouldActivate } : user
       );
       
-      const sortedUsers = sortUsersByUserId(updatedUsers);
-      setUsers(sortedUsers);
+      setUsers(updatedUsers);
 
     } catch (error) {
       console.error("Failed to update user:", error.response?.data || error);
