@@ -345,9 +345,12 @@ function CoDashboard() {
                             <li>
                               <button
                                 onClick={() =>
-                                  navigate(
-                                    `/coach/clients/${client.user?.user_id}/workouts`
-                                  )
+                                  navigate("/coach/workoutplans", {
+                                    state: {
+                                      clientId: client.user?.user_id,
+                                      clientName: `${client.user?.first_name} ${client.user?.last_name}`,
+                                    },
+                                  })
                                 }
                               >
                                 Assign Workouts
