@@ -52,15 +52,16 @@ function ClientWorkoutPlans() {
 
   const [logData, setLogData] = useState({
     calendar_workout_id: 0,
+    plan_day_exercise_id: 0,
+    exercise_id: 0,
     sets: 0,
     reps: 0, 
     weight: 0,
     rpe: 0, 
     distance: 0, 
-    calories: 0, 
     duration_minutes: 0, 
     notes: ""
-  })
+  });
 
   const [currentWeight, setCurrentWeight] = useState(null);
 
@@ -543,62 +544,71 @@ function ClientWorkoutPlans() {
   };
 
   const handleLogSubmit = async (e) => {
-    console.log("[DEBUG] handleLogSubmit called with data:", logData);
-    e.preventDefault();
-    try{
-      const response = await api.post("/workouts/workout-logs", logData);
-      console.log("[DEBUG] Workout log saved:", response.data);
-      setPopOpen(null);
-      showAlert("Workout logged successfully!", "success");
-
-      setLogData({
-        calendar_workout_id: 0,
-        sets: 0,
-        reps: 0, 
-        weight: 0,
-        rpe: 0, 
-        distance: 0, 
-        calories: 0, 
-        duration_minutes: 0, 
-        notes: ""
-      });
-      
-      await fetchAllData();
-
-    } catch(err){
-      console.error("[ERROR] Failed to save workout log:", err.response?.data || err);
-      showAlert(err.response?.data?.message || "Failed to log workout", "error");
-    }
+  e.preventDefault();
+  
+  // Validate required fields
+  if (!logData.calendar_workout_id || logData.calendar_workout_id <= 0) {
+    showAlert("Calendar Workout ID is required", "error");
+    return;
+  }
+  
+  if (!logData.plan_day_exercise_id || logData.plan_day_exercise_id <= 0) {
+    showAlert("Plan Day Exercise ID is required", "error");
+    return;
+  }
+  
+  if (!logData.exercise_id || logData.exercise_id <= 0) {
+    showAlert("Exercise ID is required", "error");
+    return;
+  }
+  
+  // Prepare data - remove any undefined or extra fields
+  const requestData = {
+    calendar_workout_id: parseInt(logData.calendar_workout_id, 10),
+    plan_day_exercise_id: parseInt(logData.plan_day_exercise_id, 10),
+    exercise_id: parseInt(logData.exercise_id, 10),
+    sets: parseInt(logData.sets, 10) || 0,
+    reps: parseInt(logData.reps, 10) || 0,
+    weight: parseFloat(logData.weight) || 0,
+    rpe: parseFloat(logData.rpe) || 0,
+    distance: parseFloat(logData.distance) || 0,
+    duration_minutes: parseInt(logData.duration_minutes, 10) || 0,
+    notes: logData.notes || ""
   };
 
-    const handleEditLog = async (e) => {
-    console.log("[DEBUG] handleEditLog called with data:", logData);
-    e.preventDefault();
-    try{
-      const response = await api.patch("/workouts/workout-log-entries/", logData);
-      console.log("[DEBUG] Workout log saved:", response.data);
-      setPopOpen(null);
-      showAlert("Workout logged successfully!", "success");
+  console.log("Sending workout log:", requestData);
+  
+  try {
+    const response = await api.post("/workouts/workout-logs", requestData);
+    console.log("[DEBUG] Workout log saved:", response.data);
+    
+    // Reset form
+    setLogData({
+      calendar_workout_id: 0,
+      plan_day_exercise_id: 0,
+      exercise_id: 0,
+      sets: 0,
+      reps: 0, 
+      weight: 0,
+      rpe: 0, 
+      distance: 0, 
+      duration_minutes: 0, 
+      notes: ""
+    });
+    
+    setPopOpen(null);
+    showAlert("Workout logged successfully!", "success");
+    
+    // Refresh data if needed
+    await fetchAllData();
+    
+  } catch(err) {
+    console.error("[ERROR] Failed to save workout log:", err.response?.data || err);
+    const errorMessage = err.response?.data?.message || err.response?.data?.status || "Failed to log workout";
+    showAlert(errorMessage, "error");
+  }
+};
 
-      setLogData({
-        calendar_workout_id: 0,
-        sets: 0,
-        reps: 0, 
-        weight: 0,
-        rpe: 0, 
-        distance: 0, 
-        calories: 0, 
-        duration_minutes: 0, 
-        notes: ""
-      });
-      
-      await fetchAllData();
-
-    } catch(err){
-      console.error("[ERROR] Failed to save workout log:", err.response?.data || err);
-      showAlert(err.response?.data?.message || "Failed to log workout", "error");
-    }
-  };
 
   const getWorkoutsByPlanAndAssignment = () => {
     const groupedByPlan = {};
@@ -774,9 +784,8 @@ function ClientWorkoutPlans() {
                       {hasWorkout && (
                         <div className="mt-1 flex flex-col items-center">
                           <div className="bg-blue-500 text-white text-xs rounded-full px-1.5 py-0.5">
-                            {workoutCount} workout{workoutCount !== 1 ? 's' : ''}
+                            {workoutCount}
                           </div>
-                          <div className="w-1 h-1 bg-yellow-400 rounded-full mt-0.5"></div>
                         </div>
                       )}
                     </div>
@@ -1057,12 +1066,6 @@ function ClientWorkoutPlans() {
               <h2 className="text-lg font-bold mb-2">Create New Plan</h2>
               <button className="btn btn-primary bg-blue-800 btn-sm" onClick={() => setPopOpen("create")}>
                 Create New
-              </button>
-            </div>
-            <div className="card bg-base-300 p-4 rounded-box w-64 flex flex-col items-center h-24">
-              <h2 className="text-lg font-bold mb-2">Log Workout</h2>
-              <button className="btn btn-primary bg-blue-800 btn-sm" onClick={() => setPopOpen("log")}>
-                Log Workout
               </button>
             </div>
           </div>

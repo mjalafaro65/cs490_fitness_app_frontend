@@ -34,6 +34,7 @@ function LargeModal({ open, onClose, children, width = "80vw", height = "85vh" }
 
 function ClientMealLogs(){
   const [isPopOpen, setPopOpen] = useState(null);
+  const [isLargeOpen, setLargeOpen] = useState(null);
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
 
@@ -110,7 +111,7 @@ function ClientMealLogs(){
       });
       console.log("Meal history fetched:", response.data);
       setMealHistory(response.data || []);
-      setPopOpen("history");
+      setLargeOpen("history");
     } catch (err) {
       console.error("Failed to fetch meal history:", err.response?.data || err);
       const errorMessage = err.response?.data?.message || err.response?.data?.status || "Failed to fetch meal history";
@@ -129,7 +130,7 @@ function ClientMealLogs(){
         servings: response.data.servings || "",
         notes: response.data.notes || ""
       });
-      setPopOpen("editLog");
+      setLargeOpen("editLog");
     } catch (err) {
       console.error("Failed to fetch meal log details:", err.response?.data || err);
       const errorMessage = err.response?.data?.message || err.response?.data?.status || "Failed to fetch meal log details";
@@ -181,14 +182,14 @@ function ClientMealLogs(){
       servings: editLogData.servings,
       notes: editLogData.notes
     });
-    setPopOpen("history");
+    setLargeOpen("history");
   };
 
   const handleDeleteFromEdit = async () => {
     if (!selectedMealLog) return;
     const success = await deleteMealLog(selectedMealLog.meal_log_id);
     if (success) {
-      setPopOpen("history");
+      setLargeOpen("history");
       setSelectedMealLog(null);
     }
   };
@@ -298,8 +299,8 @@ function ClientMealLogs(){
         <section className="p-6 flex flex-col gap-6">
           <div className="text-2xl font-bold mb-4">My Meal Plans</div>
               <div className="flex justify-end gap-2">
-                <button className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={() => setPopOpen("log")}>Log Meals</button>
-                <button className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={() => setPopOpen("browse")}>Browse Meals</button>
+                <button type="button" className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={() => setPopOpen("log")}>Log Meals</button>
+                <button className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={() => setLargeOpen("browse")}>Browse Meals</button>
                 <button className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={fetchMealHistory}>Meal History</button> 
               </div>
             <div className="flex w-full grow flex-1 gap-4">
@@ -312,7 +313,7 @@ function ClientMealLogs(){
               <h2 className="text-lg font-bold mb-2">Create New Meal Plan</h2>
                 <span className="text-sm opacity-70 mb-3">Nothing to see</span>
                 <div className="mt-auto flex justify-center">
-                  <button className="btn btn-primary bg-blue-800 btn-sm" onClick={() => setPopOpen("create")}>Create New</button>
+                  <button className="btn btn-primary bg-blue-800 btn-sm" type="button" onClick={() => setPopOpen("create")}>Create New</button>
                 </div>
             </div>
             <div className="card bg-base-300 rounded-box grow p-4">
@@ -323,7 +324,7 @@ function ClientMealLogs(){
         </section>
       </div>
 
-    <LargeModal open={isPopOpen !== null} onClose={() => setPopOpen(null)}>
+    <PopUp isOpen={isPopOpen !== null} onClose={() => setPopOpen(null)}>
        {isPopOpen === "create" && (
         <form onSubmit={handleCreateMealPlan}>
           <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-full max-w-md border p-6">
@@ -365,8 +366,10 @@ function ClientMealLogs(){
           </fieldset>
         </form>
       )}
+      </PopUp>
+      <LargeModal open={isLargeOpen !== null} onClose={() => setLargeOpen(null)}>
       {/* Meal History Popup */}
-      {isPopOpen === "history" && (
+      {isLargeOpen === "history" && (
         <div className="bg-base-200 rounded-box w-full max-w-4xl">
           <div className="sticky top-0 bg-base-200 pb-4 border-b mb-4">
             <div className="flex justify-between items-center">
@@ -440,7 +443,7 @@ function ClientMealLogs(){
       )}
 
       {/* Edit Meal Log Popup */}
-      {isPopOpen === "editLog" && selectedMealLog && (
+      {isLargeOpen === "editLog" && selectedMealLog && (
         <form onSubmit={handleEditSubmit}>
           <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-full max-w-md border p-6">
             <div className="flex justify-between items-center mb-4">
@@ -449,7 +452,7 @@ function ClientMealLogs(){
                 type="button"
                 className="btn btn-sm btn-circle btn-ghost" 
                 onClick={() => {
-                  setPopOpen("history");
+                  setLargeOpen("history");
                   setSelectedMealLog(null);
                 }}
               >
@@ -501,7 +504,7 @@ function ClientMealLogs(){
         </form>
       )}
   
-      {isPopOpen === "browse" && ( 
+      {isLargeOpen === "browse" && ( 
         <div className="bg-base-200 p-6 rounded-box w-full max-w-2xl">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold">Browse Meals</h2>
