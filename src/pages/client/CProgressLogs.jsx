@@ -43,6 +43,13 @@ function ProgressLogs(){
     notes: ""
   })
 
+  const [goalData, setGoalData] = useState({
+    description: "",
+    goal_type: "",
+    target_date: "",
+    status: "active"
+  });
+
   useEffect(() => {
     async function fetchUser() {
       try {
@@ -80,6 +87,14 @@ function ProgressLogs(){
         });
     };
 
+    const handleGoalChange = (e) => {
+      setGoalData({
+        ...goalData,
+        [e.target.name]: e.target.value
+      });
+    };
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try{
@@ -102,6 +117,33 @@ function ProgressLogs(){
     } catch(err){
       console.error("Failed to save survey:", err.response?.data || err)
       showAlert(error.response?.data?.message || "Failed to log workout", "error");
+    }
+  };
+
+  const handleCreateGoal = async (e) => {
+    e.preventDefault();
+  
+    if (!goalData.description || !goalData.target_date) {
+      alert("Please fill required fields");
+      return;
+    }
+  
+    try {
+      await api.post("/client/create-goal", goalData);
+  
+      alert("Goal created!");
+  
+      setGoalData({
+        description: "",
+        goal_type: "",
+        target_date: "",
+        status: "active"
+      });
+  
+      setPopOpen(null);
+    } catch (err) {
+      console.error(err.response?.data || err);
+      alert("Failed to create goal");
     }
   };
 
@@ -225,19 +267,19 @@ function ProgressLogs(){
     <PopUp isOpen={isPopOpen !== null} onClose={() => setPopOpen(null)}>
       {isPopOpen === "create" && (
         <>
-          <form className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+          <form onSubmit={handleCreateGoal} className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
             <h1>Create a New Goal</h1>
               <label className="label">
                 Name:
-                <input className = "input" type="name" name="goal_name" value={daily.daily_goal} onChange={(e) => setData({...daily, daily_goal: e.target.value})}/>
+                <input className="input" type="text" name="description" value={goalData.description} onChange={handleGoalChange}/>
               </label>
               <label className="label">
                 Duration:
-                <input className="input" type="number" name="duration" value={daily.sleep_hours} onChange={(e) => setData({...daily, sleep_hours: e.target.value})} />
+                <input className="input" type="text" name="goal_type" value={goalData.goal_type} onChange={handleGoalChange}/>
               </label>
               <label className="label">
                 Notes:
-                <input className="input" type="text" name="notes" value={daily.energy_level} onChange={(e) => setData({...daily, sleep_hours: e.target.value})} />
+                <input className="input" type="date" name="target_date" value={goalData.target_date} onChange={handleGoalChange}/>
               </label>
               <button className="btn btn-primary" type="submit">Create New</button>
           </form>
