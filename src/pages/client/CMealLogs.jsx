@@ -43,10 +43,8 @@ function ClientMealLogs(){
   const [alertType, setAlertType] = useState('success');
 
   const showAlert = (message, type = 'success') => {
-    // Extract string message from error object if needed
     let alertMessage = message;
-    
-    // If message is an object (like error response), extract the actual error message
+
     if (typeof message === 'object' && message !== null) {
       if (message.message) {
         alertMessage = message.message;
@@ -57,7 +55,6 @@ function ClientMealLogs(){
       }
     }
     
-    // If it's a string, use it directly
     if (typeof message === 'string') {
       alertMessage = message;
     }
@@ -111,7 +108,7 @@ function ClientMealLogs(){
       });
       console.log("Meal history fetched:", response.data);
       setMealHistory(response.data || []);
-      setLargeOpen("history");
+      //setLargeOpen("history");
     } catch (err) {
       console.error("Failed to fetch meal history:", err.response?.data || err);
       const errorMessage = err.response?.data?.message || err.response?.data?.status || "Failed to fetch meal history";
@@ -130,7 +127,7 @@ function ClientMealLogs(){
         servings: response.data.servings || "",
         notes: response.data.notes || ""
       });
-      setLargeOpen("editLog");
+      setPopOpen("editLog");
     } catch (err) {
       console.error("Failed to fetch meal log details:", err.response?.data || err);
       const errorMessage = err.response?.data?.message || err.response?.data?.status || "Failed to fetch meal log details";
@@ -138,13 +135,12 @@ function ClientMealLogs(){
     }
   };
 
-  // PATCH /nutrition/meal-logs/{log_id} - Update meal log
   const updateMealLog = async (logId, updateData) => {
     try {
       const response = await api.patch(`/nutrition/meal-logs/${logId}`, updateData);
       console.log("Meal log updated:", response.data);
       showAlert("Meal log updated successfully!", "success");
-      await fetchMealHistory(); // Refresh the list
+      await fetchMealHistory();
       setSelectedMealLog(null);
       setEditLogData({ servings: "", notes: "" });
       return response.data;
@@ -156,7 +152,7 @@ function ClientMealLogs(){
     }
   };
 
-  // DELETE /nutrition/meal-logs/{log_id} - Delete meal log
+
   const deleteMealLog = async (logId) => {
     if (!window.confirm("Are you sure you want to delete this meal log?")) return false;
     
@@ -164,7 +160,7 @@ function ClientMealLogs(){
       await api.delete(`/nutrition/meal-logs/${logId}`);
       console.log("Meal log deleted:", logId);
       showAlert("Meal log deleted successfully!", "success");
-      await fetchMealHistory(); // Refresh the list
+      await fetchMealHistory(); 
       return true;
     } catch (err) {
       console.error("Failed to delete meal log:", err.response?.data || err);
@@ -182,14 +178,14 @@ function ClientMealLogs(){
       servings: editLogData.servings,
       notes: editLogData.notes
     });
-    setLargeOpen("history");
+    //setLargeOpen("history");
   };
 
   const handleDeleteFromEdit = async () => {
     if (!selectedMealLog) return;
     const success = await deleteMealLog(selectedMealLog.meal_log_id);
     if (success) {
-      setLargeOpen("history");
+      //setLargeOpen("history");
       setSelectedMealLog(null);
     }
   };
@@ -199,10 +195,10 @@ function ClientMealLogs(){
   }, []);
 
   useEffect(() => {
-    if (user?.user_id) {
-      setData(prev => ({ ...prev, user_id: user.user_id }));
-    }
-  }, [user]);
+  if (user?.user_id) {
+    fetchMealHistory();
+  }
+}, [user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -249,6 +245,8 @@ function ClientMealLogs(){
       setPopOpen(null);
       showAlert("Meal logged successfully!", "success");
 
+      await fetchMealHistory();
+
     } catch (error) {
       console.error("Update failed:", error.response?.data || error);
       const errorMessage = error.response?.data?.message || error.response?.data?.status || "Failed to log meal";
@@ -281,46 +279,98 @@ function ClientMealLogs(){
     }
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "—";
-    return new Date(dateString).toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
   return (
     <div className="drawer lg:drawer-open">
       <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
       <div className="drawer-content">
         <section className="p-6 flex flex-col gap-6">
           <div className="text-2xl font-bold mb-4">My Meal Plans</div>
-              <div className="flex justify-end gap-2">
+              {/*<div className="flex justify-end gap-2">
                 <button type="button" className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={() => setPopOpen("log")}>Log Meals</button>
                 <button className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={() => setLargeOpen("browse")}>Browse Meals</button>
-                <button className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={fetchMealHistory}>Meal History</button> 
+                <button className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={fetchMealHistory}>Meal History</button>
               </div>
-            <div className="flex w-full grow flex-1 gap-4">
-            <div className="card bg-base-300 rounded-box grow p-4">
-              <h2 className="text-lg font-bold mb-2">Active Meal Plans</h2>
+              */}
+          <div className="flex w-full gap-4 items-start">
+            <div className="card bg-base-300 rounded-box flex-1 p-4 min-w-0">
+              <h2 className="text-lg font-bold mb-2">Previously Logged Meals</h2>
+              <div className="bg-base-200 rounded-box w-full">
+          
+          {isLoadingHistory ? (
+            <div className="text-center py-8">
+              <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <p className="mt-2 opacity-70">Loading meal history...</p>
             </div>
-          </div>
-          <div className="flex w-full h-60 flex-1 gap-4">
-            <div className="card bg-base-300 rounded-box grow p-4">
-              <h2 className="text-lg font-bold mb-2">Create New Meal Plan</h2>
-                <span className="text-sm opacity-70 mb-3">Nothing to see</span>
-                <div className="mt-auto flex justify-center">
+          ) : mealHistory.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="opacity-70">No meal logs found.</p>
+              <p className="text-sm opacity-50 mt-2">Click "Log Meals" to add your first meal log.</p>
+            </div>
+          ) : (
+            <div className="space-y-3 max-h-[60vh] overflow-y-auto">
+              {mealHistory.map((meal) => (
+                <div 
+                  key={meal.meal_log_id} 
+                  className="border rounded-lg p-4 bg-base-100 hover:bg-base-200 transition cursor-pointer"
+                  onClick={() => fetchMealLogDetails(meal.meal_log_id)}
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <p className="font-semibold text-lg">
+                        Meal ID: {meal.meal_id}
+                      </p>
+                      <p className="text-md mt-1">
+                        Servings: {meal.servings}
+                      </p>
+                      {meal.notes && (
+                        <p className="text-sm opacity-70 mt-2">
+                          Notes: {meal.notes}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <button 
+                        className="btn btn-sm btn-primary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          fetchMealLogDetails(meal.meal_log_id);
+                        }}
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        className="btn btn-sm bg-red-600 text-white"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          if (await deleteMealLog(meal.meal_log_id)) {
+                          }
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+            </div>
+            </div>
+            <div className="card bg-base-300 rounded-box w-64 p-4 shrink-0">
+              <h2 className="text-lg font-bold mb-2">Quick Actions</h2>
+                <div className="mt-auto flex flex-col gap-2 justify-center">
                   <button className="btn btn-primary bg-blue-800 btn-sm" type="button" onClick={() => setPopOpen("create")}>Create New</button>
+                  <button type="button" className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={() => setPopOpen("log")}>Log Meals</button>
                 </div>
             </div>
+          </div>
+          {/*
             <div className="card bg-base-300 rounded-box grow p-4">
               <h2 className="text-lg font-bold mb-2">View Meal Plans</h2>
               <span className="text-sm opacity-70 mb-3">No currently existing plans</span>
             </div>
           </div>
+          */}
         </section>
       </div>
 
@@ -366,103 +416,17 @@ function ClientMealLogs(){
           </fieldset>
         </form>
       )}
-      </PopUp>
-      <LargeModal open={isLargeOpen !== null} onClose={() => setLargeOpen(null)}>
-      {/* Meal History Popup */}
-      {isLargeOpen === "history" && (
-        <div className="bg-base-200 rounded-box w-full max-w-4xl">
-          <div className="sticky top-0 bg-base-200 pb-4 border-b mb-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold">Meal History</h2>
-            </div>
-          </div>
-          
-          {isLoadingHistory ? (
-            <div className="text-center py-8">
-              <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-              <p className="mt-2 opacity-70">Loading meal history...</p>
-            </div>
-          ) : mealHistory.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="opacity-70">No meal logs found.</p>
-              <p className="text-sm opacity-50 mt-2">Click "Log Meals" to add your first meal log.</p>
-            </div>
-          ) : (
-            <div className="space-y-3 max-h-[60vh] overflow-y-auto">
-              {mealHistory.map((meal) => (
-                <div 
-                  key={meal.meal_log_id} 
-                  className="border rounded-lg p-4 bg-base-100 hover:bg-base-200 transition cursor-pointer"
-                  onClick={() => fetchMealLogDetails(meal.meal_log_id)}
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <p className="font-semibold text-lg">
-                        Meal ID: {meal.meal_id}
-                      </p>
-                      <p className="text-md mt-1">
-                        Servings: {meal.servings}
-                      </p>
-                      {meal.notes && (
-                        <p className="text-sm opacity-70 mt-2">
-                          Notes: {meal.notes}
-                        </p>
-                      )}
-                      <p className="text-xs opacity-50 mt-3">
-                        Logged: {formatDate(meal.created_at)}
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <button 
-                        className="btn btn-sm btn-primary"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          fetchMealLogDetails(meal.meal_log_id);
-                        }}
-                      >
-                        Edit
-                      </button>
-                      <button 
-                        className="btn btn-sm btn-error"
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          if (await deleteMealLog(meal.meal_log_id)) {
-                            // Refresh will happen in deleteMealLog
-                          }
-                        }}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
 
-      {/* Edit Meal Log Popup */}
-      {isLargeOpen === "editLog" && selectedMealLog && (
+      {isPopOpen === "editLog" && selectedMealLog && (
         <form onSubmit={handleEditSubmit}>
           <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-full max-w-md border p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Edit Meal Log</h2>
-              <button 
-                type="button"
-                className="btn btn-sm btn-circle btn-ghost" 
-                onClick={() => {
-                  setLargeOpen("history");
-                  setSelectedMealLog(null);
-                }}
-              >
-                ✕
-              </button>
             </div>
             
-            <p className="text-md opacity-70 mb-4">
+            <h3 className="text-md opacity-70 mb-4">
               Meal ID: {selectedMealLog.meal_id}
-            </p>
+            </h3>
             
             <label className="label">
               Servings:
@@ -489,21 +453,15 @@ function ClientMealLogs(){
             </label>
             
             <div className="flex gap-3 mt-4">
-              <button className="btn btn-primary bg-blue-800 flex-1" type="submit">
+              <button className="btn bg-blue-800 flex-1 text-white" type="submit">
                 Save Changes
-              </button>
-              <button 
-                type="button"
-                className="btn btn-error flex-1" 
-                onClick={handleDeleteFromEdit}
-              >
-                Delete
               </button>
             </div>
           </fieldset>
         </form>
       )}
-  
+      </PopUp>
+      <LargeModal open={isLargeOpen !== null} onClose={() => setLargeOpen(null)}>
       {isLargeOpen === "browse" && ( 
         <div className="bg-base-200 p-6 rounded-box w-full max-w-2xl">
           <div className="flex justify-between items-center mb-4">
