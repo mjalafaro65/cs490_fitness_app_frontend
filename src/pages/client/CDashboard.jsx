@@ -107,111 +107,51 @@ function CDashboard() {
 
 
 
-  const fetchScheduledWorkouts = async () => {
+const fetchScheduledWorkouts = async (date = null, view = "week") => {
+  setIsLoadingWorkouts(true);
 
-    setIsLoadingWorkouts(true);
+  try {
+    const params = {};
 
-    try {
-
-      const stored = localStorage.getItem('scheduledWorkouts');
-
-      if (stored) {
-
-        const parsed = JSON.parse(stored);
-
-        setScheduledWorkouts(parsed);
-
-        console.log(`Loaded ${parsed.length} workouts from localStorage`);
-
-      }
-
-      
-
-      const plansRes = await api.get("/workouts/plans/mine");
-
-      const userPlans = plansRes.data.plans || [];
-
-      const allWorkouts = [];
-
-      
-
-      for (const plan of userPlans) {
-
-        try {
-
-          const planRes = await api.get(`/workouts/plans/${plan.plan_id}`);
-
-          const planData = planRes.data;
-
-          
-
-          if (planData.days) {
-
-            planData.days.forEach(day => {
-
-              if (day.occurrences && day.occurrences.length > 0) {
-
-                day.occurrences.forEach(occ => {
-
-                  allWorkouts.push({
-
-                    id: occ.id,
-
-                    plan_id: plan.plan_id,
-
-                    plan_name: plan.name,
-
-                    day_label: day.day_label,
-
-                    day_id: day.plan_day_id,
-
-                    scheduled_start: occ.scheduled_start,
-
-                    exercises: day.exercises || [],
-
-                    date_str: new Date(occ.scheduled_start).toDateString()
-
-                  });
-
-                });
-
-              }
-
-            });
-
-          }
-
-        } catch (err) {
-
-          console.error(`Failed to fetch plan ${plan.plan_id}:`, err);
-
-        }
-
-      }
-
-      
-
-      if (allWorkouts.length > 0) {
-
-        setScheduledWorkouts(allWorkouts);
-
-        localStorage.setItem('scheduledWorkouts', JSON.stringify(allWorkouts));
-
-        console.log(`Loaded ${allWorkouts.length} workouts from backend`);
-
-      }
-
-    } catch (err) {
-
-      console.error("Failed to fetch scheduled workouts:", err);
-
-    } finally {
-
-      setIsLoadingWorkouts(false);
-
+    if (date) {
+      params.date =
+        date instanceof Date
+          ? date.toISOString().split("T")[0]
+          : date;
     }
 
-  };
+    if (view) {
+      params.view = view;
+    }
+
+    const response = await api.get(
+      "/workouts/calendar-workouts-view",
+      { params }
+    );
+
+    const workouts = response.data || [];
+
+    const transformedWorkouts = workouts.map((workout) => ({
+      id: workout.calendar_workout_id,
+      assignment_id: workout.assignment_id,
+      plan_id: workout.plan_day?.plan?.plan_id,
+      plan_name: workout.plan_day?.plan?.name,
+      day_label: workout.plan_day?.day_label,
+      day_id: workout.plan_day?.plan_day_id,
+      scheduled_start: workout.scheduled_start,
+      exercises: workout.plan_day?.exercises || [],
+      date_str: new Date(workout.scheduled_start).toDateString(),
+      session_time: workout.plan_day?.session_time,
+    }));
+
+    setScheduledWorkouts(transformedWorkouts);
+  } catch (err) {
+    console.error("Failed to fetch calendar workouts:", err);
+    showAlert("Failed to fetch workouts", "error");
+  } finally {
+    setIsLoadingWorkouts(false);
+  }
+};
 
 
 
@@ -267,9 +207,9 @@ function CDashboard() {
 
   useEffect(() => {
 
-    fetchScheduledWorkouts();
+    fetchScheduledWorkouts(weekAnchor, "week");
 
-  }, []);
+  }, [weekAnchor]);
 
 
 
@@ -277,7 +217,7 @@ function CDashboard() {
 
     const handleFocus = () => {
 
-      fetchScheduledWorkouts();
+      fetchScheduledWorkouts(weekAnchor, "week");
 
     };
 
@@ -285,7 +225,7 @@ function CDashboard() {
 
     return () => window.removeEventListener('focus', handleFocus);
 
-  }, []);
+  }, [weekAnchor]);
 
 
 
@@ -432,46 +372,6 @@ function CDashboard() {
         <section className="p-6 flex flex-col gap-6">
 
           <div className="text-2xl font-bold mb-4">Dashboard</div>
-
-          <div className="flex w-full grow flex-1 gap-4">
-
-            <div className="card bg-base-300 rounded-box grow p-4">
-
-              <h2 className="text-xs font-semibold mb-2">Hours of Sleep</h2>
-
-              <p className="text-xl font-bold">
-
-                {daily.sleep_hours || "—"}
-
-              </p>
-
-            </div>
-
-            <div className="card bg-base-300 rounded-box grow p-4">
-
-              <h2 className="text-xs font-semibold mb-2">Mood</h2>
-
-              <p className="text-xl font-bold">
-
-                {daily.mood_score ? `${daily.mood_score} / 5` : "—"}
-
-              </p>
-
-            </div>
-
-            <div className="card bg-base-300 rounded-box grow p-4 flex">
-
-              <h2 className="text-xs font-semibold mb-2">Water Intake</h2>
-
-              <p className="text-xl font-bold">
-
-                {daily.water_oz ? `${daily.water_oz} oz` : "—"}
-
-              </p>
-
-            </div>
-
-          </div>
 
           <div className="card bg-base-300 rounded-box p-4">
 
@@ -649,10 +549,9 @@ function CDashboard() {
 
  
 
-          <div className="flex gap-4">
+          <div className="flex gap-4 items-start">
 
-            <div className="card bg-base-300 rounded-box grow p-4">
-
+            <div className="card bg-base-300 rounded-box flex-1 p-4 h-72">
               <h2 className="text-base font-bold mb-3">
 
                 {selectedDay.toLocaleDateString("default", {
@@ -662,8 +561,6 @@ function CDashboard() {
                 })}
 
               </h2>
-
- 
 
               {isLoadingWorkouts ? (
 
@@ -718,9 +615,23 @@ function CDashboard() {
                 ))
 
               )}
-
             </div>
 
+            <div className="card bg-base-300 rounded-box w-64 p-4 flex flex-col h-72">
+              <h2 className="text-lg font-bold mb-2">My Coach</h2>
+
+              <span className="text-sm opacity-70 mb-3">No coach assigned</span>
+
+              <div className="mt-auto flex justify-center">
+
+                <button className="btn bg-blue-800 text-white btn-sm" onClick={() => navigate("/client/reviews")}>
+
+                  My Reviews
+
+                </button>
+
+              </div>
+            </div>
 
 
             <div className="card bg-base-300 rounded-box w-64 p-4 shrink-0">
@@ -805,34 +716,6 @@ function CDashboard() {
 
           </div>
 
-
-
-          <div className="flex justify-end gap-2">
-
-            {/*<button
-
-              className="btn bg-blue-800 text-white btn-sm rounded-t"
-
-              onClick={() => setPopOpen("log")}
-
-            >
-
-              Daily Wellness Log
-
-            </button>
-
-            <button className="btn bg-yellow-400 btn-sm rounded-t" onClick={() => setPopOpen("view")}>
-
-              View Today's Log
-
-            </button>
-
-            */}
-
-          </div>
-
-
-
           <div className="flex w-full grow flex-1 gap-4">
 
             <div className="card bg-base-300 rounded-box grow p-4">
@@ -850,102 +733,6 @@ function CDashboard() {
             <div className="card bg-base-300 rounded-box grow p-4">
 
               <h2 className="text-lg font-bold mb-2">Graph 3</h2>
-
-            </div>
-
-          </div>
-
-
-
-          <div className="flex w-full h-60 flex-1 gap-4">
-
-            <div className="card bg-base-300 rounded-box flex-1 grow p-4">
-
-              <h2 className="text-lg font-bold mb-2">My Coach</h2>
-
-              <span className="text-sm opacity-70 mb-3">No coach assigned</span>
-
-              <div className="mt-auto flex justify-center">
-
-                <button className="btn bg-blue-800 text-white btn-sm" onClick={() => navigate("/client/reviews")}>
-
-                  My Reviews
-
-                </button>
-
-              </div>
-
-            </div>
-
-            <div className="card bg-base-300 rounded-box grow p-4">
-
-              <h2 className="text-lg font-bold mb-2">Upcoming Workout</h2>
-
-              {isLoadingWorkouts ? (
-
-                <span className="text-sm opacity-70">Loading...</span>
-
-              ) : (() => {
-
-                const todayWorkouts = getWorkoutsForDate(today);
-
-                if (todayWorkouts.length > 0) {
-
-                  const nextWorkout = todayWorkouts[0];
-
-                  return (
-
-                    <div>
-
-                      <p className="text-sm font-semibold">{nextWorkout.planName}</p>
-
-                      <p className="text-xs opacity-70">{nextWorkout.dayLabel} at {nextWorkout.time}</p>
-
-                      {nextWorkout.exercises.length > 0 && (
-
-                        <p className="text-xs opacity-50 mt-1">{nextWorkout.exercises.length} exercises</p>
-
-                      )}
-
-                    </div>
-
-                  );
-
-                } else {
-
-                  const futureWorkouts = scheduledWorkouts.filter(w => new Date(w.scheduled_start) > today);
-
-                  if (futureWorkouts.length > 0) {
-
-                    const nextWorkout = futureWorkouts[0];
-
-                    const nextDate = new Date(nextWorkout.scheduled_start);
-
-                    return (
-
-                      <div>
-
-                        <p className="text-sm font-semibold">{nextWorkout.plan_name}</p>
-
-                        <p className="text-xs opacity-70">{nextWorkout.day_label} on {nextDate.toLocaleDateString()}</p>
-
-                        {nextWorkout.exercises.length > 0 && (
-
-                          <p className="text-xs opacity-50 mt-1">{nextWorkout.exercises.length} exercises</p>
-
-                        )}
-
-                      </div>
-
-                    );
-
-                  }
-
-                  return <span className="text-sm opacity-70">No workouts scheduled</span>;
-
-                }
-
-              })()}
 
             </div>
 
