@@ -36,6 +36,7 @@ import CoachMealLogs from "./pages/coach/CoMealLogs";
 import CoachProgressLogs from "./pages/coach/CoProgressLogs";
 import CoachWorkoutView from "./pages/coach/CoWorkoutView";
 import CoachClientDashboardView from "./pages/coach/CoClientDashboardView";
+import CoachInvoices from "./pages/coach/CoInvoices";
 
 import AdminDashboard from "./pages/admin/ADashboard";
 import AdminSettings from "./pages/admin/ASettings";
@@ -94,6 +95,7 @@ function App() {
           <Route path="progresslogs" element={<CoachProgressLogs />} />
           <Route path="clients/:id/workouts" element={<CoachWorkoutView />} />
           <Route path="clients/:id" element={<CoachClientDashboardView />} />
+          <Route path="/coach/invoices" element={<CoachInvoices />} />
           
         </Route>
         
