@@ -47,7 +47,7 @@ function MyCoach() {
       try {
         const response = await api.get("/client/my-reviews");
         const reviews = response.data || [];
-        
+
         // Fetch coach details for each review
         const reviewsWithCoachData = await Promise.all(
           reviews.map(async (review) => {
@@ -56,10 +56,10 @@ function MyCoach() {
               const coachProfileResponse = await api.get(`/coach/coach-profile`, {
                 params: { user_id: review.coach_profile_id }
               });
-              
+
               // Get coach user data
               const userResponse = await api.get(`/user/${review.coach_profile_id}`);
-              
+
               return {
                 ...review,
                 coach: {
@@ -73,7 +73,7 @@ function MyCoach() {
             }
           })
         );
-        
+
         setUserReviews(reviewsWithCoachData);
       } catch (err) {
         console.error("Failed to fetch reviews:", err);
@@ -83,7 +83,7 @@ function MyCoach() {
       }
     };
 
-    
+
     const fetchFavoriteCoaches = async () => {
       try {
         const favRes = await api.get("/client/favorites/coaches");
@@ -105,41 +105,52 @@ function MyCoach() {
         console.log(err);
       }
     };
-    
-//     const fetchData = async () => {
-//       try {
-//         // Get hired coach IDs from localStorage
-//         const hiredCoachIds = JSON.parse(localStorage.getItem('hiredCoaches') || '[]');
-//         setHiredCoaches(hiredCoachIds);
-        
-//         // Get favorited coach IDs from localStorage
-//         const favoritedCoachIds = JSON.parse(localStorage.getItem('favoritedCoaches') || '[]');
-//         setFavoritedCoaches(favoritedCoachIds);
-        
-//         // Fetch hired coaches details
-//         if (hiredCoachIds.length > 0) {
-//           const coachPromises = hiredCoachIds.map(async (coachId) => {
-//             try {
-//               const response = await api.get(`/coach/coach-profile`, {
-//                 params: { user_id: coachId }
-//               });
-//               const userResponse = await api.get(`/user/${coachId}`);
-              
-//               return {
-//                 ...response.data,
-//                 user: userResponse.data
-//               };
-//             } catch (error) {
-//               console.error(`Failed to fetch coach ${coachId}:`, error);
-//               return null;
-//             }
-//           });
-          
-//           const coaches = await Promise.all(coachPromises);
-//           setCoachDetails(coaches.filter(coach => coach !== null));
-//         }
-//       }
-    
+
+    const fetchCoach = async () => {
+      try {
+        const res = await api.get("client/my-coaches");
+        console.log(res.data)
+        setHiredCoaches(res.data)
+
+      } catch (err) {
+        console.log(err);
+      }
+    }
+
+    //     const fetchData = async () => {
+    //       try {
+    //         // Get hired coach IDs from localStorage
+    //         const hiredCoachIds = JSON.parse(localStorage.getItem('hiredCoaches') || '[]');
+    //         setHiredCoaches(hiredCoachIds);
+
+    //         // Get favorited coach IDs from localStorage
+    //         const favoritedCoachIds = JSON.parse(localStorage.getItem('favoritedCoaches') || '[]');
+    //         setFavoritedCoaches(favoritedCoachIds);
+
+    //         // Fetch hired coaches details
+    //         if (hiredCoachIds.length > 0) {
+    //           const coachPromises = hiredCoachIds.map(async (coachId) => {
+    //             try {
+    //               const response = await api.get(`/coach/coach-profile`, {
+    //                 params: { user_id: coachId }
+    //               });
+    //               const userResponse = await api.get(`/user/${coachId}`);
+
+    //               return {
+    //                 ...response.data,
+    //                 user: userResponse.data
+    //               };
+    //             } catch (error) {
+    //               console.error(`Failed to fetch coach ${coachId}:`, error);
+    //               return null;
+    //             }
+    //           });
+
+    //           const coaches = await Promise.all(coachPromises);
+    //           setCoachDetails(coaches.filter(coach => coach !== null));
+    //         }
+    //       }
+
 
 
 
@@ -147,9 +158,10 @@ function MyCoach() {
     fetchReviews();
 
     fetchFavoriteCoaches()
+    fetchCoach()
   }, []);
-  
-   if (loading) {
+
+  if (loading) {
     return (
       <div className="drawer lg:drawer-open">
         <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
@@ -265,10 +277,33 @@ function MyCoach() {
       <div className="drawer-content">
         <section className="p-6 flex flex-col gap-6">
           <div className="text-2xl font-bold mb-6">My Coach</div>
+
           <div className="flex w-full gap-4">
             <div className="card bg-base-300 rounded-box grow p-4 flex flex-col">
               <h2 className="text-lg font-bold mb-2">My Coach</h2>
-              <span className="text-sm opacity-70 mb-3">No coach assigned</span>
+              {hiredCoaches ? (
+                hiredCoaches.active_relationships.map((rel) => (
+
+
+                  <div>
+                    <p className="font-semibold">
+                      {rel.coach_name}
+                    </p>
+                    <p className="text-xs opacity-70">
+                      Specialty: {rel.speacialty}
+                    </p>
+                    <p className="text-xs opacity-60">
+                      Since: {rel.started_at}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <span className="text-sm opacity-70 mb-3">No coach assigned</span>
+
+
+              )
+
+              }
               <div className="mt-auto flex justify-center">
                 <button className="btn btn-primary bg-blue-800 btn-sm" onClick={() => navigate("/coaches")} >Browse Coaches</button>
               </div>
@@ -330,7 +365,7 @@ function MyCoach() {
             </div>
             <div className="card bg-base-300 rounded-box grid grow p-4 flex">
               <h2 className="text-lg font-bold mb-2">My Reviews</h2>
-            
+
 
               {reviewsLoading ? (
                 <div className="flex-1 flex items-center justify-center">
@@ -379,14 +414,14 @@ function MyCoach() {
                               </span>
                             </div>
                             <p className="text-sm text-gray-600 line-clamp-2 mt-2">{review.comment}</p>
-                            
+
                           </div>
                           <button
-                              className="btn btn-sm bg-blue-800 text-white border-none hover:scale-105 transition-transform"
-                              onClick={() => openEditModal(review)}
-                            >
-                              Edit
-                            </button>
+                            className="btn btn-sm bg-blue-800 text-white border-none hover:scale-105 transition-transform"
+                            onClick={() => openEditModal(review)}
+                          >
+                            Edit
+                          </button>
                         </div>
                       </div>
                     );
