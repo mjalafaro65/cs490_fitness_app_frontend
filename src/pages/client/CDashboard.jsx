@@ -95,10 +95,10 @@ function CDashboard() {
   const [alertType, setAlertType] = useState('success');
 
   const showAlert = (message, type = 'success') => {
-      console.log("ALERT FUNCTION CALLED with:", message, type);
-      setAlertMsg(message);
-      setAlertType(type);
-      setShowAlert(true);
+    console.log("ALERT FUNCTION CALLED with:", message, type);
+    setAlertMsg(message);
+    setAlertType(type);
+    setShowAlert(true);
   };
 
   const [scheduledWorkouts, setScheduledWorkouts] = useState([]);
@@ -125,7 +125,7 @@ function CDashboard() {
 
       }
 
-      
+
 
       const plansRes = await api.get("/workouts/plans/mine");
 
@@ -133,7 +133,7 @@ function CDashboard() {
 
       const allWorkouts = [];
 
-      
+
 
       for (const plan of userPlans) {
 
@@ -143,7 +143,7 @@ function CDashboard() {
 
           const planData = planRes.data;
 
-          
+
 
           if (planData.days) {
 
@@ -189,7 +189,7 @@ function CDashboard() {
 
       }
 
-      
+
 
       if (allWorkouts.length > 0) {
 
@@ -223,7 +223,7 @@ function CDashboard() {
 
     const workouts = [];
 
-    
+
 
     scheduledWorkouts.forEach((workout) => {
 
@@ -257,7 +257,7 @@ function CDashboard() {
 
     });
 
-    
+
 
     return workouts;
 
@@ -291,7 +291,7 @@ function CDashboard() {
 
   const selectedWorkouts = getWorkoutsForDate(selectedDay);
 
-  
+
 
   const dayLog = isSameDay(selectedDay, today) ? daily : null;
 
@@ -354,6 +354,32 @@ function CDashboard() {
       }
 
     }
+     async function fetchAllInsights() {
+      try {
+        const [survey, workouts, strength, nutrition, goals, summary] = await Promise.all([
+          api.get("/insights/survey?days=30"),
+          api.get("/insights/workouts?days=30"),
+          api.get("/insights/strength?days=90"),
+          api.get("/insights/nutrition?days=30"),
+          api.get("/insights/goals"),
+          api.get("/insights/summary"),
+        ]);
+
+        console.log("=== SURVEY ===", survey.data);
+        console.log("=== WORKOUTS ===", workouts.data);
+        console.log("=== STRENGTH ===", strength.data);
+        console.log("=== NUTRITION ===", nutrition.data);
+        console.log("=== GOALS ===", goals.data);
+        console.log("=== SUMMARY ===", summary.data);
+
+      } catch (err) {
+        console.error("Insights fetch failed:", err.response?.data || err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchAllInsights();
 
 
 
@@ -407,7 +433,7 @@ function CDashboard() {
 
 
       console.log("Survey submitted successfully");
-    showAlert("Daily wellness logged successfully!", "success");
+      showAlert("Daily wellness logged successfully!", "success");
 
     } catch (error) {
 
@@ -418,6 +444,7 @@ function CDashboard() {
     }
 
   };
+
 
 
 
@@ -545,15 +572,15 @@ function CDashboard() {
 
                 {weekDays.map((date, i) => {
 
-                  const isToday    = isSameDay(date, today);
+                  const isToday = isSameDay(date, today);
 
                   const isSelected = isSameDay(date, selectedDay);
 
-                  const sessions   = getWorkoutsForDate(date);
+                  const sessions = getWorkoutsForDate(date);
 
                   const hasSession = sessions.length > 0;
 
-   
+
 
                   return (
 
@@ -575,9 +602,9 @@ function CDashboard() {
 
                           : isToday
 
-                          ? "border-neutral bg-neutral/10"
+                            ? "border-neutral bg-neutral/10"
 
-                          : "border-transparent bg-base-200 hover:bg-base-100"}
+                            : "border-transparent bg-base-200 hover:bg-base-100"}
 
                       `}
 
@@ -605,7 +632,7 @@ function CDashboard() {
 
                       </div>
 
-   
+
 
                       {hasSession ? (
 
@@ -647,7 +674,7 @@ function CDashboard() {
 
           </div>
 
- 
+
 
           <div className="flex gap-4">
 
@@ -663,7 +690,7 @@ function CDashboard() {
 
               </h2>
 
- 
+
 
               {isLoadingWorkouts ? (
 
@@ -733,19 +760,19 @@ function CDashboard() {
 
                   {[
 
-                    { label: "Sleep",  value: dayLog.sleep_hours  ? `${dayLog.sleep_hours} hrs`  : null },
+                    { label: "Sleep", value: dayLog.sleep_hours ? `${dayLog.sleep_hours} hrs` : null },
 
-                    { label: "Mood",   value: dayLog.mood_score   ? `${dayLog.mood_score} / 5` : null },
+                    { label: "Mood", value: dayLog.mood_score ? `${dayLog.mood_score} / 5` : null },
 
-                    { label: "Water",  value: dayLog.water_oz     ? `${dayLog.water_oz} oz`      : null },
+                    { label: "Water", value: dayLog.water_oz ? `${dayLog.water_oz} oz` : null },
 
-                    { label: "Weight", value: dayLog.weight_lbs   ? `${dayLog.weight_lbs} lbs`   : null },
+                    { label: "Weight", value: dayLog.weight_lbs ? `${dayLog.weight_lbs} lbs` : null },
 
-                    { label: "Goal",   value: dayLog.daily_goal   || null },
+                    { label: "Goal", value: dayLog.daily_goal || null },
 
                     { label: "Energy", value: dayLog.energy_level ? `${dayLog.energy_level} / 5` : null },
 
-                    { label: "Focus",  value: dayLog.target_focus || null },
+                    { label: "Focus", value: dayLog.target_focus || null },
 
                   ].map(({ label, value }) =>
 
@@ -1125,11 +1152,11 @@ function CDashboard() {
 
       </PopUp>
 
-      <Alert 
-        isOpen={alert} 
+      <Alert
+        isOpen={alert}
         message={alertMsg}
         type={alertType}
-        onClose={() => setShowAlert(false)}/>
+        onClose={() => setShowAlert(false)} />
 
     </div>
 

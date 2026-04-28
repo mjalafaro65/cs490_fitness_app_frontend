@@ -101,7 +101,15 @@ function Landing() {
                                 </div>
 
                                 <div className="card-actions mt-auto w-full ">
-                                    <button className="btn btn-outline  btn-primary w-full">View Profile</button>
+
+                                    <Link
+                                        to={`/coach/${coach.user_id}`
+
+                                        }
+                                        className="btn btn-outline  btn-primary w-full"
+                                    >
+                                        View Profile
+                                    </Link>
                                 </div>
                             </div>
                         </div>
@@ -118,30 +126,32 @@ function Landing() {
 
                                 {/* SIDE BY SIDE IMAGES */}
                                 <div className="flex flex-row items-center justify-center gap-4 w-full py-4">
-
-                                    <div className="flex flex-col items-center gap-3 w-full">
-                                        <div className="w-full h-80 rounded-2xl ring ring-blue-800 ring-offset-base-100 ring-offset-2 shadow-inner overflow-hidden">
+                                      {/* before */}
+                                    <div className="flex-1 min-w-0 flex flex-col items-center gap-3">
+                                        <div className="w-full aspect-[3/3] w-full rounded-2xl ring ring-blue-800 ring-offset-base-100 ring-offset-2 shadow-inner overflow-hidden">
                                             <img
-                                                src={coach.before_photo}
+                                                src={coach?.before_photo}
                                                 alt="Before"
-                                                className="w-full h-full object-cover"
+                                                className="w-full h-full object-cover "
                                             />
                                         </div>
 
-                                        <span className="badge bg-blue-800 border-none text-white font-bold py-3 px-6 shadow-sm">
+                                        <span className="badge bg-blue-800  border-none text-white font-bold py-3 px-6 shadow-sm">
                                             BEFORE
                                         </span>
                                     </div>
-
                                     {/* Subtle Arrow */}
-                                    <div className="text-3xl text-base-300 font-light hidden lg:block px-2">➔</div>
+                                    <div className="text-3xl text-base-300 font-light hidden lg:block px-2">
+                                        ➔
+                                    </div>
 
-                                    <div className="flex flex-col items-center gap-3 w-full">
-                                        <div className="w-full h-80 rounded-2xl ring ring-blue-800 ring-offset-base-100 ring-offset-2 shadow-inner overflow-hidden">
+                                    {/* after */}
+                                    <div className="flex-1 min-w-0 flex flex-col items-center gap-3">
+                                        <div className="w-full aspect-[3/3] w-full rounded-2xl ring ring-blue-800 ring-offset-base-100 ring-offset-2 shadow-inner overflow-hidden">
                                             <img
-                                                src={coach.after_photo}
+                                                src={coach?.after_photo}
                                                 alt="After"
-                                                className="w-full h-full object-cover"
+                                                className="w-full h-full object-cover "
                                             />
                                         </div>
 
@@ -149,7 +159,6 @@ function Landing() {
                                             AFTER
                                         </span>
                                     </div>
-
                                 </div>
 
                                 {/* Description text from your backend key: photo-description */}
