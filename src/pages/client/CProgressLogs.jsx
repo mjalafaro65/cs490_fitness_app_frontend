@@ -555,23 +555,23 @@ function ProgressLogs(){
             <div className="grid grid-cols-5 gap-4 mb-4">
               <div className="card bg-base-300 rounded-box p-3 text-center">
                 <p className="text-xs opacity-70">Total Entries</p>
-                <p className="text-2xl font-bold text-blue-400">{filteredWellnessSummary.total_entries || 0}</p>
+                <p className="text-2xl font-bold text-black">{filteredWellnessSummary.total_entries || 0}</p>
               </div>
               <div className="card bg-base-300 rounded-box p-3 text-center">
                 <p className="text-xs opacity-70">Avg Sleep</p>
-                <p className="text-2xl font-bold text-blue-800">{filteredWellnessSummary.avg_sleep_hours || 0}h</p>
+                <p className="text-2xl font-bold text-black">{filteredWellnessSummary.avg_sleep_hours || 0}h</p>
               </div>
               <div className="card bg-base-300 rounded-box p-3 text-center">
                 <p className="text-xs opacity-70">Avg Mood</p>
-                <p className="text-2xl font-bold text-blue-200">{filteredWellnessSummary.avg_mood || 0}/5</p>
+                <p className="text-2xl font-bold text-black">{filteredWellnessSummary.avg_mood || 0}/5</p>
               </div>
               <div className="card bg-base-300 rounded-box p-3 text-center">
                 <p className="text-xs opacity-70">Avg Energy</p>
-                <p className="text-2xl font-bold text-blue-600">{filteredWellnessSummary.avg_energy || 0}/5</p>
+                <p className="text-2xl font-bold text-black">{filteredWellnessSummary.avg_energy || 0}/5</p>
               </div>
               <div className="card bg-base-300 rounded-box p-3 text-center">
                 <p className="text-xs opacity-70">Weight Change</p>
-                <p className={`text-2xl font-bold ${filteredWellnessSummary.weight_change_lbs < 0 ? 'text-blue-700' : filteredWellnessSummary.weight_change_lbs > 0 ? 'text-red-400' : 'text-gray-400'}`}>
+                <p className={`text-2xl font-bold ${filteredWellnessSummary.weight_change_lbs < 0 ? 'text-black' : filteredWellnessSummary.weight_change_lbs > 0 ? 'text-black' : 'text-gray-400'}`}>
                   {filteredWellnessSummary.weight_change_lbs > 0 ? '+' : ''}{filteredWellnessSummary.weight_change_lbs || 0} lbs
                 </p>
               </div>
@@ -692,7 +692,7 @@ function ProgressLogs(){
                   <Tooltip contentStyle={{ backgroundColor: '#ffffff', border: 'none', borderRadius: '8px' }} />
                   <Legend />
                   <Bar dataKey="scheduled" fill="#3b82f6" name="Scheduled" />
-                  <Bar dataKey="completed" fill="#10b981" name="Completed" />
+                  <Bar dataKey="completed" fill="#002664" name="Completed" />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -701,8 +701,8 @@ function ProgressLogs(){
               </div>
             )}
           </div>
-
           <div className="flex w-full h-80 gap-4">
+            {/*
             <div className="card bg-base-300 rounded-box flex-1 grow p-4">
               <h2 className="text-lg font-bold mb-4">Strength Progress</h2>
               {loadingInsights ? (
@@ -725,7 +725,7 @@ function ProgressLogs(){
                 </div>
               )}
             </div>
-
+            */}
             <div className="card bg-base-300 rounded-box w-1/3 grow p-4">
               <h2 className="text-lg font-bold mb-4">Goals Progress</h2>
               {loadingInsights ? (
