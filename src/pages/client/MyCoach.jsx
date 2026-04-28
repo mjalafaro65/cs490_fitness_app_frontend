@@ -29,22 +29,24 @@ function MyCoach() {
         const response = await api.get(`/client/hire-requests`);
 
         console.log(response.data)
+
         const pendingRequests = response.data.filter(
-          (req) => req.status === "pending"
+          (req) => req.status == "pending"
         );
 
         const enrichedRequests = await Promise.all(
           pendingRequests.map(async (req) => {
             try {
-              const res = await api.get(`/coach/coach-profile`, {
+              const res = await api.get(`coach/coach-profile`, {
                 params: { coach_profile_id: req.coach_profile_id },
               });
               console.log(res.data)
 
               return {
                 ...req,
-                coach: res.data.user, 
+                coach: res.data.user,
               };
+
             } catch (err) {
               return {
                 ...req,
@@ -210,10 +212,9 @@ function MyCoach() {
       const response = await api.delete(`/client/hire-request/${id}`)
 
       console.log(response.data)
-      setRequests((prev) =>
+      setRequestsInfo((prev) =>
         prev.filter((req) => req.request_id !== id)
       );
-
 
     } catch (err) {
       setError("Error while deleting request");
@@ -297,32 +298,38 @@ function MyCoach() {
       );
     });
   };
+
   return (
-    <div className="drawer lg:drawer-open">
+    <div className="drawer lg:drawer-open bg-base-100">
       <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
 
       <div className="drawer-content">
-        <section className="p-6 space-y-6">
+        <section className="p-6 space-y-8">
 
-          <h1 className="text-3xl font-bold">My Coach</h1>
+          <h1 className="text-3xl font-bold tracking-tight">My Coach</h1>
 
           {/* TOP ROW */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
             {/* MY COACH */}
-            <div className="card bg-base-200 shadow-md p-5 flex flex-col">
-              <h2 className="text-lg font-semibold mb-3">My Coach</h2>
+            <div className="card bg-base-200 shadow-lg border border-base-300 p-6 flex flex-col">
+              <h2 className="text-lg font-semibold mb-4">My Coach</h2>
 
-              <div className="flex-1 space-y-3">
-                {hiredCoaches && hiredCoaches.length != 0 ? (
+              <div className="flex-1 space-y-4">
+                {hiredCoaches?.length ? (
                   hiredCoaches.map((rel) => (
-                    <div key={rel.relationship_id} className="border-b pb-2">
-                      <p className="font-semibold">{rel.coach_name}</p>
-                      <p className="text-xs opacity-70">
+                    <div key={rel.relationship_id} className="pb-3 border-b border-base-300">
+                      <p className="font-semibold text-base-content">
+                        {rel.coach_name}
+                      </p>
+
+                      <p className="text-sm text-base-content/70">
                         Specialty: {rel.specialty}
                       </p>
-                      <p className="text-xs opacity-60">
-                        Since: {rel.started_at
+
+                      <p className="text-xs text-base-content/60 mt-1">
+                        Since:{" "}
+                        {rel.started_at
                           ? new Date(rel.started_at).toLocaleDateString(undefined, {
                             year: "numeric",
                             month: "short",
@@ -333,12 +340,14 @@ function MyCoach() {
                     </div>
                   ))
                 ) : (
-                  <span className="text-sm opacity-70">No coach assigned</span>
+                  <p className="text-sm text-base-content/60">
+                    No coach assigned yet
+                  </p>
                 )}
               </div>
 
               <button
-                className="btn bg-blue-800  btn-primary btn-sm mt-4"
+                className="btn bg-blue-800 hover:bg-blue-900 text-white mt-4"
                 onClick={() => navigate("/coaches")}
               >
                 Browse Coaches
@@ -346,23 +355,49 @@ function MyCoach() {
             </div>
 
             {/* REQUESTS */}
-            <div className="card bg-base-200 shadow-md p-5 flex flex-col">
-              <h2 className="text-lg font-semibold mb-3">My Requests</h2>
+            <div className="card bg-base-200 shadow-lg border border-base-300 p-6 flex flex-col">
+              <h2 className="text-lg font-semibold mb-4">My Requests</h2>
 
-              <div className="flex-1 overflow-y-auto max-h-60 space-y-2">
+              <div className="flex-1 overflow-y-auto max-h-72 space-y-3">
                 {loading ? (
-                  <span className="text-sm opacity-70">Loading...</span>
+                  <span className="text-sm text-base-content/60">Loading...</span>
                 ) : !requestsInfo?.length ? (
-                  <span className="text-sm opacity-70">No requests yet</span>
+                  <span className="text-sm text-base-content/60">
+                    No requests yet
+                  </span>
                 ) : (
                   requestsInfo.map((req) => (
-                    <div key={req.request_id} className="p-3 bg-base-100 rounded-lg shadow-sm">
-                      <p className="font-medium">{req.coach?.first_name} {req.coach?.last_name}</p>
-                      <p className="text-xs opacity-60 mb-2">
-                        Status: {req.status}
-                      </p>
+                    <div
+                      key={req.request_id}
+                      className="p-4 bg-base-100 rounded-xl border border-base-300"
+                    >
+                      <div className="flex flex-col gap-1">
+                        {/* name + status */}
+                        <div className="flex justify-between items-center">
+                          <p className="font-medium">
+                            {req.coach?.first_name} {req.coach?.last_name}
+                          </p>
+
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                            {req.status}
+                          </span>
+                        </div>
+
+                        {/* date*/}
+                        <p className="text-xs text-base-content/60">
+                          Since:{" "}
+                          {req.created_at
+                            ? new Date(req.created_at).toLocaleDateString(undefined, {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            })
+                            : "—"}
+                        </p>
+                      </div>
+
                       <button
-                        className="btn btn-sm bg-blue-800 text-white border-none hover:bg-blue-900"
+                        className="btn btn-xs mt-3 bg-blue-800 hover:bg-blue-900 text-white border-none"
                         onClick={() => deleteRequest(req.request_id)}
                       >
                         Delete
@@ -378,96 +413,86 @@ function MyCoach() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
             {/* SAVED COACHES */}
-            <div className="card bg-base-200 shadow-md p-5 flex flex-col">
-              <h2 className="text-lg font-semibold mb-3">Saved Coaches</h2>
+            <div className="card bg-base-200 shadow-lg border border-base-300 p-6 flex flex-col">
+              <h2 className="text-lg font-semibold mb-4">Saved Coaches</h2>
 
-              <div className="flex-1 overflow-y-auto max-h-60 space-y-2">
+              <div className="flex-1 overflow-y-auto max-h-72 space-y-3">
                 {myFav?.length ? (
                   myFav.map((coach) => (
                     <div
                       key={coach.coach_profile_id}
-                      className="p-3 bg-base-100 rounded-lg flex justify-between items-center"
+                      className="p-4 bg-base-100 rounded-xl border border-base-300 flex justify-between items-center"
                     >
-                      <p className="font-semibold">
+                      <p className="font-medium">
                         {coach.user.first_name} {coach.user.last_name}
                       </p>
 
                       <Link
-                        to={`/coach/${coach.user.user_id}`}
-                        className="btn bg-blue-800  btn-xs btn-primary"
+                        to={`/coach/${coach.coach_profile_id}`}
+                        className="btn btn-sm bg-blue-800 hover:bg-blue-900 text-white"
                       >
                         View
                       </Link>
                     </div>
                   ))
                 ) : (
-                  <span className="text-sm opacity-70">No saved coaches</span>
+                  <span className="text-sm text-base-content/60">
+                    No saved coaches
+                  </span>
                 )}
               </div>
-
-              <button
-                className="btn bg-blue-800 btn-primary btn-sm mt-4"
-                onClick={() => navigate("/coaches")}
-              >
-                Browse Coaches
-              </button>
             </div>
 
             {/* REVIEWS */}
-            <div className="card bg-base-200 shadow-md p-5 flex flex-col">
-              <h2 className="text-lg font-semibold mb-3">My Reviews</h2>
+            <div className="card bg-base-200 shadow-lg border border-base-300 p-6 flex flex-col">
+              <h2 className="text-lg font-semibold mb-4">My Reviews</h2>
 
-              <div className="flex-1 overflow-y-auto max-h-60 space-y-3">
+              <div className="flex-1 overflow-y-auto max-h-72 space-y-4">
                 {reviewsLoading ? (
                   <div className="flex justify-center">
                     <span className="loading loading-spinner"></span>
                   </div>
-                ) : userReviews.length > 0 ? (
-                  userReviews.map((review) => {
-                    const coachFirstName = review.coach?.user?.first_name;
-                    const coachLastName = review.coach?.user?.last_name;
+                ) : userReviews.length ? (
+                  userReviews.map((review) => (
+                    <div key={review.review_id} className="p-4 bg-base-100 rounded-xl border border-base-300">
+                      <p className="font-semibold">
+                        {review.coach?.user?.first_name}{" "}
+                        {review.coach?.user?.last_name}
+                      </p>
 
-                    return (
-                      <div key={review.review_id} className="p-3 bg-base-100 rounded-lg">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="font-semibold">
-                              {coachFirstName} {coachLastName}
-                            </p>
-
-                            <div className="rating rating-xs mt-1">
-                              {[1, 2, 3, 4, 5].map((star) => (
-                                <input
-                                  key={star}
-                                  type="radio"
-                                  className="mask mask-star-2 bg-blue-800"
-                                  checked={star <= review.rating}
-                                  readOnly
-                                />
-                              ))}
-                            </div>
-
-                            <p className="text-sm opacity-70 mt-1">
-                              {review.comment}
-                            </p>
-                          </div>
-
-                          <button
-                            className="btn btn-xs btn-outline"
-                            onClick={() => openEditModal(review)}
-                          >
-                            Edit
-                          </button>
-                        </div>
+                      <div className="rating rating-xs mt-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <input
+                            key={star}
+                            type="radio"
+                            className="mask mask-star-2 bg-blue-800"
+                            checked={star <= review.rating}
+                            readOnly
+                          />
+                        ))}
                       </div>
-                    );
-                  })
+
+                      <p className="text-sm text-base-content/70 mt-2">
+                        {review.comment}
+                      </p>
+
+                      <button
+                        className="btn btn-xs mt-3 btn-outline"
+                        onClick={() => openEditModal(review)}
+                      >
+                        Edit
+                      </button>
+                    </div>
+                  ))
                 ) : (
-                  <span className="text-sm opacity-70">No reviews</span>
+                  <span className="text-sm text-base-content/60">
+                    No reviews
+                  </span>
                 )}
               </div>
             </div>
           </div>
+
         </section>
       </div>
     </div>

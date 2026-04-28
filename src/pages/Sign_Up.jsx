@@ -88,6 +88,12 @@ function Sign_Up() {
                             <span className="text-sm">Agree to Terms & Conditions</span>
                         </label>
                         <button className="btn btn-neutral mt-4" type="submit">Register</button>
+                       
+                        <div className="text-center mt-4">
+                        <Link to="/login" className="text-sm text-blue-600 hover:text-blue-800 hover:underline">
+                            Have an account? Log In
+                        </Link>
+                        </div>
                     </form>
                 </fieldset>
             </div>
