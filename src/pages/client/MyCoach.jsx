@@ -14,7 +14,7 @@ function MyCoach() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [requests, setRequests] = useState([]);
+  const [requestsInfo, setRequestsInfo] = useState([]);
   const [hiredCoaches, setHiredCoaches] = useState([]);
   const [editingReview, setEditingReview] = useState(null);
   const [editData, setEditData] = useState({
@@ -22,6 +22,7 @@ function MyCoach() {
     comment: ""
   });
   const [myFav, setMyFav] = useState([]);
+
   useEffect(() => {
     const fetchRequests = async () => {
       try {
@@ -32,7 +33,31 @@ function MyCoach() {
           (req) => req.status === "pending"
         );
 
-        setRequests(pendingRequests);
+        const enrichedRequests = await Promise.all(
+          pendingRequests.map(async (req) => {
+            try {
+              const res = await api.get(`/coach/coach-profile`, {
+                params: { coach_profile_id: req.coach_profile_id },
+              });
+              console.log(res.data)
+
+              return {
+                ...req,
+                coach: res.data.user, 
+              };
+            } catch (err) {
+              return {
+                ...req,
+                coach: null,
+              };
+            }
+          })
+        );
+
+        console.log(enrichedRequests)
+
+        setRequestsInfo(enrichedRequests);
+
 
 
       } catch (err) {
@@ -46,6 +71,7 @@ function MyCoach() {
     const fetchReviews = async () => {
       try {
         const response = await api.get("/client/my-reviews");
+        console.log(response.data)
         const reviews = response.data || [];
 
         // Fetch coach details for each review
@@ -54,11 +80,11 @@ function MyCoach() {
             try {
               // Get coach profile data
               const coachProfileResponse = await api.get(`/coach/coach-profile`, {
-                params: { user_id: review.coach_profile_id }
+                params: { coach_profile_id: review.coach_profile_id }
               });
 
               // Get coach user data
-              const userResponse = await api.get(`/user/${review.coach_profile_id}`);
+              const userResponse = await api.get(`/user/${coachProfileResponse.data.user_id}`);
 
               return {
                 ...review,
@@ -110,7 +136,7 @@ function MyCoach() {
       try {
         const res = await api.get("client/my-coaches");
         console.log(res.data)
-        setHiredCoaches(res.data)
+        setHiredCoaches(res.data.active_relationships)
 
       } catch (err) {
         console.log(err);
@@ -274,150 +300,160 @@ function MyCoach() {
   return (
     <div className="drawer lg:drawer-open">
       <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
+
       <div className="drawer-content">
-        <section className="p-6 flex flex-col gap-6">
-          <div className="text-2xl font-bold mb-6">My Coach</div>
+        <section className="p-6 space-y-6">
 
-          <div className="flex w-full gap-4">
-            <div className="card bg-base-300 rounded-box grow p-4 flex flex-col">
-              <h2 className="text-lg font-bold mb-2">My Coach</h2>
-              {hiredCoaches ? (
-                hiredCoaches.active_relationships.map((rel) => (
+          <h1 className="text-3xl font-bold">My Coach</h1>
 
+          {/* TOP ROW */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-                  <div>
-                    <p className="font-semibold">
-                      {rel.coach_name}
-                    </p>
-                    <p className="text-xs opacity-70">
-                      Specialty: {rel.speacialty}
-                    </p>
-                    <p className="text-xs opacity-60">
-                      Since: {rel.started_at}
-                    </p>
-                  </div>
-                ))
-              ) : (
-                <span className="text-sm opacity-70 mb-3">No coach assigned</span>
+            {/* MY COACH */}
+            <div className="card bg-base-200 shadow-md p-5 flex flex-col">
+              <h2 className="text-lg font-semibold mb-3">My Coach</h2>
 
-
-              )
-
-              }
-              <div className="mt-auto flex justify-center">
-                <button className="btn btn-primary bg-blue-800 btn-sm" onClick={() => navigate("/coaches")} >Browse Coaches</button>
-              </div>
-            </div>
-            <div className="card bg-base-300 rounded-box grid grow p-4 flex">
-              <h2 className="text-lg font-bold mb-2">My Requests</h2>
-              {loading ? (
-                <span className="text-sm opacity-70">Loading...</span>
-              ) : !requests || requests.length == 0 ? (
-                <span className="text-sm opacity-70">No requests Yet</span>
-              ) : (
-                <div className="space-y-2">
-                  {requests.map((req) => (
-                    <div key={req.request_id} className="p-2 bg-white rounded shadow-sm">
-                      <p className="font-medium">
-                        Coach Request
-
+              <div className="flex-1 space-y-3">
+                {hiredCoaches && hiredCoaches.length != 0 ? (
+                  hiredCoaches.map((rel) => (
+                    <div key={rel.relationship_id} className="border-b pb-2">
+                      <p className="font-semibold">{rel.coach_name}</p>
+                      <p className="text-xs opacity-70">
+                        Specialty: {rel.specialty}
                       </p>
-                      <p className="text-xs text-gray-500">
-                        Status: {req.status}
-
+                      <p className="text-xs opacity-60">
+                        Since: {rel.started_at
+                          ? new Date(rel.started_at).toLocaleDateString(undefined, {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })
+                          : "—"}
                       </p>
-                      <button className="btn" onClick={() => deleteRequest(req.request_id)}>Delete Request</button>
-
                     </div>
-                  ))}
-                </div>
-              )}
+                  ))
+                ) : (
+                  <span className="text-sm opacity-70">No coach assigned</span>
+                )}
+              </div>
+
+              <button
+                className="btn bg-blue-800  btn-primary btn-sm mt-4"
+                onClick={() => navigate("/coaches")}
+              >
+                Browse Coaches
+              </button>
+            </div>
+
+            {/* REQUESTS */}
+            <div className="card bg-base-200 shadow-md p-5 flex flex-col">
+              <h2 className="text-lg font-semibold mb-3">My Requests</h2>
+
+              <div className="flex-1 overflow-y-auto max-h-60 space-y-2">
+                {loading ? (
+                  <span className="text-sm opacity-70">Loading...</span>
+                ) : !requestsInfo?.length ? (
+                  <span className="text-sm opacity-70">No requests yet</span>
+                ) : (
+                  requestsInfo.map((req) => (
+                    <div key={req.request_id} className="p-3 bg-base-100 rounded-lg shadow-sm">
+                      <p className="font-medium">{req.coach?.first_name} {req.coach?.last_name}</p>
+                      <p className="text-xs opacity-60 mb-2">
+                        Status: {req.status}
+                      </p>
+                      <button
+                        className="btn btn-sm bg-blue-800 text-white border-none hover:bg-blue-900"
+                        onClick={() => deleteRequest(req.request_id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
-          <div className="flex w-full h-60 flex-1 gap-4">
-            <div className="card bg-base-300 rounded-box grid grow p-4 flex">
-              <h2 className="text-lg font-bold mb-2">Saved Coaches</h2>
-              {myFav ? (myFav.map((coach) => (
-                <div
-                  key={coach.coach_profile_id}
-                  className="p-2 border rounded flex justify-between items-center"
-                >
-                  <div>
-                    <p className="font-semibold">
-                      {coach.user.first_name} {coach.user.last_name}
-                    </p>
-                  </div>
 
-                  <Link
-                    to={`/coach/${coach.user.user_id}`}
-                    className="btn btn-sm  bg-blue-800  btn-primary"
-                  >
-                    View Profile
-                  </Link>
-                </div>
-              ))) : (
-                <span className="text-sm opacity-70 mb-3">No coach assigned</span>
+          {/* BOTTOM ROW */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-              )}
-              <div className="mt-auto flex justify-center">
-                <button className="btn btn-primary bg-blue-800 btn-sm" onClick={() => navigate("/coaches")}>Browse Coaches</button>
+            {/* SAVED COACHES */}
+            <div className="card bg-base-200 shadow-md p-5 flex flex-col">
+              <h2 className="text-lg font-semibold mb-3">Saved Coaches</h2>
+
+              <div className="flex-1 overflow-y-auto max-h-60 space-y-2">
+                {myFav?.length ? (
+                  myFav.map((coach) => (
+                    <div
+                      key={coach.coach_profile_id}
+                      className="p-3 bg-base-100 rounded-lg flex justify-between items-center"
+                    >
+                      <p className="font-semibold">
+                        {coach.user.first_name} {coach.user.last_name}
+                      </p>
+
+                      <Link
+                        to={`/coach/${coach.user.user_id}`}
+                        className="btn bg-blue-800  btn-xs btn-primary"
+                      >
+                        View
+                      </Link>
+                    </div>
+                  ))
+                ) : (
+                  <span className="text-sm opacity-70">No saved coaches</span>
+                )}
               </div>
+
+              <button
+                className="btn bg-blue-800 btn-primary btn-sm mt-4"
+                onClick={() => navigate("/coaches")}
+              >
+                Browse Coaches
+              </button>
             </div>
-            <div className="card bg-base-300 rounded-box grid grow p-4 flex">
-              <h2 className="text-lg font-bold mb-2">My Reviews</h2>
 
+            {/* REVIEWS */}
+            <div className="card bg-base-200 shadow-md p-5 flex flex-col">
+              <h2 className="text-lg font-semibold mb-3">My Reviews</h2>
 
-              {reviewsLoading ? (
-                <div className="flex-1 flex items-center justify-center">
-                  <div className="loading loading-sm"></div>
-                </div>
-              ) : userReviews.length > 0 ? (
-                <div className="flex-1 overflow-y-auto max-h-48 space-y-3">
-                  {userReviews.map((review) => {
-                    // Use coach data from the nested coach object we fetched
+              <div className="flex-1 overflow-y-auto max-h-60 space-y-3">
+                {reviewsLoading ? (
+                  <div className="flex justify-center">
+                    <span className="loading loading-spinner"></span>
+                  </div>
+                ) : userReviews.length > 0 ? (
+                  userReviews.map((review) => {
                     const coachFirstName = review.coach?.user?.first_name;
                     const coachLastName = review.coach?.user?.last_name;
-                    const coachId = review.coach_profile_id;
 
                     return (
-                      <div key={review.review_id} className="p-3 bg-base-200 rounded-lg">
-                        <div className="flex items-start gap-3">
-                          <div className="w-12 h-12 rounded-full bg-orange-500 text-white text-sm font-bold flex items-center justify-center flex-shrink-0">
-                            {coachFirstName?.[0] || 'C'}{coachLastName?.[0] || ''}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex justify-between items-start">
-                              <div className="flex-1">
-                                <button
-                                  className="text-sm font-semibold text-gray-900 hover:text-blue-600 transition-colors text-left w-full"
-                                  onClick={() => navigate(`/client/coach/${coachId}`)}
-                                >
-                                  {coachFirstName && coachLastName ?
-                                    `${coachFirstName} ${coachLastName}` :
-                                    coachFirstName || 'Unknown Coach'
-                                  }
-                                </button>
-                                <div className="rating rating-xs mt-2">
-                                  {[1, 2, 3, 4, 5].map((star) => (
-                                    <input
-                                      key={star}
-                                      type="radio"
-                                      className="mask mask-star-2 bg-orange-400"
-                                      disabled
-                                      checked={star <= review.rating}
-                                    />
-                                  ))}
-                                </div>
-                              </div>
-                              <span className="text-xs opacity-50 whitespace-nowrap ml-2">
-                                {review.created_at ? new Date(review.created_at).toLocaleDateString() : ''}
-                              </span>
-                            </div>
-                            <p className="text-sm text-gray-600 line-clamp-2 mt-2">{review.comment}</p>
+                      <div key={review.review_id} className="p-3 bg-base-100 rounded-lg">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-semibold">
+                              {coachFirstName} {coachLastName}
+                            </p>
 
+                            <div className="rating rating-xs mt-1">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <input
+                                  key={star}
+                                  type="radio"
+                                  className="mask mask-star-2 bg-blue-800"
+                                  checked={star <= review.rating}
+                                  readOnly
+                                />
+                              ))}
+                            </div>
+
+                            <p className="text-sm opacity-70 mt-1">
+                              {review.comment}
+                            </p>
                           </div>
+
                           <button
-                            className="btn btn-sm bg-blue-800 text-white border-none hover:scale-105 transition-transform"
+                            className="btn btn-xs btn-outline"
                             onClick={() => openEditModal(review)}
                           >
                             Edit
@@ -425,68 +461,16 @@ function MyCoach() {
                         </div>
                       </div>
                     );
-                  })}
-                </div>
-              ) : (
-                <>
-                  <span className="text-sm opacity-70 mb-3">No reviews</span>
-                  <div className="mt-auto flex justify-center">
-                    <button className="btn btn-primary bg-blue-800 btn-sm" onClick={() => navigate("/client/reviews")}>Manage Reviews</button>
-                  </div>
-                </>
-              )}
-
-              {editingReview && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50">
-                  <div className="bg-white text-black p-6 rounded-lg w-80 shadow-lg border border-gray-200">
-
-                    <h2 className="text-lg font-bold mb-4 text-blue-800">
-                      Edit Review
-                    </h2>
-
-                    <div className="mb-3">
-                      <p className="text-sm text-gray-600 mb-1">Rating</p>
-                      <div className="flex gap-1">
-                        {renderEditableStars(editData.rating)}
-                      </div>
-                    </div>
-
-                    <input
-                      type="text"
-                      value={editData.comment}
-                      onChange={(e) =>
-                        setEditData({ ...editData, comment: e.target.value })
-                      }
-                      className="input input-sm w-full mb-4 bg-white border border-gray-300 text-black"
-                      placeholder="Comment"
-                    />
-
-                    <div className="flex justify-end gap-2">
-                      <button
-                        className="btn btn-sm bg-gray-200 text-black border-none hover:bg-gray-300"
-                        onClick={closeModal}
-                      >
-                        Cancel
-                      </button>
-
-                      <button
-                        className="btn btn-sm bg-blue-800 text-white border-none hover:opacity-85"
-                        onClick={handleSave}
-                      >
-                        Save
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-              <div className="mt-auto flex justify-center">
+                  })
+                ) : (
+                  <span className="text-sm opacity-70">No reviews</span>
+                )}
               </div>
             </div>
           </div>
         </section>
       </div>
     </div>
-
   );
 
 }
