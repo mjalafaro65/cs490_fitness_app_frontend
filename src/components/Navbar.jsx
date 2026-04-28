@@ -4,12 +4,14 @@ import { useNavigate } from "react-router-dom";
 import api from "../axios";
 import { useEffect, useState } from "react";
 import PopUp from "./PopUp";
+import { useMessaging } from "../MessagingContext";
 
 function Navbar() {
     const { user, loading, coachStatus } = useAuth();
     const navigate = useNavigate();
     const [isPopOpen, setPopOpen] = useState(null);
 
+    const { unreadCount }= useMessaging()
     if (loading) return null;
 
 
@@ -42,10 +44,10 @@ function Navbar() {
         Notifications: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="size-4 shrink-0"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg>,
         Settings: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="size-4 shrink-0"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z" /></svg>,
         Logs: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="size-4 shrink-0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></svg>,
-        LogOut:<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="size-4 shrink-0"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /> <polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>,
+        LogOut: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="size-4 shrink-0"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /> <polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>,
         Meal: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="size-4 shrink-0"> <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /> <path d="M7 2v20" /> <path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />
-</svg>
-    };  
+        </svg>
+    };
     const pages = [
         {
             to: "/messages", label: "Messages", icon: (Icons.Messages)
@@ -96,7 +98,7 @@ function Navbar() {
             to: "/coach/workoutplans", label: "Workout Plans", icon: (Icons.Workout)
         },
         {
-            to: "/coach/progresslogs", label: "Progress Logs", icon:(Icons.Logs)
+            to: "/coach/progresslogs", label: "Progress Logs", icon: (Icons.Logs)
         },
         {
             to: "/coach/meallogs", label: "Meal Logs", icon: (Icons.Meal)
@@ -120,10 +122,10 @@ function Navbar() {
             to: "/admin/workouts", label: "Workouts", icon: (Icons.Workout)
         },
         {
-             to: "/admin/reviews", label: "Reviews", icon:(Icons.Profile)
+            to: "/admin/reviews", label: "Reviews", icon: (Icons.Profile)
         },
         {
-             to: "/admin/progresslogs", label: "Statistics", icon: (Icons.Logs)
+            to: "/admin/progresslogs", label: "Statistics", icon: (Icons.Logs)
         },
         //{
         //    to: "/admin/settings", label: "Settings", icon: (Icons.Settings)
@@ -152,10 +154,10 @@ function Navbar() {
             <div className="flex items-center justify-center py-6 border-b border-white/20">
                 <Link to="/" className="flex items-center justify-center w-full gap-2">
                     <div className="flex justify-center w-full group-hover:w-auto">
-                    {Icons.Landing}
+                        {Icons.Landing}
                     </div>
                     <span className="text-xl font-bold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden group-hover:inline">
-                    FitNet
+                        FitNet
                     </span>
                 </Link>
             </div>
@@ -176,16 +178,38 @@ function Navbar() {
                             </button>
                         ) : (
                             /* RENDER AS LINK FOR EVERYTHING ELSE */
+                            // <Link
+                            //     to={tab.to}
+                            //     className="is-drawer-close:tooltip is-drawer-close:tooltip-right flex items-center"
+                            //     data-tip={tab.label}
+                            // >
+                            //     {tab.icon}
+                            //     <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            //         {tab.label}
+                            //     </span>
+                            // </Link>
+
                             <Link
                                 to={tab.to}
-                                className="is-drawer-close:tooltip is-drawer-close:tooltip-right flex items-center"
+                                className="is-drawer-close:tooltip is-drawer-close:tooltip-right flex items-center relative"
                                 data-tip={tab.label}
                             >
-                                {tab.icon}
+                                <div className="relative">
+                                    {tab.icon}
+
+                                    {/* 🔴 UNREAD BADGE */}
+                                    {tab.label === "Messages" && unreadCount > 0 && (
+                                        <span className="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                                            {unreadCount}
+                                        </span>
+                                    )}
+                                </div>
+
                                 <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                     {tab.label}
                                 </span>
                             </Link>
+
                         )}
                     </li>
                 ))}

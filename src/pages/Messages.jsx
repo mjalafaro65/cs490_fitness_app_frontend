@@ -3,6 +3,7 @@ import "../App.css";
 import api from "../axios";
 import { useAuth } from "../AuthContext";
 import { useLocation } from "react-router-dom";
+import { useRef } from "react";
 
 function Messages() {
   const { fetchUser, user } = useAuth();
@@ -14,6 +15,9 @@ function Messages() {
   const [newMessage, setNewMessage] = useState("");
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [relationships, setRelationships] = useState([]);
+
+  const messagesEndRef = useRef(null);
+
 
 
   const fetchConversations = async () => {
@@ -41,15 +45,15 @@ function Messages() {
 
   // ---------------- ACTIONS ----------------
 
-  const handleSelectConversation = (conv) => {
-    setSelectedConversation(conv);
-    fetchMessages(conv.conversation_id);
-  };
+
+
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
 
     if (!newMessage.trim() || !selectedConversation) return;
+
+
 
     await api.post(
       `/messaging/conversations/${selectedConversation.conversation_id}/messages`,
@@ -92,7 +96,6 @@ function Messages() {
     });
   };
 
-  // ---------------- EFFECTS ----------------
 
   useEffect(() => {
 
@@ -111,11 +114,25 @@ function Messages() {
     // fetchOnlineUsers();
   }, []);
 
+  // useEffect(() => {
+  //   if (!selectedConversation) return;
+
+  //   const interval = setInterval(() => {
+  //     fetchMessages(selectedConversation.conversation_id);
+  //   }, 3000);
+
+  //   return () => clearInterval(interval);
+  // }, [selectedConversation]);
+
   useEffect(() => {
     if (!selectedConversation) return;
 
-    const interval = setInterval(() => {
-      fetchMessages(selectedConversation.conversation_id);
+    const interval = setInterval(async () => {
+      await fetchMessages(selectedConversation.conversation_id);
+
+      await api.put(
+        `/messaging/conversations/${selectedConversation.conversation_id}/read`
+      );
     }, 3000);
 
     return () => clearInterval(interval);
@@ -130,8 +147,28 @@ function Messages() {
 
   console.log("ALL CONVERSATIONS:", conversations);
 
-  // ---------------- UI ----------------
+  const handleSelectConversation = async (conv) => {
+    setSelectedConversation(conv);
 
+    // fetch messages
+    await fetchMessages(conv.conversation_id);
+
+    //  mark everything as read
+    await api.put(`/messaging/conversations/${conv.conversation_id}/read`);
+
+    //  update UI (remove unread badge)
+    setConversations((prev) =>
+      prev.map((c) =>
+        c.conversation_id === conv.conversation_id
+          ? { ...c, unread_count: 0 }
+          : c
+      )
+    );
+  };
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+  
   return (
     <div className="drawer lg:drawer-open">
       <div className="drawer-content p-6 flex flex-col gap-6">
@@ -224,8 +261,8 @@ function Messages() {
                       >
                         <div
                           className={`px-4 py-2 rounded-2xl max-w-xs text-sm shadow ${isMine
-                              ? "bg-blue-600 text-white"
-                              : "bg-base-200 text-gray-800"
+                            ? "bg-blue-800 text-white"
+                            : "bg-base-200 text-gray-800"
                             }`}
                         >
                           {msg.body}
@@ -233,6 +270,7 @@ function Messages() {
                       </div>
                     );
                   })}
+                  <div ref={messagesEndRef} />
                 </div>
 
                 {/* INPUT */}
@@ -246,7 +284,7 @@ function Messages() {
                     onChange={(e) => setNewMessage(e.target.value)}
                     placeholder="Type message..."
                   />
-                  <button className="btn btn-primary rounded-full px-6">
+                  <button className="btn bg-blue-900 btn-primary rounded-full px-6">
                     Send
                   </button>
                 </form>
