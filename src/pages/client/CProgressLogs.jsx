@@ -559,19 +559,19 @@ function ProgressLogs(){
               </div>
               <div className="card bg-base-300 rounded-box p-3 text-center">
                 <p className="text-xs opacity-70">Avg Sleep</p>
-                <p className="text-2xl font-bold text-purple-400">{filteredWellnessSummary.avg_sleep_hours || 0}h</p>
+                <p className="text-2xl font-bold text-blue-800">{filteredWellnessSummary.avg_sleep_hours || 0}h</p>
               </div>
               <div className="card bg-base-300 rounded-box p-3 text-center">
                 <p className="text-xs opacity-70">Avg Mood</p>
-                <p className="text-2xl font-bold text-yellow-400">{filteredWellnessSummary.avg_mood || 0}/5</p>
+                <p className="text-2xl font-bold text-blue-200">{filteredWellnessSummary.avg_mood || 0}/5</p>
               </div>
               <div className="card bg-base-300 rounded-box p-3 text-center">
                 <p className="text-xs opacity-70">Avg Energy</p>
-                <p className="text-2xl font-bold text-green-400">{filteredWellnessSummary.avg_energy || 0}/5</p>
+                <p className="text-2xl font-bold text-blue-600">{filteredWellnessSummary.avg_energy || 0}/5</p>
               </div>
               <div className="card bg-base-300 rounded-box p-3 text-center">
                 <p className="text-xs opacity-70">Weight Change</p>
-                <p className={`text-2xl font-bold ${filteredWellnessSummary.weight_change_lbs < 0 ? 'text-green-400' : filteredWellnessSummary.weight_change_lbs > 0 ? 'text-red-400' : 'text-gray-400'}`}>
+                <p className={`text-2xl font-bold ${filteredWellnessSummary.weight_change_lbs < 0 ? 'text-blue-700' : filteredWellnessSummary.weight_change_lbs > 0 ? 'text-red-400' : 'text-gray-400'}`}>
                   {filteredWellnessSummary.weight_change_lbs > 0 ? '+' : ''}{filteredWellnessSummary.weight_change_lbs || 0} lbs
                 </p>
               </div>
@@ -788,7 +788,7 @@ function ProgressLogs(){
             )}
           </div>
         </section>
-        
+        {/* edit the space here, make it smaller */}
         <section className="p-7 flex flex-col md:flex-row items-start gap-6">
             <form className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full p-6 bg-white rounded-xl shadow-lg border border-gray-100 dark:bg-gray-800">
                   <div className="form-control md:col-span-2">

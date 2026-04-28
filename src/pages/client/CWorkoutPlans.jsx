@@ -716,7 +716,6 @@ function ClientWorkoutPlans() {
         <section className="p-6 flex flex-col gap-6">
           <div className="text-2xl font-bold mb-4">My Workout Plans</div>
 
-          {/* Workout Summary Cards */}
           {!loadingInsights && workoutInsights && (
             <div className="grid grid-cols-6 gap-4 mb-4">
               <div className="card bg-base-300 rounded-box p-3 text-center">
@@ -724,16 +723,12 @@ function ClientWorkoutPlans() {
                 <p className="text-2xl font-bold text-blue-400">{workoutInsights.total || 0}</p>
               </div>
               <div className="card bg-base-300 rounded-box p-3 text-center">
-                <p className="text-xs opacity-70">Completed</p>
-                <p className="text-2xl font-bold text-green-400">{workoutInsights.completed || 0}</p>
-              </div>
-              <div className="card bg-base-300 rounded-box p-3 text-center">
                 <p className="text-xs opacity-70">Completion Rate</p>
-                <p className="text-2xl font-bold text-purple-400">{workoutInsights.completion_rate || 0}%</p>
+                <p className="text-2xl font-bold text-blue-800">{workoutInsights.completion_rate || 0}%</p>
               </div>
               <div className="card bg-base-300 rounded-box p-3 text-center">
                 <p className="text-xs opacity-70">Current Streak</p>
-                <p className="text-2xl font-bold text-yellow-400">{workoutInsights.current_streak_days || 0} days</p>
+                <p className="text-2xl font-bold text-blue-300">{workoutInsights.current_streak_days || 0} days</p>
               </div>
               <div className="card bg-base-300 rounded-box p-3 text-center">
                 <p className="text-xs opacity-70">Scheduled</p>
@@ -741,7 +736,7 @@ function ClientWorkoutPlans() {
               </div>
               <div className="card bg-base-300 rounded-box p-3 text-center">
                 <p className="text-xs opacity-70">Canceled/Skipped</p>
-                <p className="text-2xl font-bold text-red-400">{(workoutInsights.canceled || 0) + (workoutInsights.skipped || 0)}</p>
+                <p className="text-2xl font-bold text-blue-600">{(workoutInsights.canceled || 0) + (workoutInsights.skipped || 0)}</p>
               </div>
             </div>
           )}
