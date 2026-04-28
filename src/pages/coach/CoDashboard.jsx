@@ -41,6 +41,7 @@ function CoDashboard() {
   const [clientWorkouts, setClientWorkouts] = useState([]);
   const [messages, setMessages] = useState([]);
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
+  const [conversations, setConversations] = useState([]);
 
   const fetchCoachDashboardData = async () => {
     setIsLoadingDashboard(true);
@@ -64,8 +65,14 @@ function CoDashboard() {
 
       setRequests(requestsWithUsers);
 
-      const conversationsRes = await api.get("/messaging/conversations");
-      setMessages(conversationsRes.data || []);
+      const conversationsRes = await api.get("/messaging/inbox");
+
+      const allConvos = conversationsRes.data || [];
+
+      setConversations(allConvos);
+
+      const unread = allConvos.filter((c) => c.unread_count > 0);
+      setMessages(unread);
 
       // something like this for future backend:
       // const workoutsRes = await api.get("/coach/workouts");
@@ -169,10 +176,9 @@ function CoDashboard() {
                     className={`
                       cursor-pointer rounded-xl p-2 flex flex-col gap-1 min-h-[110px] transition
                       border-2
-                      ${
-                        isSelected
-                          ? "border-primary bg-blue-800 bg-primary/10"
-                          : isToday
+                      ${isSelected
+                        ? "border-primary bg-blue-800 bg-primary/10"
+                        : isToday
                           ? "border-neutral bg-neutral/10"
                           : "border-transparent bg-base-200 hover:bg-base-100"
                       }
@@ -258,30 +264,34 @@ function CoDashboard() {
 
             <div className="card bg-base-300 rounded-box p-4">
               <h2 className="text-base font-bold mb-3">
-                Recent Messages ({messages.length})
+                Unread Messages ({messages.length})
               </h2>
 
               {isLoadingDashboard ? (
                 <p className="text-sm opacity-50">Loading messages...</p>
               ) : messages.length === 0 ? (
-                <p className="text-sm opacity-50">No messages</p>
+                <p className="text-sm opacity-50">No unread messages</p>
               ) : (
-                messages.map((conversation) => {
-                  const lastMessage = conversation.last_message;
+                messages.map((conversation) => (
+                  <div
+                    key={conversation.conversation_id}
+                    className="p-3 bg-base-200 rounded-lg flex justify-between items-center mb-3"
+                  >
+                    <div>
+                      <p className="font-semibold text-sm">
+                        {conversation.other_user?.first_name}{" "}
+                        {conversation.other_user?.last_name}
+                      </p>
 
-                  return (
-                    <div
-                      key={conversation.conversation_id}
-                      className="p-3 bg-base-200 rounded-lg flex justify-between items-center mb-3"
-                    >
-                      <div>
-                        <p className="font-semibold text-sm">
-                          Conversation #{conversation.conversation_id}
-                        </p>
-                        <p className="text-xs opacity-70">
-                          {lastMessage?.body || "No messages yet"}
-                        </p>
-                      </div>
+                      <p className="text-xs opacity-70">
+                        {conversation.last_message || "No messages yet"}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
+                        {conversation.unread_count}
+                      </span>
 
                       <button
                         className="btn btn-sm btn-outline"
@@ -290,8 +300,8 @@ function CoDashboard() {
                         Open
                       </button>
                     </div>
-                  );
-                })
+                  </div>
+                ))
               )}
             </div>
           </div>

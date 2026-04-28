@@ -105,7 +105,7 @@ function CDashboard() {
   const [scheduledWorkouts, setScheduledWorkouts] = useState([]);
 
   const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(false);
-  const [hiredCoaches,setHiredCoaches]=useState([]);
+  const [hiredCoaches, setHiredCoaches] = useState([]);
 
 
 
@@ -770,11 +770,12 @@ function CDashboard() {
                       </p>
                       <p className="text-xs opacity-60">
                         Since: {rel.started_at
-                          || new Date(rel.started_at).toLocaleDateString(undefined, {
+                          ? new Date(rel.started_at).toLocaleDateString(undefined, {
                             year: "numeric",
                             month: "short",
                             day: "numeric",
-                          })}
+                          })
+                          : "—"}
                       </p>
                     </div>
                   ))
