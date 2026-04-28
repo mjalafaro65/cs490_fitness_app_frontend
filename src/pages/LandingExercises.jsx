@@ -139,7 +139,7 @@ function LandingExercises() {
                 <h2 className="card-title text-lg">{exercise.name}</h2>
 
                 <div className="flex flex-wrap gap-2 my-2">
-                  <span className="badge badge-primary">
+                  <span className="badge bg-blue-900  badge-primary">
                     {exercise.muscle_group}
                   </span>
 

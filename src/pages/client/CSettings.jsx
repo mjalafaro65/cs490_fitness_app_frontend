@@ -225,11 +225,12 @@ function CSettings() {
                     <section className="p-10 flex flex-col md:flex-row gap-30 items-start">
                         <div className="flex-shrink-0 flex flex-col items-center">
                             {initialData?.profile_photo ? (
-                                <img
+
+                                 <img
                                     src={initialData.profile_photo}
-                                    alt="Profile"
-                                    className="w-32 h-32  rounded-full  object-cover border-2 border-gray-300  "
+                                    className="w-60 h-60 object-cover rounded-full mb-2"
                                 />
+
                             ) : (
                                 <div className="w-50 h-50 bg-blue-800  rounded-full  text-primary-content flex items-center justify-center text-4xl font-bold uppercase border-4 border-base-100 shadow-lg">
                                     {users?.first_name?.[0]?.toUpperCase() || "?"}

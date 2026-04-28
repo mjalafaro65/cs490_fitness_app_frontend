@@ -38,11 +38,18 @@ function SetupPage() {
             [name]: finalValue
         });
     };
+    
+
 
     const handleFinish = async (e) => {
         e.preventDefault();
         try {
             console.log(profileData)
+            if ( profileData.profile_photo==""){
+                // const default = import.meta.env.DEFAULT_PHOTO;
+                profileData.profile_photo="https://res.cloudinary.com/dh1rjok0f/image/upload/v1777335485/unknown_pfp_adcb09_zzqxwp.png"
+            }
+
             const res = await api.post("/auth/setup", profileData);
             console.log(res)
             await fetchUser()
@@ -62,6 +69,7 @@ function SetupPage() {
 
      
         const myCloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+
         const myPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
         const widget = window.cloudinary.createUploadWidget(

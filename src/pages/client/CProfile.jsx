@@ -146,15 +146,16 @@ function CProfile() {
         <section className="p-6 flex flex-col gap-6">
           <div className="text-2xl font-bold mb-2">Profile</div>
           <section className="p-10 flex flex-col md:flex-row gap-30 items-start">
-            <div className="flex-shrink-0 ">
+            <div className="flex-shrink-0 w-35 h-35 rounded-full overflow-hidden border-2 border-gray-300 ">
               {bioData?.profile_photo ? (
+                
                 <img
                   src={bioData.profile_photo}
                   alt="Profile"
-                  className="w-32 h-32  rounded-full  object-cover border-2 border-gray-300  "
+                  className="w-full h-full   object-cover scale-160"
                 />
               ) : (
-                <div className="w-50 h-50 bg-blue-800  rounded-full  text-primary-content flex items-center justify-center text-4xl font-bold uppercase border-4 border-base-100 shadow-lg">
+                <div className="w-full h-full bg-blue-800  rounded-full  text-primary-content flex items-center justify-center text-4xl font-bold uppercase border-4 border-base-100 shadow-lg">
                 </div>
               )}
             </div>
