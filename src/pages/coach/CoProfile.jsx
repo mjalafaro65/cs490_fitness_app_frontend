@@ -29,14 +29,11 @@ function Profile() {
 
   const [fetchData, setData] = useState( null);
 
-  const [user, setUser] = useState(null);
 
   useEffect(() => {
     async function fetchUser() {
       try {
-        const userRes = await api.get("/user/me");
-        console.log(userRes)
-        setUser(userRes.data);
+  
 
         const response = await api.get("/coach/coach-profile");
         console.log("Response data:", response.data);
@@ -96,7 +93,7 @@ function Profile() {
                     />
                 ) : (
                     <div className="w-50 h-50 bg-blue-800  rounded-full  text-primary-content flex items-center justify-center text-4xl font-bold uppercase border-4 border-base-100 shadow-lg">
-                        {user?.first_name?.[0]?.toUpperCase() || "?"}
+                        {fetchData?.user?.first_name?.[0]?.toUpperCase() || "?"}
                     </div>
                 )}
             </div>
@@ -106,8 +103,8 @@ function Profile() {
               <div>
                 <label className="label font-semibold">Name:</label>
                 <p className="text-l font-bold">
-                  {user?.first_name || user?.last_name
-                  ? `${user?.first_name} ${user?.last_name}`
+                  {fetchData?.user?.first_name || fetchData?.user?.last_name
+                  ? `${fetchData?.user?.first_name} ${fetchData?.user?.last_name}`
                   : "—"}
                 </p>
               </div>
