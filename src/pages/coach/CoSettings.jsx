@@ -244,18 +244,9 @@ function CoSettings() {
                   value={fetchData.bio}
                   onChange={handleChange}>
                 </textarea>
-                <label className="label font-semibold">Profile Photo: </label>
-                <input
-                  className="input"
-                  type="text"
-                  placeholder="Insert a URL here"
-                  name="profile_photo"
-                  value={fetchData.profile_photo}
-                  onChange={handleChange}
-                  required
-                />
+               
                 <div>
-                  <button className="btn btn-primary" type="submit">Update</button>
+                  <button className="btn bg-blue-800 btn-primary" type="submit">Update</button>
                 </div>
               </form>
             </fieldset>
@@ -287,7 +278,7 @@ function CoSettings() {
                 value={newDocUrl}
                 onChange={e => setNewDocUrl(e.target.value)}
               />
-              <button className="btn btn-primary" onClick={handleAddDocument}>Add Document</button>
+              <button className="btn bg-blue-800 btn-primary" onClick={handleAddDocument}>Add Document</button>
             </div>
           </div>
         </section>

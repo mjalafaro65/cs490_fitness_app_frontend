@@ -4,6 +4,7 @@ import api from "../axios";
 import { useAuth } from "../AuthContext";
 import { useLocation } from "react-router-dom";
 import { useRef } from "react";
+import { useMessaging } from "../MessagingContext";
 
 function Messages() {
   const { fetchUser, user } = useAuth();
@@ -17,6 +18,9 @@ function Messages() {
   const [relationships, setRelationships] = useState([]);
 
   const messagesEndRef = useRef(null);
+
+  const {fetchUnreadCount}=useMessaging()
+
 
 
 
@@ -155,6 +159,7 @@ function Messages() {
 
     //  mark everything as read
     await api.put(`/messaging/conversations/${conv.conversation_id}/read`);
+    await fetchUnreadCount();
 
     //  update UI (remove unread badge)
     setConversations((prev) =>
@@ -195,9 +200,7 @@ function Messages() {
                   <div className="w-10 rounded-full">
                     <img
                       src={
-                        conv.other_user?.profile_picture ||
-                        "https://ui-avatars.com/api/?name=" +
-                        conv.other_user?.first_name
+                        conv.other_user?.profile_picture || "https://ui-avatars.com/api/?name=" +  conv.other_user?.first_name
                       }
                     />
                   </div>

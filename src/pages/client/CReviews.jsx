@@ -114,7 +114,7 @@ function CReviews() {
             <div className="text-center py-8">
               <p className="text-gray-500 mb-4">You haven't written any reviews yet.</p>
               <button 
-                className="btn btn-primary bg-blue-800"
+                className="btn bg-blue-800 btn-primary bg-blue-800"
                 onClick={() => navigate("/client/coaches")}
               >
                 Browse Coaches

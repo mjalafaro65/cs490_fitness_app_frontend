@@ -8,11 +8,11 @@ import { MessagingProvider } from "./MessagingContext";
 
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <BrowserRouter>
-    <MessagingProvider>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-    </MessagingProvider>
-  </BrowserRouter>
+  <AuthProvider>
+  <MessagingProvider>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </MessagingProvider>
+</AuthProvider>
 );

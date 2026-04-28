@@ -57,7 +57,7 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider value={{ user, loading, coachStatus, fetchUser, logout }}>
       {children}
-git     </AuthContext.Provider>
+     </AuthContext.Provider>
   );
 };
 

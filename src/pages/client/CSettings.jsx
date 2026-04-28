@@ -226,7 +226,7 @@ function CSettings() {
                         <div className="flex-shrink-0 flex flex-col items-center">
                             {initialData?.profile_photo ? (
 
-                                 <img
+                                 <button
                                     src={initialData.profile_photo}
                                     className="w-60 h-60 object-cover rounded-full mb-2"
                                 />
