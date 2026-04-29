@@ -5,6 +5,7 @@ import PopUp from "../../components/PopUp";
 import api from "../../axios";
 import { useAuth } from "../../AuthContext";
 import Alert from "../../components/Alert";
+import { useCoachStatus } from "../../coachStatus";
 
 function CSettings() {
     const { user } = useAuth()
@@ -26,6 +27,7 @@ function CSettings() {
         setShowAlert(true);
     };
 
+
     const [initialData, setData] = useState({
         first_name: "",
         last_name: "",
@@ -46,6 +48,8 @@ function CSettings() {
         last_name: "",
         phone_number: ""
     });
+
+    const isCoach = user?.roles?.includes(2);
 
     useEffect(() => {
         async function fetchUser() {

@@ -17,7 +17,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 
-function ProgressLogs(){
+function ProgressLogs() {
   const [alert, setShowAlert] = useState(false);
   const [alertMsg, setAlertMsg] = useState('');
   const [alertType, setAlertType] = useState('success');
@@ -534,6 +534,8 @@ function ProgressLogs(){
               Yearly
             </button>
           </div>
+
+        
           
           {filteredWellnessSummary && filteredWellnessSummary.total_entries > 0 && (
             <div className="grid grid-cols-5 gap-4 mb-4">
