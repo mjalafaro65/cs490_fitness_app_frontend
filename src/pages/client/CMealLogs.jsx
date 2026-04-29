@@ -236,19 +236,12 @@ function ClientMealLogs(){
   }, []);
 
   useEffect(() => {
-<<<<<<< testmerge
-    if (user?.user_id) {
-      fetchMealHistory();
-      fetchNutritionInsights();
-    }
-  }, [user]);
-=======
   if (user?.user_id) {
     fetchMealHistory();
+    fetchNutritionInsights();
     fetchMealPlans();
   }
 }, [user]);
->>>>>>> develop3
 
   const handleChange = (e) => {
     const { name, value } = e.target;
