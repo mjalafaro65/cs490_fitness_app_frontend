@@ -40,7 +40,6 @@ const CoachPublicProfile = () => {
     const [activeTab, setActiveTab] = useState("about");
     const [availability, setAvailability] = useState([]);
     const [availabilityLoading, setAvailabilityLoading] = useState(true);
-
     const typeStyles = {
         success:
             "bg-blue-800 text-white border border-blue-600 shadow-lg shadow-blue-900/40",
@@ -147,6 +146,8 @@ const CoachPublicProfile = () => {
         };
 
 
+
+
         const fetchAvailability = async () => {
             try {
                 setAvailabilityLoading(true);
@@ -159,13 +160,13 @@ const CoachPublicProfile = () => {
 
                 setAvailability(res.data || []);
             } catch (err) {
-                console.log("Availability error:", err.response?.data || err);
+                console.log(err);
                 setAvailability([]);
             } finally {
                 setAvailabilityLoading(false);
             }
-
         };
+
 
         fetchAvailability();
         if (isLoggedIn) {
@@ -223,7 +224,33 @@ const CoachPublicProfile = () => {
             setShowAlert(false);
         }, 3000);
     };
+    const DAYS = [
+        { label: "Monday", value: 0 },
+        { label: "Tuesday", value: 1 },
+        { label: "Wednesday", value: 2 },
+        { label: "Thursday", value: 3 },
+        { label: "Friday", value: 4 },
+        { label: "Saturday", value: 5 },
+        { label: "Sunday", value: 6 }
+    ];
 
+    const grouped = DAYS.reduce((acc, day) => {
+        const s = availability.filter((x) => x.day_of_week === day.value);
+        if (s.length) acc[day.label] = s;
+        return acc;
+    }, {});
+
+    const formatTime = (timeStr) => {
+        if (!timeStr) return "";
+
+        const [hour, minute] = timeStr.split(":");
+        let h = Number(hour);
+
+        const ampm = h >= 12 ? "PM" : "AM";
+        h = h % 12 || 12;
+
+        return `${h}:${minute} ${ampm}`;
+    };
     if (loading) return <div className="p-10 text-center">Loading profile...</div>;
     if (error || !coach) return <div className="p-10 text-center text-red-500">{error}</div>;
 
@@ -375,32 +402,28 @@ const CoachPublicProfile = () => {
                                         <div className="text-center py-10">
                                             <span className="loading loading-spinner"></span>
                                         </div>
-                                    ) : availability.length === 0 ? (
+                                    ) : Object.keys(grouped).length === 0 ? (
                                         <p className="text-gray-400 text-center">
                                             No availability set yet
                                         </p>
                                     ) : (
-                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                            {availability.map((slot, i) => (
-                                                <div
-                                                    key={i}
-                                                    className="p-3 border rounded-lg bg-blue-50 text-center"
-                                                >
-                                                    <p className="font-semibold text-blue-800">
-                                                        {new Date(slot.date).toLocaleDateString(undefined, {
-                                                            weekday: "short",
-                                                            month: "short",
-                                                            day: "numeric",
-                                                        })}
+                                        <div className="flex flex-col gap-4">
+                                            {Object.entries(grouped).map(([day, daySlots]) => (
+                                                <div key={day}>
+                                                    <p className="text-xs font-bold uppercase text-base-content/40 mb-2">
+                                                        {day}
                                                     </p>
 
-                                                    <p className="text-sm text-gray-600">
-                                                        {slot.start_time} - {slot.end_time}
-                                                    </p>
-
-                                                    {/* <span className="text-xs text-gray-400">
-                                                        {slot.is_booked ? "Booked" : "Available"}
-                                                    </span> */}
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {daySlots.map((slot) => (
+                                                            <div
+                                                                key={slot.availability_id}
+                                                                className="p-3 bg-blue-50 border rounded-lg text-sm"
+                                                            >
+                                                                {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
+                                                            </div>
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             ))}
                                         </div>
