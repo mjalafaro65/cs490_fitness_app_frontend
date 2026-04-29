@@ -100,7 +100,6 @@ function ClientMealLogs(){
     notes: ""
   });
 
-  // State for nutrition insights
   const [nutritionInsights, setNutritionInsights] = useState(null);
   const [isLoadingInsights, setIsLoadingInsights] = useState(false);
   const [selectedChartType, setSelectedChartType] = useState('daily');
@@ -138,7 +137,6 @@ function ClientMealLogs(){
     }
   };
 
-  // Fetch nutrition insights
   const fetchNutritionInsights = async () => {
     if (!user?.user_id) {
       showAlert("Please log in to view nutrition insights", "error");
@@ -287,7 +285,7 @@ function ClientMealLogs(){
       showAlert("Meal logged successfully!", "success");
 
       await fetchMealHistory();
-      await fetchNutritionInsights(); // Refresh insights after logging
+      await fetchNutritionInsights(); 
 
     } catch (error) {
       console.error("Update failed:", error.response?.data || error);
@@ -321,37 +319,27 @@ function ClientMealLogs(){
     }
   };
 
-  // Prepare data for charts
   const prepareDailyData = () => {
-    if (!nutritionInsights?.daily_summary) return [];
-    return nutritionInsights.daily_summary.map(day => ({
-      date: new Date(day.date).toLocaleDateString(),
-      calories: day.total_calories || 0,
-      meals: day.total_meals || 0
-    }));
-  };
-
-  const prepareMealDistributionData = () => {
-    if (!nutritionInsights?.meal_distribution) return [];
-    return nutritionInsights.meal_distribution.map(meal => ({
-      name: `Meal ${meal.meal_id}`,
-      value: meal.count || 0,
-      calories: meal.total_calories || 0
+    if (!nutritionInsights?.history) return [];
+    return nutritionInsights.history.map(day => ({
+      date: new Date(day.date || day.logged_at).toLocaleDateString(),
+      calories: day.calories || 0,
+      meals: 1
     }));
   };
 
   const prepareWeeklyData = () => {
-    if (!nutritionInsights?.weekly_trend) return [];
-    return nutritionInsights.weekly_trend.map(week => ({
-      week: `Week ${week.week_number}`,
-      calories: week.avg_calories || 0,
-      meals: week.total_meals || 0
+    if (!nutritionInsights?.history) return [];
+    return nutritionInsights.history.map((item, index) => ({
+      week: `Day ${index + 1}`,
+      calories: item.calories || 0,
+      meals: 1
     }));
   };
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
-  // Render nutrition insights section
+
   const renderNutritionInsights = () => {
     if (isLoadingInsights) {
       return (
@@ -376,8 +364,12 @@ function ClientMealLogs(){
     }
 
     const dailyData = prepareDailyData();
-    const mealDistribution = prepareMealDistributionData();
     const weeklyData = prepareWeeklyData();
+
+    const pieData = dailyData.map(day => ({
+      name: day.date,
+      value: day.calories
+    }));
 
     return (
       <div className="space-y-6">
@@ -395,12 +387,6 @@ function ClientMealLogs(){
           >
             Weekly Trend
           </button>
-          <button
-            className={`btn btn-sm ${selectedChartType === 'distribution' ? 'btn-primary bg-blue-800' : 'btn-ghost'}`}
-            onClick={() => setSelectedChartType('distribution')}
-          >
-            Meal Distribution
-          </button>
         </div>
 
         {/* Daily Trend Chart */}
@@ -408,16 +394,20 @@ function ClientMealLogs(){
           <div className="bg-base-100 rounded-lg p-4">
             <h3 className="text-lg font-semibold mb-4">Daily Calorie Intake</h3>
             <ResponsiveContainer width="100%" height={400}>
-              <LineChart data={dailyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis yAxisId="left" label={{ value: 'Calories', angle: -90, position: 'insideLeft' }} />
-                <YAxis yAxisId="right" orientation="right" label={{ value: 'Meals', angle: 90, position: 'insideRight' }} />
-                <Tooltip />
-                <Legend />
-                <Line yAxisId="left" type="monotone" dataKey="calories" stroke="#8884d8" name="Calories" />
-                <Line yAxisId="right" type="monotone" dataKey="meals" stroke="#82ca9d" name="Number of Meals" />
-              </LineChart>
+              <PieChart>
+              <Pie data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, value }) => `${name}: ${(value)}`}
+                  outerRadius={150}
+                  fill="#8884d8"
+                  dataKey="value">
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+              </Pie>
+              </PieChart>
             </ResponsiveContainer>
           </div>
         )}
@@ -440,46 +430,15 @@ function ClientMealLogs(){
           </div>
         )}
 
-        {/* Meal Distribution Chart */}
-        {selectedChartType === 'distribution' && mealDistribution.length > 0 && (
-          <div className="bg-base-100 rounded-lg p-4">
-            <h3 className="text-lg font-semibold mb-4">Meal Distribution</h3>
-            <ResponsiveContainer width="100%" height={400}>
-              <PieChart>
-                <Pie
-                  data={mealDistribution}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={150}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {mealDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-
         {/* Summary Statistics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
           <div className="bg-base-100 rounded-lg p-4 text-center">
             <p className="text-sm opacity-70">Total Meals Logged</p>
-            <p className="text-2xl font-bold">{nutritionInsights.total_meals_logged || 0}</p>
+            <p className="text-2xl font-bold">{nutritionInsights.summary?.days_logged || 0}</p>
           </div>
           <div className="bg-base-100 rounded-lg p-4 text-center">
             <p className="text-sm opacity-70">Average Daily Calories</p>
-            <p className="text-2xl font-bold">{Math.round(nutritionInsights.avg_daily_calories || 0)}</p>
-          </div>
-          <div className="bg-base-100 rounded-lg p-4 text-center">
-            <p className="text-sm opacity-70">Total Calories Consumed</p>
-            <p className="text-2xl font-bold">{nutritionInsights.total_calories_consumed || 0}</p>
+            <p className="text-2xl font-bold">{Math.round(nutritionInsights.summary?.avg_daily_calories|| 0)}</p>
           </div>
         </div>
       </div>
@@ -497,13 +456,6 @@ function ClientMealLogs(){
           <div className="mb-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Nutrition Insights</h2>
-              <button 
-                className="btn btn-sm btn-ghost"
-                onClick={fetchNutritionInsights}
-                disabled={isLoadingInsights}
-              >
-                {isLoadingInsights ? 'Refreshing...' : 'Refresh'}
-              </button>
             </div>
             {renderNutritionInsights()}
           </div>

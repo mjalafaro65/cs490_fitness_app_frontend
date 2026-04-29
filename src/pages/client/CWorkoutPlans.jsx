@@ -713,30 +713,23 @@ function ClientWorkoutPlans() {
     <div className="drawer lg:drawer-open">
       <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
       <div className="drawer-content">
-        <section className="p-6 flex flex-col gap-6">
-          <div className="text-2xl font-bold mb-4">My Workout Plans</div>
+        <section className="p-6 flex flex-col gap-4">
+          <div className="flex text-2xl font-bold">My Workout Plans</div>
+          <div className="p-6 flex gap-4">
 
           {!loadingInsights && workoutInsights && (
-            <div className="grid grid-cols-6 gap-4 mb-4">
-              <div className="card bg-base-300 rounded-box p-3 text-center">
+            <div className="grid grid-row-6 gap-4 mb-4">
+              <div className="card bg-base-300 rounded-box p-4 text-center">
                 <p className="text-xs opacity-70">Total Workouts</p>
-                <p className="text-2xl font-bold text-blue-400">{workoutInsights.total || 0}</p>
+                <p className="text-xl font-bold text-blue-400">{workoutInsights.total || 0}</p>
               </div>
-              <div className="card bg-base-300 rounded-box p-3 text-center">
-                <p className="text-xs opacity-70">Completion Rate</p>
-                <p className="text-2xl font-bold text-blue-800">{workoutInsights.completion_rate || 0}%</p>
-              </div>
-              <div className="card bg-base-300 rounded-box p-3 text-center">
+              <div className="card bg-base-300 rounded-box p-4 text-center">
                 <p className="text-xs opacity-70">Current Streak</p>
-                <p className="text-2xl font-bold text-blue-300">{workoutInsights.current_streak_days || 0} days</p>
+                <p className="text-xl font-bold text-blue-300">{workoutInsights.current_streak_days || 0} days</p>
               </div>
-              <div className="card bg-base-300 rounded-box p-3 text-center">
+              <div className="card bg-base-300 rounded-box p-4 text-center">
                 <p className="text-xs opacity-70">Scheduled</p>
-                <p className="text-2xl font-bold text-cyan-400">{workoutInsights.scheduled || 0}</p>
-              </div>
-              <div className="card bg-base-300 rounded-box p-3 text-center">
-                <p className="text-xs opacity-70">Canceled/Skipped</p>
-                <p className="text-2xl font-bold text-blue-600">{(workoutInsights.canceled || 0) + (workoutInsights.skipped || 0)}</p>
+                <p className="text-xl font-bold text-blue-800">{workoutInsights.scheduled || 0}</p>
               </div>
             </div>
           )}
@@ -813,7 +806,7 @@ function ClientWorkoutPlans() {
                 })}
               </div>
               
-              <div className="flex gap-4 mt-4 text-xs justify-center">
+              <div className="flex gap-4 text-xs justify-center">
                 <div className="flex items-center gap-1">
                   <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
                   <span className="opacity-70">Has Workout</span>
@@ -836,7 +829,6 @@ function ClientWorkoutPlans() {
               ) : selectedWorkouts.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-sm opacity-70">No workouts planned for this day.</p>
-                  <p className="text-xs opacity-50 mt-2">Click on a date with workout dots to see details.</p>
                 </div>
               ) : (
                 <div className="space-y-3 max-h-[400px] overflow-y-auto">
@@ -913,6 +905,7 @@ function ClientWorkoutPlans() {
                 </div>
               )}
             </div>
+          </div>
           </div>
 
           <div className="card bg-base-300 rounded-box p-4">

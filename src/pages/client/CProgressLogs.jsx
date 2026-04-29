@@ -14,12 +14,7 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  PieChart,
-  Pie,
-  Cell
+  ResponsiveContainer
 } from 'recharts';
 
 function ProgressLogs(){
@@ -40,6 +35,9 @@ function ProgressLogs(){
   const [goalsData, setGoalsData] = useState([]);
   const [summaryData, setSummaryData] = useState(null);
   const [loadingInsights, setLoadingInsights] = useState(true);
+
+  const [beforeImage, setBeforeImage] = useState(null);
+  const [afterImage, setAfterImage] = useState(null);
   
   const [timeView, setTimeView] = useState('weekly');
 
@@ -67,10 +65,14 @@ function ProgressLogs(){
   })
 
   const [goalData, setGoalData] = useState({
-    description: "",
     goal_type: "",
-    target_date: "",
-    status: "active"
+    status: "active",
+    title: "",
+    target_value: "",
+    unit: "",
+    start_date: "",
+    end_date: "",
+    description: ""
   });
 
   useEffect(() => {
@@ -218,48 +220,25 @@ function ProgressLogs(){
       });
     };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try{
-      await api.post("/workouts/workout-logs", logData);
-      setPopOpen(null);
-      showAlert("Workout logged successfully!", "success");
-
-      setLogData({
-        exercise_id: 0,
-        sets: 0,
-        reps: 0, 
-        weight: 0,
-        rpe: 0, 
-        distance: 0, 
-        calories: 0, 
-        duration_minutes: 0, 
-        notes: ""
-      });
-
-    } catch(err){
-      console.error("Failed to save workout log:", err.response?.data || err);
-      showAlert(err.response?.data?.message || "Failed to log workout", "error");
-    }
-  };
-
   const handleCreateGoal = async (e) => {
     e.preventDefault();
-  
-    if (!goalData.description || !goalData.target_date) {
-      alert("Please fill required fields");
-      return;
-    }
   
     try {
       await api.post("/client/create-goal", goalData);
       showAlert("Goal created successfully!", "success");
+
+      const userRes = await api.get("/user/me");
   
       setGoalData({
-        description: "",
+        for_user_id: userRes.data,
         goal_type: "",
-        target_date: "",
-        status: "active"
+        status: "active",
+        title: "",
+        target_value: "",
+        unit: "",
+        start_date: "",
+        end_date: "",
+        description: ""
       });
   
       setPopOpen(null);
@@ -290,6 +269,11 @@ function ProgressLogs(){
             },
             (error, result) => {
                 if (!error && result && result.event === "success") {
+                  if (imageType === 'before') {
+                      setBeforeImage(result.info.secure_url);
+                    } else if (imageType === 'after') {
+                      setAfterImage(result.info.secure_url);
+                    }
                     showAlert("Image uploaded successfully!", "success");
                 }
                 if (error) {
@@ -393,11 +377,11 @@ function ProgressLogs(){
       .sort((a, b) => new Date(a.date) - new Date(b.date))
       .map(entry => ({
         date: new Date(entry.date),
-        sleep: entry.sleep_hours || 0,
-        mood: entry.mood_score || 0,
-        energy: entry.energy_level || 0,
-        water: entry.water_oz || 0,
-        weight: entry.weight_lbs || 0
+        sleep: entry.sleep_hours || "",
+        mood: entry.mood_score || "",
+        energy: entry.energy_level || "",
+        water: entry.water_oz || "",
+        weight: entry.weight_lbs || ""
       }));
 
     let filteredSurveyData = filterDataByPeriod(surveyChartDataRaw, timeView);
@@ -578,11 +562,6 @@ function ProgressLogs(){
             </div>
           )}
 
-          <div className="flex justify-end gap-2">
-            <button className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={() => setPopOpen("create")}>Create New Goal</button>
-            <button className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={() => setPopOpen("log")}>Log Activity</button>
-          </div>
-
           <div className="card bg-base-300 rounded-box p-4">
             <h2 className="text-lg font-bold mb-4">Wellness Trends ({timeView === 'weekly' ? 'Last 7 Days' : timeView === 'monthly' ? 'This Month' : 'By Month'})</h2>
             <div className="grid grid-cols-2 gap-4">
@@ -702,32 +681,13 @@ function ProgressLogs(){
             )}
           </div>
           <div className="flex w-full h-80 gap-4">
-            {/*
-            <div className="card bg-base-300 rounded-box flex-1 grow p-4">
-              <h2 className="text-lg font-bold mb-4">Strength Progress</h2>
-              {loadingInsights ? (
-                <div className="flex items-center justify-center h-48">
-                  <p className="text-sm opacity-50">Loading...</p>
-                </div>
-              ) : strengthData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={200}>
-                  <BarChart data={strengthData} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                    <XAxis type="number" tick={{ fontSize: 10, fill: '#9CA3AF' }} />
-                    <YAxis dataKey="exercise" type="category" tick={{ fontSize: 10, fill: '#9CA3AF' }} width={90} />
-                    <Tooltip contentStyle={{ backgroundColor: '#ffffff', border: 'none', borderRadius: '8px' }} />
-                    <Bar dataKey="max_weight" fill="#3b82f6" name="Max Weight (lbs)" />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex items-center justify-center h-48">
-                  <p className="text-sm opacity-50">No strength data available</p>
-                </div>
-              )}
-            </div>
-            */}
             <div className="card bg-base-300 rounded-box w-1/3 grow p-4">
+            <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold mb-4">Goals Progress</h2>
+                <button className="btn btn-primary bg-blue-800 btn-sm" onClick={() => setPopOpen("create")}>
+                  Add New Goal
+                </button>
+              </div>
               {loadingInsights ? (
                 <div className="flex items-center justify-center h-48">
                   <p className="text-sm opacity-50">Loading...</p>
@@ -757,41 +717,10 @@ function ProgressLogs(){
                   <p className="text-sm opacity-50">No goals data available</p>
                 </div>
               )}
-              <div className="mt-4">
-                <button className="btn btn-primary bg-blue-800 btn-sm w-full" onClick={() => setPopOpen("create")}>
-                  Add New Goal
-                </button>
-              </div>
             </div>
           </div>
-
-          <div className="card bg-base-300 rounded-box p-4">
-            <h2 className="text-lg font-bold mb-4">Water Intake Trend ({timeView === 'weekly' ? 'Last 7 Days' : timeView === 'monthly' ? 'This Month' : 'By Month'})</h2>
-            {loadingInsights ? (
-              <div className="flex items-center justify-center h-64">
-                <p className="text-sm opacity-50">Loading...</p>
-              </div>
-            ) : surveyChartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={250}>
-                <AreaChart data={surveyChartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis dataKey={timeView === 'yearly' ? 'period' : 'date'} tick={{ fontSize: 10, fill: '#9CA3AF' }} />
-                  <YAxis tick={{ fontSize: 10, fill: '#9CA3AF' }} />
-                  <Tooltip contentStyle={{ backgroundColor: '#ffffff', border: 'none', borderRadius: '8px' }} />
-                  <Area type="monotone" dataKey="water" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.3} name="Water (oz)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-64">
-                <p className="text-sm opacity-50">No water intake data available</p>
-              </div>
-            )}
-          </div>
-        </section>
-        {/* edit the space here, make it smaller */}
-        <section className="p-7 flex flex-col md:flex-row items-start gap-6">
             <form className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full p-6 bg-white rounded-xl shadow-lg border border-gray-100 dark:bg-gray-800">
-                  <div className="form-control md:col-span-2">
+                  <div className="form-control">
                     <label className="label font-semibold text-gray-600 dark:text-gray-300">Before Photo:</label>
                     <div className="flex items-center gap-4">
                         <button
@@ -802,8 +731,21 @@ function ProgressLogs(){
                           Upload Before Image
                         </button>
                     </div>
+
+                  <div className="h-48 bg-gray-100 dark:bg-gray-700 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center overflow-hidden">
+                    {beforeImage ? (
+                      <img src={beforeImage} alt="Before" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="text-center text-gray-400">
+                        <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span className="text-sm">No image uploaded</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="form-control md:col-span-2">
+                <div className="form-control">
                     <label className="label font-semibold text-gray-600 dark:text-gray-300">After Photo:</label>
                     <div className="flex items-center gap-4">
                         <button
@@ -814,6 +756,19 @@ function ProgressLogs(){
                           Upload After Image
                         </button>
                     </div>
+
+                          <div className="w-full h-48 bg-gray-100 dark:bg-gray-700 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center overflow-hidden">
+        {beforeImage ? (
+          <img src={beforeImage} alt="Before" className="w-full h-full object-cover" />
+        ) : (
+          <div className="text-center text-gray-400">
+            <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span className="text-sm">No image uploaded</span>
+          </div>
+        )}
+      </div>
                 </div>
             </form>
         </section>
@@ -822,75 +777,111 @@ function ProgressLogs(){
     <PopUp isOpen={isPopOpen !== null} onClose={() => setPopOpen(null)}>
       {isPopOpen === "create" && (
         <>
-          <form onSubmit={handleCreateGoal} className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+          <form
+            onSubmit={handleCreateGoal}
+            className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4"
+          >
             <h2 className="text-xl font-bold mb-4">Create a New Goal</h2>
-              <label className="label flex flex-col items-start gap-1 mb-2">
-                <span>Goal Name:</span>
-                <input className="input input-bordered w-full" type="text" name="description" value={goalData.description} onChange={handleGoalChange} required/>
-              </label>
-              <label className="label flex flex-col items-start gap-1 mb-2">
-                <span>Goal Type:</span>
-                <input className="input input-bordered w-full" type="text" name="goal_type" value={goalData.goal_type} onChange={handleGoalChange} placeholder="e.g., Strength, Cardio, Nutrition"/>
-              </label>
-              <label className="label flex flex-col items-start gap-1 mb-4">
-                <span>Target Date:</span>
-                <input className="input input-bordered w-full" type="date" name="target_date" value={goalData.target_date} onChange={handleGoalChange} required/>
-              </label>
-              <button className="btn btn-primary bg-blue-800 w-full" type="submit">Create Goal</button>
+
+            <label className="label flex flex-col items-start gap-1 mb-2">
+              <span>Goal Name:</span>
+              <input
+                className="input input-bordered w-full"
+                type="text"
+                name="title"
+                value={goalData.title}
+                onChange={handleGoalChange}
+                required
+              />
+            </label>
+
+            <label className="label flex flex-col items-start gap-1 mb-2">
+              <span>Goal Type:</span>
+              <input
+                className="input input-bordered w-full"
+                type="text"
+                name="goal_type"
+                value={goalData.goal_type}
+                onChange={handleGoalChange}
+                placeholder="e.g. Weight, Strength, Nutrition"
+                required
+              />
+            </label>
+
+            <label className="label flex flex-col items-start gap-1 mb-2">
+              <span>Description:</span>
+              <textarea
+                className="textarea textarea-bordered w-full"
+                name="description"
+                value={goalData.description}
+                onChange={handleGoalChange}
+              />
+            </label>
+
+            <label className="label flex flex-col items-start gap-1 mb-2">
+              <span>Target Value:</span>
+              <input
+                className="input input-bordered w-full"
+                type="number"
+                name="target_value"
+                value={goalData.target_value}
+                onChange={handleGoalChange}
+                required
+              />
+            </label>
+
+            <label className="label flex flex-col items-start gap-1 mb-2">
+              <span>Unit:</span>
+              <input
+                className="input input-bordered w-full"
+                type="text"
+                name="unit"
+                value={goalData.unit}
+                onChange={handleGoalChange}
+                placeholder="e.g. lbs, reps, miles"
+                required
+              />
+            </label>
+
+            <label className="label flex flex-col items-start gap-1 mb-2">
+              <span>Start Date:</span>
+              <input
+                className="input input-bordered w-full"
+                type="date"
+                name="start_date"
+                value={goalData.start_date}
+                onChange={handleGoalChange}
+                required
+              />
+            </label>
+
+            <label className="label flex flex-col items-start gap-1 mb-4">
+              <span>End Date:</span>
+              <input
+                className="input input-bordered w-full"
+                type="date"
+                name="end_date"
+                value={goalData.end_date}
+                onChange={handleGoalChange}
+                required
+              />
+            </label>
+
+            <button
+              className="btn btn-primary bg-blue-800 w-full"
+              type="submit"
+            >
+              Create Goal
+            </button>
           </form>
         </>
       )}
-
-      {isPopOpen === "log" && (
-      <>
-          <form onSubmit={handleSubmit} className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
-            <h2 className="text-xl font-bold mb-4">Log Activity</h2>
-              <label className="label flex flex-col items-start gap-1 mb-2">
-                <span>Exercise ID:</span>
-                <input className="input input-bordered w-full" type="number" value={logData.exercise_id} name="exercise_id" onChange={handleChange} />
-              </label>
-              <label className="label flex flex-col items-start gap-1 mb-2">
-                <span>Sets:</span>
-                <input className="input input-bordered w-full" type="number" value={logData.sets} name="sets" onChange={handleChange} />
-              </label>
-              <label className="label flex flex-col items-start gap-1 mb-2">
-                <span>Reps:</span>
-                <input className="input input-bordered w-full" type="number" value={logData.reps} name="reps" onChange={handleChange} />
-              </label>
-              <label className="label flex flex-col items-start gap-1 mb-2">
-                <span>Weight (lbs):</span>
-                <input className="input input-bordered w-full" type="number" value={logData.weight} name="weight" onChange={handleChange} />
-              </label>
-              <label className="label flex flex-col items-start gap-1 mb-2">
-                <span>RPE (1-10):</span>
-                <input className="input input-bordered w-full" type="number" value={logData.rpe} name="rpe" onChange={handleChange} min="1" max="10" />
-              </label>
-              <label className="label flex flex-col items-start gap-1 mb-2">
-                <span>Distance (miles):</span>
-                <input className="input input-bordered w-full" type="number" step="0.01" value={logData.distance} name="distance" onChange={handleChange} />
-              </label>
-              <label className="label flex flex-col items-start gap-1 mb-2">
-                <span>Calories Burned:</span>
-                <input className="input input-bordered w-full" type="number" value={logData.calories} name="calories" onChange={handleChange} />
-              </label>
-              <label className="label flex flex-col items-start gap-1 mb-2">
-                <span>Duration (minutes):</span>
-                <input className="input input-bordered w-full" type="number" value={logData.duration_minutes} name="duration_minutes" onChange={handleChange} />
-              </label>
-              <label className="label flex flex-col items-start gap-1 mb-4">
-                <span>Notes:</span>
-                <textarea className="textarea textarea-bordered w-full" value={logData.notes} name="notes" onChange={handleChange} rows="3" />
-              </label>
-              <button className="btn btn-primary bg-blue-800 w-full" type="submit">Log Workout</button>
-          </form>
-      </>
-      )}
     </PopUp>
     <Alert 
-                    isOpen={alert} 
-                    message={alertMsg}
-                    type={alertType}
-                    onClose={() => setShowAlert(false)}/>
+        isOpen={alert} 
+        message={alertMsg}
+        type={alertType}
+        onClose={() => setShowAlert(false)}/>
   </div>
 
   );

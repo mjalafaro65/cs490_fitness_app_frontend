@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from 'react';
 
 function Alert({ isOpen, onClose, message, type = 'success' }) {
-    const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
-            setIsVisible(true);
             const timer = setTimeout(() => {
-                setIsVisible(false);
                 setTimeout(() => onClose(), 300);
             }, 3000);
             return () => clearTimeout(timer);
@@ -17,7 +14,7 @@ function Alert({ isOpen, onClose, message, type = 'success' }) {
     if (!isOpen) return null;
 
     return (
-        <div className={`fixed top-4 right-4 z-50 transition-all duration-300 transform ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}`}>
+        <div className={`fixed top-4 right-4 z-50 transition-all duration-300 transform`}>
             <div className={`rounded-lg shadow-lg p-4 min-w-[300px] max-w-md ${
                 type === 'success' 
                     ? 'bg-green-50 border border-green-200' 
@@ -40,7 +37,6 @@ function Alert({ isOpen, onClose, message, type = 'success' }) {
                     </span>
                     <button 
                         onClick={() => {
-                            setIsVisible(false);
                             setTimeout(() => onClose(), 300);
                         }}
                         className={`flex-shrink-0 cursor-pointer ${
