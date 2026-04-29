@@ -59,7 +59,6 @@ function ClientMealLogs(){
       alertMessage = message;
     }
     
-    console.log("ALERT FUNCTION CALLED with:", alertMessage, type);
     setAlertMsg(alertMessage);
     setAlertType(type);
     setShowAlert(true);
@@ -86,6 +85,11 @@ function ClientMealLogs(){
   });
   const [mealPlans, setMealPlans] = useState([]);
   const [isLoadingPlans, setIsLoadingPlans] = useState(false);
+  const [editingMealPlan, setEditingMealPlan] = useState(null);
+  const [editMealPlanData, setEditMealPlanData] = useState({
+    name: "",
+    description: ""
+  });
 
   const fetchUser = async () => {
     try {
@@ -108,7 +112,6 @@ function ClientMealLogs(){
       const response = await api.get("/nutrition/meal-logs", {
         params: { user_id: user.user_id }
       });
-      console.log("Meal history fetched:", response.data);
       setMealHistory(response.data || []);
       //setLargeOpen("history");
     } catch (err) {
@@ -123,7 +126,6 @@ function ClientMealLogs(){
   const fetchMealLogDetails = async (logId) => {
     try {
       const response = await api.get(`/nutrition/meal-logs/${logId}`);
-      console.log("Meal log details:", response.data);
       setSelectedMealLog(response.data);
       setEditLogData({
         servings: response.data.servings || "",
@@ -140,7 +142,6 @@ function ClientMealLogs(){
   const updateMealLog = async (logId, updateData) => {
     try {
       const response = await api.patch(`/nutrition/meal-logs/${logId}`, updateData);
-      console.log("Meal log updated:", response.data);
       showAlert("Meal log updated successfully!", "success");
       await fetchMealHistory();
       setSelectedMealLog(null);
@@ -160,7 +161,6 @@ function ClientMealLogs(){
     
     try {
       await api.delete(`/nutrition/meal-logs/${logId}`);
-      console.log("Meal log deleted:", logId);
       showAlert("Meal log deleted successfully!", "success");
       await fetchMealHistory(); 
       return true;
@@ -230,11 +230,9 @@ function ClientMealLogs(){
     notes: logData.notes || ""
   };
 
-    console.log("Sending request data:", requestData);
     try {
       const response = await api.post("/nutrition/meal-logs", requestData);
 
-      console.log("SUCCESS:", response.data);
       setPopOpen(null);
 
       setData({
@@ -268,7 +266,6 @@ function ClientMealLogs(){
       const response = await api.get("/nutrition/mealplans", {
         params: { user_id: user.user_id }
       });
-      console.log("Meal plans fetched:", response.data);
       setMealPlans(response.data || []);
     } catch (err) {
       console.error("Failed to fetch meal plans:", err.response?.data || err);
@@ -283,11 +280,9 @@ function ClientMealLogs(){
     e.preventDefault();
     
     try {
-      console.log("Creating meal plan:", newMeal);
       
       const response = await api.post("/nutrition/mealplans", newMeal);
       
-      console.log("Meal plan created:", response.data);
       setPopOpen(null);
       
       setNewMeal({
@@ -305,6 +300,55 @@ function ClientMealLogs(){
       const errorMessage = error.response?.data?.message || error.response?.data?.status || "Failed to create meal plan";
       showAlert(errorMessage, "error");
     }
+  };
+
+  const handleEditMealPlan = (plan) => {
+    setEditingMealPlan(plan);
+    setEditMealPlanData({
+      name: plan.name,
+      description: plan.description || ""
+    });
+    setPopOpen("editMealPlan");
+  };
+
+  const handleDeleteMealPlan = async (plan) => {
+    if (!window.confirm("Are you sure you want to delete this meal plan?")) return;
+    
+    try {
+      await api.delete(`/nutrition/mealplans/${plan.meal_plan_id}`);
+      showAlert("Meal plan deleted successfully!", "success");
+      await fetchMealPlans();
+    } catch (error) {
+      console.error("Delete failed:", error.response?.data || error);
+      const errorMessage = error.response?.data?.message || error.response?.data?.status || "Failed to delete meal plan";
+      showAlert(errorMessage, "error");
+    }
+  };
+
+  const handleUpdateMealPlan = async (e) => {
+    e.preventDefault();
+    if (!editingMealPlan) return;
+    
+    try {
+      const response = await api.put(`/nutrition/mealplans/${editingMealPlan.meal_plan_id}`, editMealPlanData);
+      showAlert("Meal plan updated successfully!", "success");
+      setPopOpen(null);
+      setEditingMealPlan(null);
+      setEditMealPlanData({ name: "", description: "" });
+      await fetchMealPlans();
+    } catch (error) {
+      console.error("Update failed:", error.response?.data || error);
+      const errorMessage = error.response?.data?.message || error.response?.data?.status || "Failed to update meal plan";
+      showAlert(errorMessage, "error");
+    }
+  };
+
+  const handleEditMealPlanChange = (e) => {
+    const { name, value } = e.target;
+    setEditMealPlanData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   return (
@@ -385,7 +429,7 @@ function ClientMealLogs(){
             </div>
             </div>
             <div className="card bg-base-300 rounded-box flex-1 p-4 min-w-0">
-              <h2 className="text-lg font-bold mb-2">Meal Plans Listing</h2>
+              <h2 className="text-lg font-bold mb-2">Meal Plans</h2>
               <div className="bg-base-200 rounded-box w-full">
                 {isLoadingPlans ? (
                   <div className="text-center py-8">
@@ -418,16 +462,18 @@ function ClientMealLogs(){
                           <div className="flex gap-2">
                             <button 
                               className="btn btn-sm btn-primary"
-                              onClick={() => {
-                                console.log("Edit meal plan:", plan);
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditMealPlan(plan);
                               }}
                             >
                               Edit
                             </button>
                             <button 
                               className="btn btn-sm bg-red-600 text-white"
-                              onClick={() => {
-                                console.log("Delete meal plan:", plan);
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteMealPlan(plan);
                               }}
                             >
                               Delete
@@ -539,6 +585,56 @@ function ClientMealLogs(){
             <div className="flex gap-3 mt-4">
               <button className="btn bg-blue-800 flex-1 text-white" type="submit">
                 Save Changes
+              </button>
+            </div>
+          </fieldset>
+        </form>
+      )}
+
+      {isPopOpen === "editMealPlan" && editingMealPlan && (
+        <form onSubmit={handleUpdateMealPlan}>
+          <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-full max-w-md border p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Edit Meal Plan</h2>
+            </div>
+            
+            <label className="label">
+              Name:
+              <input 
+                className="input w-full" 
+                type="text" 
+                name="name" 
+                value={editMealPlanData.name} 
+                onChange={handleEditMealPlanChange}
+                required 
+              />
+            </label>
+            
+            <label className="label">
+              Description:
+              <textarea 
+                className="textarea w-full" 
+                name="description" 
+                value={editMealPlanData.description} 
+                onChange={handleEditMealPlanChange}
+                rows="3" 
+              />
+            </label>
+            
+            <div className="flex gap-3 mt-4">
+              <button className="btn bg-blue-800 flex-1 text-white" type="submit">
+                Save Changes
+              </button>
+              <button 
+                className="btn bg-gray-500 flex-1 text-white" 
+                type="button"
+                onClick={() => {
+                  setPopOpen(null);
+                  setEditingMealPlan(null);
+                  setEditMealPlanData({ name: "", description: "" });
+                }}
+              >
+                Cancel
               </button>
             </div>
           </fieldset>
