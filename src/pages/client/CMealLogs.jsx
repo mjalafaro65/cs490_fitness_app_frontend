@@ -5,6 +5,21 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../AuthContext";
 import api from "../../axios";
 import Alert from "../../components/Alert";
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell
+} from 'recharts';
 
 function LargeModal({ open, onClose, children, width = "80vw", height = "85vh" }) {
   if (!open) return null;
@@ -87,6 +102,10 @@ function ClientMealLogs(){
   const [mealPlans, setMealPlans] = useState([]);
   const [isLoadingPlans, setIsLoadingPlans] = useState(false);
 
+  const [nutritionInsights, setNutritionInsights] = useState(null);
+  const [isLoadingInsights, setIsLoadingInsights] = useState(false);
+  const [selectedChartType, setSelectedChartType] = useState('daily');
+
   const fetchUser = async () => {
     try {
       const res = await api.get("/user/me");
@@ -97,6 +116,7 @@ function ClientMealLogs(){
       showAlert(err.response?.data?.message || "Failed to fetch user", "error");
     }
   };
+
   const fetchMealHistory = async () => {
     if (!user?.user_id) {
       showAlert("Please log in to view meal history", "error");
@@ -110,13 +130,33 @@ function ClientMealLogs(){
       });
       console.log("Meal history fetched:", response.data);
       setMealHistory(response.data || []);
-      //setLargeOpen("history");
     } catch (err) {
       console.error("Failed to fetch meal history:", err.response?.data || err);
       const errorMessage = err.response?.data?.message || err.response?.data?.status || "Failed to fetch meal history";
       showAlert(errorMessage, "error");
     } finally {
       setIsLoadingHistory(false);
+    }
+  };
+
+  const fetchNutritionInsights = async () => {
+    if (!user?.user_id) {
+      showAlert("Please log in to view nutrition insights", "error");
+      return;
+    }
+
+    setIsLoadingInsights(true);
+    try {
+      const response = await api.get("/insights/nutrition");
+      console.log("Nutrition insights fetched:", response.data);
+      setNutritionInsights(response.data);
+    } catch (err) {
+      console.error("Failed to fetch nutrition insights:", err.response?.data || err);
+      const errorMessage = err.response?.data?.message || err.response?.data?.status || "Failed to fetch nutrition insights";
+      showAlert(errorMessage, "error");
+      setNutritionInsights(null);
+    } finally {
+      setIsLoadingInsights(false);
     }
   };
 
@@ -143,6 +183,7 @@ function ClientMealLogs(){
       console.log("Meal log updated:", response.data);
       showAlert("Meal log updated successfully!", "success");
       await fetchMealHistory();
+      await fetchNutritionInsights(); 
       setSelectedMealLog(null);
       setEditLogData({ servings: "", notes: "" });
       return response.data;
@@ -154,7 +195,6 @@ function ClientMealLogs(){
     }
   };
 
-
   const deleteMealLog = async (logId) => {
     if (!window.confirm("Are you sure you want to delete this meal log?")) return false;
     
@@ -162,7 +202,8 @@ function ClientMealLogs(){
       await api.delete(`/nutrition/meal-logs/${logId}`);
       console.log("Meal log deleted:", logId);
       showAlert("Meal log deleted successfully!", "success");
-      await fetchMealHistory(); 
+      await fetchMealHistory();
+      await fetchNutritionInsights(); 
       return true;
     } catch (err) {
       console.error("Failed to delete meal log:", err.response?.data || err);
@@ -180,14 +221,12 @@ function ClientMealLogs(){
       servings: editLogData.servings,
       notes: editLogData.notes
     });
-    //setLargeOpen("history");
   };
 
   const handleDeleteFromEdit = async () => {
     if (!selectedMealLog) return;
     const success = await deleteMealLog(selectedMealLog.meal_log_id);
     if (success) {
-      //setLargeOpen("history");
       setSelectedMealLog(null);
     }
   };
@@ -197,11 +236,19 @@ function ClientMealLogs(){
   }, []);
 
   useEffect(() => {
+<<<<<<< testmerge
+    if (user?.user_id) {
+      fetchMealHistory();
+      fetchNutritionInsights();
+    }
+  }, [user]);
+=======
   if (user?.user_id) {
     fetchMealHistory();
     fetchMealPlans();
   }
 }, [user]);
+>>>>>>> develop3
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -223,12 +270,12 @@ function ClientMealLogs(){
   const handleLogSubmit = async (e) => {
     e.preventDefault();
 
-     const requestData = {
-    meal_id: parseInt(logData.meal_id, 10),
-    calories: parseFloat(logData.calories) || 0,
-    servings: logData.servings ? parseFloat(logData.servings).toString() : "0",
-    notes: logData.notes || ""
-  };
+    const requestData = {
+      meal_id: parseInt(logData.meal_id, 10),
+      calories: parseFloat(logData.calories) || 0,
+      servings: logData.servings ? parseFloat(logData.servings).toString() : "0",
+      notes: logData.notes || ""
+    };
 
     console.log("Sending request data:", requestData);
     try {
@@ -245,10 +292,10 @@ function ClientMealLogs(){
         notes: ""
       });
 
-      setPopOpen(null);
       showAlert("Meal logged successfully!", "success");
 
       await fetchMealHistory();
+      await fetchNutritionInsights(); 
 
     } catch (error) {
       console.error("Update failed:", error.response?.data || error);
@@ -307,18 +354,147 @@ function ClientMealLogs(){
     }
   };
 
+  const prepareDailyData = () => {
+    if (!nutritionInsights?.history) return [];
+    return nutritionInsights.history.map(day => ({
+      date: new Date(day.date || day.logged_at).toLocaleDateString(),
+      calories: day.calories || 0,
+      meals: 1
+    }));
+  };
+
+  const prepareWeeklyData = () => {
+    if (!nutritionInsights?.history) return [];
+    return nutritionInsights.history.map((item, index) => ({
+      week: `Day ${index + 1}`,
+      calories: item.calories || 0,
+      meals: 1
+    }));
+  };
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+
+
+  const renderNutritionInsights = () => {
+    if (isLoadingInsights) {
+      return (
+        <div className="card bg-base-300 rounded-box p-6">
+          <div className="text-center py-8">
+            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <p className="mt-2 opacity-70">Loading nutrition insights...</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (!nutritionInsights) {
+      return (
+        <div className="card bg-base-300 rounded-box p-6">
+          <div className="text-center py-8">
+            <p className="opacity-70">No nutrition data available yet.</p>
+            <p className="text-sm opacity-50 mt-2">Start logging meals to see your nutrition insights!</p>
+          </div>
+        </div>
+      );
+    }
+
+    const dailyData = prepareDailyData();
+    const weeklyData = prepareWeeklyData();
+
+    const pieData = dailyData.map(day => ({
+      name: day.date,
+      value: day.calories
+    }));
+
+    return (
+      <div className="space-y-6">
+        {/* Chart Type Selector */}
+        <div className="flex gap-2 mb-4">
+          <button
+            className={`btn btn-sm ${selectedChartType === 'daily' ? 'btn-primary bg-blue-800' : 'btn-ghost'}`}
+            onClick={() => setSelectedChartType('daily')}
+          >
+            Daily Trend
+          </button>
+          <button
+            className={`btn btn-sm ${selectedChartType === 'weekly' ? 'btn-primary bg-blue-800' : 'btn-ghost'}`}
+            onClick={() => setSelectedChartType('weekly')}
+          >
+            Weekly Trend
+          </button>
+        </div>
+
+        {/* Daily Trend Chart */}
+        {selectedChartType === 'daily' && dailyData.length > 0 && (
+          <div className="bg-base-100 rounded-lg p-4">
+            <h3 className="text-lg font-semibold mb-4">Daily Calorie Intake</h3>
+            <ResponsiveContainer width="100%" height={400}>
+              <PieChart>
+              <Pie data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, value }) => `${name}: ${(value)}`}
+                  outerRadius={150}
+                  fill="#8884d8"
+                  dataKey="value">
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+              </Pie>
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {/* Weekly Trend Chart */}
+        {selectedChartType === 'weekly' && weeklyData.length > 0 && (
+          <div className="bg-base-100 rounded-lg p-4">
+            <h3 className="text-lg font-semibold mb-4">Weekly Average Calories</h3>
+            <ResponsiveContainer width="100%" height={400}>
+              <BarChart data={weeklyData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="week" />
+                <YAxis label={{ value: 'Average Calories', angle: -90, position: 'insideLeft' }} />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="calories" fill="#8884d8" name="Avg Calories" />
+                <Bar dataKey="meals" fill="#82ca9d" name="Total Meals" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {/* Summary Statistics */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+          <div className="bg-base-100 rounded-lg p-4 text-center">
+            <p className="text-sm opacity-70">Total Meals Logged</p>
+            <p className="text-2xl font-bold">{nutritionInsights.summary?.days_logged || 0}</p>
+          </div>
+          <div className="bg-base-100 rounded-lg p-4 text-center">
+            <p className="text-sm opacity-70">Average Daily Calories</p>
+            <p className="text-2xl font-bold">{Math.round(nutritionInsights.summary?.avg_daily_calories|| 0)}</p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="drawer lg:drawer-open">
       <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
       <div className="drawer-content">
         <section className="p-6 flex flex-col gap-6">
           <div className="text-2xl font-bold mb-4">My Meal Plans</div>
-              {/*<div className="flex justify-end gap-2">
-                <button type="button" className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={() => setPopOpen("log")}>Log Meals</button>
-                <button className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={() => setLargeOpen("browse")}>Browse Meals</button>
-                <button className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={fetchMealHistory}>Meal History</button>
-              </div>
-              */}
+          
+          {/* Nutrition Insights Section */}
+          <div className="mb-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Nutrition Insights</h2>
+            </div>
+            {renderNutritionInsights()}
+          </div>
+
           <div className="flex w-full gap-4 items-start">
             <div className="card bg-base-300 rounded-box flex-1 p-4 min-w-0">
               <h2 className="text-lg font-bold mb-2">Previously Logged Meals</h2>
@@ -448,13 +624,6 @@ function ClientMealLogs(){
                 </div>
             </div>
           </div>
-          {/*
-            <div className="card bg-base-300 rounded-box grow p-4">
-              <h2 className="text-lg font-bold mb-2">View Meal Plans</h2>
-              <span className="text-sm opacity-70 mb-3">No currently existing plans</span>
-            </div>
-          </div>
-          */}
         </section>
       </div>
 

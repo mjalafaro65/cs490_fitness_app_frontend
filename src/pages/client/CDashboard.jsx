@@ -10,6 +10,16 @@ import api from "../../axios";
 
 import Alert from "../../components/Alert.jsx";
 
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer
+} from 'recharts';
+
 
 function getWeekDays(anchorDate) {
 
@@ -89,6 +99,10 @@ function CDashboard() {
     mood_score: ""
 
   });
+
+  const [insightsData, setInsightsData] = useState([]);
+  const [insightsLoading, setInsightsLoading] = useState(true);
+  const [weeklyInsightsData, setWeeklyInsightsData] = useState([]);
 
   const [alert, setShowAlert] = useState(false);
   const [alertMsg, setAlertMsg] = useState('');
@@ -438,6 +452,86 @@ function CDashboard() {
 
   }, []);
 
+  const filterDataForCurrentWeek = (data) => {
+    if (!data.length) return [];
+    
+    const weekStart = weekDays[0];
+    const weekEnd = weekDays[6];
+    
+    // Create date strings for comparison (YYYY-MM-DD format)
+    const weekStartStr = `${weekStart.getFullYear()}-${String(weekStart.getMonth() + 1).padStart(2, '0')}-${String(weekStart.getDate()).padStart(2, '0')}`;
+    const weekEndStr = `${weekEnd.getFullYear()}-${String(weekEnd.getMonth() + 1).padStart(2, '0')}-${String(weekEnd.getDate()).padStart(2, '0')}`;
+    
+    console.log("Filtering for week:", weekStartStr, "to", weekEndStr);
+    console.log("Data entries:", data.map(d => ({ date: d.date, dateStr: d.dateStr })));
+    
+     const filtered = data.filter(item => {
+      if (!item.dateStr) return false;
+      return item.dateStr >= weekStartStr && item.dateStr <= weekEndStr;
+    });
+    
+    console.log("Filtered data:", filtered);
+    return filtered;
+  };
+
+  useEffect(() => {
+    fetchScheduledWorkouts(weekAnchor, "week");
+  }, [weekAnchor]);
+
+
+  useEffect(() => {
+    async function fetchInsights() {
+      setInsightsLoading(true);
+      try {
+        const response = await api.get("/insights/survey");
+        console.log("Insights response:", response.data);
+        
+        const historyArray = response.data?.history || [];
+        
+        const transformedData = historyArray
+          .filter(entry => entry.date)
+          .sort((a, b) => new Date(a.date) - new Date(b.date)) 
+          .map(entry => {
+            const dateObj = new Date(entry.date);
+            dateObj.setHours(0, 0, 0, 0);
+
+          const year = dateObj.getFullYear();
+          const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+          const day = String(dateObj.getDate()).padStart(2, '0');
+          const dateStr = `${year}-${month}-${day}`;
+
+            return {
+            date: dateObj,
+            dateStr: dateStr,
+            displayDate: `${month}/${day}`,
+            sleep: entry.sleep_hours || 0,
+            mood: entry.mood_score || 0,
+            energy: entry.energy_level || 0,
+            water: entry.water_oz || 0,
+            weight: entry.weight_lbs || 0
+          };
+          });
+        
+        setInsightsData(transformedData);
+        console.log("Transformed chart data:", transformedData);
+      } catch (err) {
+        console.error("Failed to fetch insights:", err);
+      } finally {
+        setInsightsLoading(false);
+      }
+    }
+    
+    fetchInsights();
+  }, []);
+
+
+  useEffect(() => {
+    console.log("Updating weekly data, weekAnchor:", weekAnchor);
+    console.log("Insights data:", insightsData);
+    const filtered = filterDataForCurrentWeek(insightsData);
+    setWeeklyInsightsData(filtered);
+  }, [weekAnchor, insightsData]);
+
 
 
   const handleChange = (e) => {
@@ -483,9 +577,30 @@ function CDashboard() {
 
       setPopOpen(null);
 
-
       console.log("Survey submitted successfully");
       showAlert("Daily wellness logged successfully!", "success");
+
+      const insightsResponse = await api.get("/insights/survey");
+      const historyArray = insightsResponse.data?.history || [];
+      const transformedData = historyArray
+        .filter(entry => entry.date)
+        .sort((a, b) => new Date(a.date) - new Date(b.date))
+        .map(entry => {
+          const dateObj = new Date(entry.date);
+          dateObj.setHours(0, 0, 0, 0);
+          return {
+            date: dateObj,
+            dateStr: dateObj.toISOString().split('T')[0],
+            displayDate: dateObj.toLocaleDateString('default', { month: 'short', day: 'numeric' }),
+            sleep: entry.sleep_hours || 0,
+            mood: entry.mood_score || 0,
+            energy: entry.energy_level || 0,
+            water: entry.water_oz || 0,
+            weight: entry.weight_lbs || 0
+          };
+        });
+      setInsightsData(transformedData);
+
 
     } catch (error) {
 
@@ -494,8 +609,58 @@ function CDashboard() {
       console.error("Update failed:", error.response?.data || error);
 
     }
-
   };
+
+  const prepareWeeklyChartData = () => {
+    const dataMap = new Map();
+    insightsData.forEach(item => {
+      if (item.dateStr) {
+        dataMap.set(item.dateStr, item);
+      }
+  });
+
+  const last7Days = [];
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    date.setHours(0, 0, 0, 0);
+    last7Days.push(date);
+  }
+  
+  const chartData = last7Days.map(day => {
+    const year = day.getFullYear();
+    const month = String(day.getMonth() + 1).padStart(2, '0');
+    const dayOfMonth = String(day.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${dayOfMonth}`;
+    const dayData = dataMap.get(dateStr);
+  
+    const hasData = dayData && (
+      dayData.sleep > 0 || 
+      dayData.mood > 0 || 
+      dayData.energy > 0 || 
+      dayData.water > 0 || 
+      dayData.weight > 0
+    );
+    
+    return {
+      date: `${month}/${dayOfMonth}`,
+      fullDate: `${month}/${dayOfMonth}/${year}`,
+      actualDate: dateStr,
+      sleep: dayData?.sleep || 0,
+      mood: dayData?.mood || 0,
+      energy: dayData?.energy || 0,
+      water: dayData?.water || 0,
+      weight: dayData?.weight || 0,
+      hasData: hasData,  
+      isLogged: dayData !== undefined  
+    };
+  });
+  
+  console.log("Chart data with dates:", chartData);
+  return chartData;
+};
+
+const weeklyChartData = prepareWeeklyChartData();
 
 
 
@@ -878,27 +1043,107 @@ function CDashboard() {
             </div>
 
           </div>
+          <div className="w-full">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="card bg-base-300 rounded-box p-4 flex">
+                <h2 className="text-lg font-bold mb-2">Sleep Hours</h2>
+                <p className="text-xs opacity-60 mb-4">This week's sleep pattern</p>
+                {insightsLoading ? (
+                  <div className="flex items-center justify-center h-48">
+                    <p className="text-sm opacity-50">Loading...</p>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={200}>
+                    <LineChart data={weeklyChartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                      <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#9CA3AF' }} />
+                      <YAxis domain={[0, 12]} tick={{ fontSize: 10, fill: '#9CA3AF' }} />
+                      <Tooltip 
+                        labelFormatter={(label) => {
+                          const dayData = weeklyChartData.find(d => d.date === label);
+                          return dayData ? dayData.fullDate : label;
+                        }}
+                        formatter={(value, name, props) => {
+                          const dayData = weeklyChartData.find(d => d.date === props.payload.date);
+                          if (!dayData?.hasData && dayData?.isLogged === false) {
+                            return ["No data logged", name];
+                          }
+                          return [`${value}`, name];
+                        }}
+                        contentStyle={{ backgroundColor: '#ffffff', border: 'none', borderRadius: '8px' }} 
+                      />
+                      <Line type="monotone" dataKey="sleep" stroke="#3c74ba" name="Sleep Hours" strokeWidth={2} dot={{ r: 3 }}/>
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
 
-          <div className="flex w-full grow flex-1 gap-4">
+            <div className="card bg-base-300 rounded-box p-4 flex">
+                <h2 className="text-lg font-bold mb-2">Weight</h2>
+                <p className="text-xs opacity-60 mb-4">This week's weight (lbs)</p>
+                {insightsLoading ? (
+                  <div className="flex items-center justify-center h-48">
+                    <p className="text-sm opacity-50">Loading...</p>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={200}>
+                    <LineChart data={weeklyChartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                      <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#9CA3AF' }} />
+                      <YAxis tick={{ fontSize: 10, fill: '#9CA3AF' }} domain={['auto', 'auto']} />
+                      <Tooltip 
+                        labelFormatter={(label) => {
+                          const dayData = weeklyChartData.find(d => d.date === label);
+                          return dayData ? dayData.fullDate : label;
+                        }}
+                        formatter={(value, name, props) => {
+                          const dayData = weeklyChartData.find(d => d.date === props.payload.date);
+                          if (!dayData?.hasData && dayData?.isLogged === false) {
+                            return ["No data logged", name];
+                          }
+                          return [`${value}`, name];
+                        }}
+                        contentStyle={{ backgroundColor: '#ffffff', border: 'none', borderRadius: '8px' }} 
+                      />
+                      <Line type="monotone" dataKey="weight" stroke="#5cbbf6" name="Weight (lbs)" strokeWidth={2} dot={{ r: 3 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
 
-            <div className="card bg-base-300 rounded-box grow p-4">
-
-              <h2 className="text-lg font-bold mb-2">Graph 1</h2>
-
+              <div className="card bg-base-300 rounded-box p-4 flex">
+                <h2 className="text-lg font-bold mb-2">Water Intake</h2>
+                <p className="text-xs opacity-60 mb-4">This week's water (oz)</p>
+                {insightsLoading ? (
+                  <div className="flex items-center justify-center h-48">
+                    <p className="text-sm opacity-50">Loading...</p>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={200}>
+                    <LineChart data={weeklyChartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                      <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#9CA3AF' }} />
+                      <YAxis tick={{ fontSize: 10, fill: '#9CA3AF' }} domain={['auto', 'auto']} />
+                      <Tooltip 
+                        labelFormatter={(label) => {
+                          const dayData = weeklyChartData.find(d => d.date === label);
+                          return dayData ? dayData.fullDate : label;
+                        }}
+                        formatter={(value, name, props) => {
+                          const dayData = weeklyChartData.find(d => d.date === props.payload.date);
+                          if (!dayData?.hasData && dayData?.isLogged === false) {
+                            return ["No data logged", name];
+                          }
+                          return [`${value}`, name];
+                        }}
+                        contentStyle={{ backgroundColor: '#ffffff', border: 'none', borderRadius: '8px' }} 
+                      />
+                      <Line type="monotone" dataKey="water" stroke="#194dfa" name="Water (oz)" strokeWidth={2} dot={{ r: 3 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
             </div>
-
-            <div className="card bg-base-300 rounded-box grow p-4">
-
-              <h2 className="text-lg font-bold mb-2">Graph 2</h2>
-
-            </div>
-
-            <div className="card bg-base-300 rounded-box grow p-4">
-
-              <h2 className="text-lg font-bold mb-2">Graph 3</h2>
-
-            </div>
-
           </div>
 
         </section>
