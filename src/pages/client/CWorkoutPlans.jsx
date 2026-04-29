@@ -720,7 +720,7 @@ function ClientWorkoutPlans() {
 
           <div className="flex w-full gap-4">
             {/* Calendar Section - Visual Monthly Grid */}
-            <div className="card bg-base-300 rounded-box w-1/2 p-4">
+            <div className="card bg-base-300 rounded-box flex-1 p-4">
               <h2 className="text-lg font-bold mb-2">Calendar</h2>
               <div className="flex justify-between items-center mb-3">
                 <button 
