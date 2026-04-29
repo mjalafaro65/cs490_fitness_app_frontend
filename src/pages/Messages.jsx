@@ -17,18 +17,13 @@ function Messages() {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [relationships, setRelationships] = useState([]);
 
+
   const messagesEndRef = useRef(null);
 
-  const {fetchUnreadCount}=useMessaging()
+  const { fetchUnreadCount } = useMessaging()
 
 
 
-
-  const fetchConversations = async () => {
-    const res = await api.get("/messaging/conversations");
-    console.log(res.data)
-    setConversations(res.data);
-  };
 
   const fetchMessages = async (conversationId) => {
     const res = await api.get(`/messaging/conversations/${conversationId}/messages`);
@@ -36,18 +31,10 @@ function Messages() {
     setMessages(res.data);
   };
 
-  // const fetchOnlineUsers = async () => {
-  //   const res = await api.get("/messaging/users/online");
-  //   setOnlineUsers(res.data);
-  // };
-
-  // const fetchRelationships = async () => {
-  //   const res = await api.get("/messaging/relationships");
-  //   console.log(res.data)
-  //   setRelationships(res.data);
-  // };
-
-  // ---------------- ACTIONS ----------------
+  const fetchOnlineUsers = async () => {
+    const res = await api.get("/messaging/users/online");
+    setOnlineUsers(res.data);
+  };
 
 
 
@@ -114,19 +101,17 @@ function Messages() {
     };
 
     fetchRelationships()
-    fetchConversations();
-    // fetchOnlineUsers();
+  }, []);
+  useEffect(() => {
+    fetchOnlineUsers();
+
+    const interval = setInterval(() => {
+      fetchOnlineUsers();
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
-  // useEffect(() => {
-  //   if (!selectedConversation) return;
-
-  //   const interval = setInterval(() => {
-  //     fetchMessages(selectedConversation.conversation_id);
-  //   }, 3000);
-
-  //   return () => clearInterval(interval);
-  // }, [selectedConversation]);
 
   useEffect(() => {
     if (!selectedConversation) return;
@@ -147,7 +132,7 @@ function Messages() {
       setSelectedConversation(location.state.conversation);
       fetchMessages(location.state.conversation.conversation_id);
     }
-    
+
     // Handle starting conversation with coach from coach profile
     if (location.state?.coachUser) {
       handleStartConversationWithCoach(location.state.coachUser);
@@ -157,10 +142,10 @@ function Messages() {
   const handleStartConversationWithCoach = async (coachUser) => {
     try {
       // Check if conversation already exists with this coach
-      const existingConversation = conversations.find(conv => 
+      const existingConversation = conversations.find(conv =>
         conv.participants?.some(participant => participant.user_id === coachUser.user_id)
       );
-      
+
       if (existingConversation) {
         // Conversation already exists, select it
         setSelectedConversation(existingConversation);
@@ -172,13 +157,13 @@ function Messages() {
       try {
         const relationshipsRes = await api.get("/messaging/relationships");
         const relationships = relationshipsRes.data;
-        
+
         // Find relationship with this coach
-        const coachRelationship = relationships.find(rel => 
+        const coachRelationship = relationships.find(rel =>
           (rel.coach?.user_id === coachUser.user_id || rel.client?.user_id === coachUser.user_id) &&
           rel.status === "active"
         );
-        
+
         if (coachRelationship) {
           // Create conversation with existing relationship
           const response = await api.post("/messaging/conversations", {
@@ -186,7 +171,7 @@ function Messages() {
             conversation_type: "direct",
             participant_ids: [user.user_id, coachUser.user_id]
           });
-          
+
           const newConversation = response.data;
           setSelectedConversation(newConversation);
           fetchMessages(newConversation.conversation_id);
@@ -229,7 +214,7 @@ function Messages() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-  
+
   return (
     <div className="drawer lg:drawer-open">
       <div className="drawer-content p-6 flex flex-col gap-6">
@@ -242,45 +227,59 @@ function Messages() {
           <div className="w-1/3 bg-base-200 border-r overflow-y-auto p-3 flex flex-col gap-2">
             <h3 className="font-semibold">Inbox</h3>
 
-            {conversations.map((conv) => (
-              <div
-                key={conv.conversation_id}
-                onClick={() => handleSelectConversation(conv)}
-                className={`p-3 flex items-center gap-3 cursor-pointer rounded-lg hover:bg-base-200 transition ${selectedConversation?.conversation_id === conv.conversation_id
-                  ? "bg-base-300"
-                  : ""
-                  }`}
-              >
-                {/* PROFILE PIC */}
-                <div className="avatar">
-                  <div className="w-10 rounded-full">
-                    <img
-                      src={
-                        conv.other_user?.profile_picture || "https://ui-avatars.com/api/?name=" +  conv.other_user?.first_name
-                      }
-                    />
+            {conversations.map((conv) => {
+
+              const isOnline = onlineUsers.some(
+                (u) => u.user_id === conv.other_user?.user_id
+              );
+
+              return (
+                <div
+                  key={conv.conversation_id}
+                  onClick={() => handleSelectConversation(conv)}
+                  className={`p-3 flex items-center gap-3 cursor-pointer rounded-lg hover:bg-base-200 transition ${selectedConversation?.conversation_id === conv.conversation_id
+                    ? "bg-base-300"
+                    : ""
+                    }`}
+                >
+                  {/* PROFILE PIC */}
+                  <div className="avatar">
+                    <div className="w-10 rounded-full">
+                      <img
+                        src={
+                          conv.other_user?.profile_picture ||
+                          "https://ui-avatars.com/api/?name=" +
+                          conv.other_user?.first_name
+                        }
+                      />
+                    </div>
                   </div>
+
+                  {/* TEXT */}
+                  <div className="flex flex-col flex-1">
+                    <div className="flex items-center gap-2 font-semibold text-sm">
+                      {conv.other_user?.first_name} {conv.other_user?.last_name}
+
+                      {/* ONLINE DOT */}
+                      {isOnline && (
+                        <div className="w-2 h-2 bg-green-500 rounded-full" />
+                      )}
+                    </div>
+
+                    <div className="text-xs text-gray-500 truncate w-40">
+                      {conv.last_message || "No messages yet"}
+                    </div>
+                  </div>
+
+                  {/* UNREAD BADGE */}
+                  {conv.unread_count > 0 && (
+                    <div className="ml-auto bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
+                      {conv.unread_count}
+                    </div>
+                  )}
                 </div>
-
-                {/* TEXT */}
-                <div className="flex flex-col">
-                  <div className="font-semibold text-sm">
-                    {conv.other_user?.first_name} {conv.other_user?.last_name}
-                  </div>
-
-                  <div className="text-xs text-gray-500 truncate w-40">
-                    {conv.last_message || "No messages yet"}
-                  </div>
-                </div>
-
-                {/* UNREAD BADGE */}
-                {conv.unread_count > 0 && (
-                  <div className="ml-auto bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
-                    {conv.unread_count}
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* ================= RIGHT: CHAT ================= */}
