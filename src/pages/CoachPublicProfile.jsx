@@ -41,6 +41,24 @@ const CoachPublicProfile = () => {
     const [availability, setAvailability] = useState([]);
     const [availabilityLoading, setAvailabilityLoading] = useState(true);
 
+    const typeStyles = {
+        success:
+            "bg-blue-800 text-white border border-blue-600 shadow-lg shadow-blue-900/40",
+
+        error:
+            "bg-red-600 text-white border border-red-400 shadow-lg shadow-red-900/40",
+
+        warning:
+            "bg-gray-800 text-white border border-gray-600 shadow-lg shadow-black/30",
+
+        info:
+            "bg-black text-white border border-gray-700 shadow-lg shadow-black/50"
+    };
+    const [showAlert, setShowAlert] = useState(false);
+    const [type, setType] = useState("success");
+    const [message, setMessage] = useState("");
+
+
     useEffect(() => {
         const fetchCoachProfile = async () => {
             try {
@@ -182,17 +200,29 @@ const CoachPublicProfile = () => {
 
             });
 
-            alert("Hire request sent!");
+            showAlertMessage("Hire request sent!", "success");
+
+
             setShowHireModal(false);
 
         } catch (err) {
             console.error(err.response?.data || err);
-            alert(err.response?.data?.description || "Failed to send request");
+            showAlertMessage("Failed to send hire request", "error");
         } finally {
             setHiring(false);
         }
     }
 
+
+    const showAlertMessage = (msg, type = "success") => {
+        setMessage(msg);
+        setType(type);
+        setShowAlert(true);
+
+        setTimeout(() => {
+            setShowAlert(false);
+        }, 3000);
+    };
 
     if (loading) return <div className="p-10 text-center">Loading profile...</div>;
     if (error || !coach) return <div className="p-10 text-center text-red-500">{error}</div>;
@@ -234,15 +264,15 @@ const CoachPublicProfile = () => {
                                     <button
                                         onClick={() => {
                                             // Navigate to messages page with coach info to start conversation
-                                            navigate("/messages", { 
-                                                state: { 
+                                            navigate("/messages", {
+                                                state: {
                                                     coachUser: {
                                                         user_id: coach.user.user_id,
                                                         first_name: coach.user.first_name,
                                                         last_name: coach.user.last_name,
                                                         coach_profile_id: coach.coach_profile_id
                                                     }
-                                                } 
+                                                }
                                             });
                                         }}
                                         className="btn w-full bg-blue-800 text-white hover:bg-blue-700 mt-2"
@@ -294,7 +324,7 @@ const CoachPublicProfile = () => {
                                                     key={plan.payment_plan_id}
                                                     className="border-2 border-blue-100 rounded-2xl p-6 hover:border-blue-500 transition-all"
                                                 >
-                                                    <span className="badge badge-primary mb-2">
+                                                    <span className="badge bg-blue-800 badge-primary mb-2">
                                                         {plan.billing_type}
                                                     </span>
 
@@ -316,7 +346,7 @@ const CoachPublicProfile = () => {
 
 
                                                     <button
-                                                        className="btn btn-sm btn-block btn-primary"
+                                                        className="btn btn-sm btn-block bg-blue-800 btn-primary"
                                                         onClick={() => {
                                                             if (!isLoggedIn) {
                                                                 navigate("/login");
@@ -562,6 +592,14 @@ const CoachPublicProfile = () => {
                                     </div>
                                 </div>
                             )}
+                            {showAlert && (
+                                <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50">
+                                    <div className={`p-3 rounded-lg shadow-lg ${typeStyles[type]}`}>
+                                        {message}
+                                    </div>
+                                </div>
+                            )}
+
 
 
                         </div>

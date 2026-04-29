@@ -17,7 +17,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 
-function ProgressLogs(){
+function ProgressLogs() {
   const [alert, setShowAlert] = useState(false);
   const [alertMsg, setAlertMsg] = useState('');
   const [alertType, setAlertType] = useState('success');
@@ -601,11 +601,9 @@ function ProgressLogs(){
             >
               Yearly
             </button>
-//           <div className="flex justify-end gap-2">
-//             <button className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={() => setPopOpen("create")}>Create New Goal</button>
-//             <button className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={() => setPopOpen("editGoal")}>Edit Goals</button>
-//             <button className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={() => setPopOpen("editAct")}>Edit Activity</button> 
           </div>
+
+        
           
           {filteredWellnessSummary && filteredWellnessSummary.total_entries > 0 && (
             <div className="grid grid-cols-5 gap-4 mb-4">
