@@ -94,6 +94,7 @@ function CDashboard() {
   const [alertMsg, setAlertMsg] = useState('');
   const [alertType, setAlertType] = useState('success');
 
+
   const showAlert = (message, type = 'success') => {
     console.log("ALERT FUNCTION CALLED with:", message, type);
     setAlertMsg(message);
@@ -104,151 +105,152 @@ function CDashboard() {
   const [scheduledWorkouts, setScheduledWorkouts] = useState([]);
 
   const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(false);
+  const [hiredCoaches, setHiredCoaches] = useState([]);
 
 
 
-const fetchScheduledWorkouts = async (date = null, view = "week") => {
-  setIsLoadingWorkouts(true);
+  const fetchScheduledWorkouts = async (date = null, view = "week") => {
+    setIsLoadingWorkouts(true);
 
-  try {
-    const params = {};
+    try {
+      const params = {};
 
-//     try {
+      //     try {
 
-//       const stored = localStorage.getItem('scheduledWorkouts');
+      //       const stored = localStorage.getItem('scheduledWorkouts');
 
-//       if (stored) {
+      //       if (stored) {
 
-//         const parsed = JSON.parse(stored);
+      //         const parsed = JSON.parse(stored);
 
-//         setScheduledWorkouts(parsed);
+      //         setScheduledWorkouts(parsed);
 
-//         console.log(`Loaded ${parsed.length} workouts from localStorage`);
+      //         console.log(`Loaded ${parsed.length} workouts from localStorage`);
 
-//       }
-
-
-
-//       const plansRes = await api.get("/workouts/plans/mine");
-
-//       const userPlans = plansRes.data.plans || [];
-
-//       const allWorkouts = [];
+      //       }
 
 
 
-//       for (const plan of userPlans) {
+      //       const plansRes = await api.get("/workouts/plans/mine");
 
-//         try {
+      //       const userPlans = plansRes.data.plans || [];
 
-//           const planRes = await api.get(`/workouts/plans/${plan.plan_id}`);
-
-//           const planData = planRes.data;
+      //       const allWorkouts = [];
 
 
 
-//           if (planData.days) {
+      //       for (const plan of userPlans) {
 
-//             planData.days.forEach(day => {
+      //         try {
 
-//               if (day.occurrences && day.occurrences.length > 0) {
+      //           const planRes = await api.get(`/workouts/plans/${plan.plan_id}`);
 
-//                 day.occurrences.forEach(occ => {
-
-//                   allWorkouts.push({
-
-//                     id: occ.id,
-
-//                     plan_id: plan.plan_id,
-
-//                     plan_name: plan.name,
-
-//                     day_label: day.day_label,
-
-//                     day_id: day.plan_day_id,
-
-//                     scheduled_start: occ.scheduled_start,
-
-//                     exercises: day.exercises || [],
-
-//                     date_str: new Date(occ.scheduled_start).toDateString()
-
-//                   });
-
-//                 });
-
-//               }
-
-//             });
-
-//           }
-
-//         } catch (err) {
-
-//           console.error(`Failed to fetch plan ${plan.plan_id}:`, err);
-
-//         }
-
-//       }
+      //           const planData = planRes.data;
 
 
 
-//       if (allWorkouts.length > 0) {
+      //           if (planData.days) {
 
-//         setScheduledWorkouts(allWorkouts);
+      //             planData.days.forEach(day => {
 
-//         localStorage.setItem('scheduledWorkouts', JSON.stringify(allWorkouts));
+      //               if (day.occurrences && day.occurrences.length > 0) {
 
-//         console.log(`Loaded ${allWorkouts.length} workouts from backend`);
+      //                 day.occurrences.forEach(occ => {
 
-//       }
+      //                   allWorkouts.push({
 
-//     } catch (err) {
+      //                     id: occ.id,
 
-//       console.error("Failed to fetch scheduled workouts:", err);
+      //                     plan_id: plan.plan_id,
 
-//     } finally {
+      //                     plan_name: plan.name,
 
-//       setIsLoadingWorkouts(false);
-    if (date) {
-      params.date =
-        date instanceof Date
-          ? date.toISOString().split("T")[0]
-          : date;
+      //                     day_label: day.day_label,
+
+      //                     day_id: day.plan_day_id,
+
+      //                     scheduled_start: occ.scheduled_start,
+
+      //                     exercises: day.exercises || [],
+
+      //                     date_str: new Date(occ.scheduled_start).toDateString()
+
+      //                   });
+
+      //                 });
+
+      //               }
+
+      //             });
+
+      //           }
+
+      //         } catch (err) {
+
+      //           console.error(`Failed to fetch plan ${plan.plan_id}:`, err);
+
+      //         }
+
+      //       }
+
+
+
+      //       if (allWorkouts.length > 0) {
+
+      //         setScheduledWorkouts(allWorkouts);
+
+      //         localStorage.setItem('scheduledWorkouts', JSON.stringify(allWorkouts));
+
+      //         console.log(`Loaded ${allWorkouts.length} workouts from backend`);
+
+      //       }
+
+      //     } catch (err) {
+
+      //       console.error("Failed to fetch scheduled workouts:", err);
+
+      //     } finally {
+
+      //       setIsLoadingWorkouts(false);
+      if (date) {
+        params.date =
+          date instanceof Date
+            ? date.toISOString().split("T")[0]
+            : date;
+      }
+
+      if (view) {
+        params.view = view;
+      }
+
+      const response = await api.get(
+        "/workouts/calendar-workouts-view",
+        { params }
+      );
+
+      const workouts = response.data || [];
+
+      const transformedWorkouts = workouts.map((workout) => ({
+        id: workout.calendar_workout_id,
+        assignment_id: workout.assignment_id,
+        plan_id: workout.plan_day?.plan?.plan_id,
+        plan_name: workout.plan_day?.plan?.name,
+        day_label: workout.plan_day?.day_label,
+        day_id: workout.plan_day?.plan_day_id,
+        scheduled_start: workout.scheduled_start,
+        exercises: workout.plan_day?.exercises || [],
+        date_str: new Date(workout.scheduled_start).toDateString(),
+        session_time: workout.plan_day?.session_time,
+      }));
+
+      setScheduledWorkouts(transformedWorkouts);
+    } catch (err) {
+      console.error("Failed to fetch calendar workouts:", err);
+      showAlert("Failed to fetch workouts", "error");
+    } finally {
+      setIsLoadingWorkouts(false);
     }
-
-    if (view) {
-      params.view = view;
-    }
-
-    const response = await api.get(
-      "/workouts/calendar-workouts-view",
-      { params }
-    );
-
-    const workouts = response.data || [];
-
-    const transformedWorkouts = workouts.map((workout) => ({
-      id: workout.calendar_workout_id,
-      assignment_id: workout.assignment_id,
-      plan_id: workout.plan_day?.plan?.plan_id,
-      plan_name: workout.plan_day?.plan?.name,
-      day_label: workout.plan_day?.day_label,
-      day_id: workout.plan_day?.plan_day_id,
-      scheduled_start: workout.scheduled_start,
-      exercises: workout.plan_day?.exercises || [],
-      date_str: new Date(workout.scheduled_start).toDateString(),
-      session_time: workout.plan_day?.session_time,
-    }));
-
-    setScheduledWorkouts(transformedWorkouts);
-  } catch (err) {
-    console.error("Failed to fetch calendar workouts:", err);
-    showAlert("Failed to fetch workouts", "error");
-  } finally {
-    setIsLoadingWorkouts(false);
-  }
-};
+  };
 
 
 
@@ -391,7 +393,7 @@ const fetchScheduledWorkouts = async (date = null, view = "week") => {
       }
 
     }
-     async function fetchAllInsights() {
+    async function fetchAllInsights() {
       try {
         const [survey, workouts, strength, nutrition, goals, summary] = await Promise.all([
           api.get("/insights/survey?days=30"),
@@ -416,11 +418,23 @@ const fetchScheduledWorkouts = async (date = null, view = "week") => {
       }
     }
 
+    const fetchCoach = async () => {
+      try {
+        const res = await api.get("client/my-coaches");
+        console.log(res.data)
+        setHiredCoaches(res.data.active_relationships)
+
+      } catch (err) {
+        console.log(err);
+      }
+    }
+
     fetchAllInsights();
 
 
 
     fetchUser();
+    fetchCoach();
 
   }, []);
 
@@ -439,6 +453,7 @@ const fetchScheduledWorkouts = async (date = null, view = "week") => {
     }));
 
   };
+
 
 
 
@@ -745,8 +760,30 @@ const fetchScheduledWorkouts = async (date = null, view = "week") => {
 
             <div className="card bg-base-300 rounded-box w-64 p-4 flex flex-col h-72">
               <h2 className="text-lg font-bold mb-2">My Coach</h2>
+              <div className="flex-1 ">
+                {hiredCoaches ? (
+                  hiredCoaches.map((rel) => (
+                    <div key={rel.relationship_id} >
+                      <p className="font-semibold">{rel.coach_name}</p>
+                      <p className="text-xs opacity-70">
+                        Specialty: {rel.specialty}
+                      </p>
+                      <p className="text-xs opacity-60">
+                        Since: {rel.started_at
+                          ? new Date(rel.started_at).toLocaleDateString(undefined, {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })
+                          : "—"}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <span className="text-sm opacity-70">No coach assigned</span>
+                )}
+              </div>
 
-              <span className="text-sm opacity-70 mb-3">No coach assigned</span>
 
               <div className="mt-auto flex justify-center">
 

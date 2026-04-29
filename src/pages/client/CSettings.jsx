@@ -224,18 +224,20 @@ function CSettings() {
                     <div className="text-2xl font-bold mb-2">Settings</div>
                     <section className="p-10 flex flex-col md:flex-row gap-30 items-start">
                         <div className="flex-shrink-0 flex flex-col items-center">
-                            {initialData?.profile_photo ? (
-
-                                 <button
+                            <div className="flex-shrink-0 w-35 h-35 rounded-full overflow-hidden border-2 border-gray-300 ">
+                                 {initialData?.profile_photo ? (
+                                <img
                                     src={initialData.profile_photo}
-                                    className="w-60 h-60 object-cover rounded-full mb-2"
+                                    alt="Profile"
+                                    className="w-full h-full  object-cover  object-cover scale-160   "
                                 />
-
                             ) : (
                                 <div className="w-50 h-50 bg-blue-800  rounded-full  text-primary-content flex items-center justify-center text-4xl font-bold uppercase border-4 border-base-100 shadow-lg">
                                     {users?.first_name?.[0]?.toUpperCase() || "?"}
                                 </div>
                             )}
+                            </div>
+                           
                             <div className="mt-6">
                                 <button
                                     type="button"
