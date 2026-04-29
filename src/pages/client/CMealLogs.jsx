@@ -181,7 +181,7 @@ function ClientMealLogs(){
       console.log("Meal log updated:", response.data);
       showAlert("Meal log updated successfully!", "success");
       await fetchMealHistory();
-      await fetchNutritionInsights(); // Refresh insights after update
+      await fetchNutritionInsights(); 
       setSelectedMealLog(null);
       setEditLogData({ servings: "", notes: "" });
       return response.data;
@@ -201,7 +201,7 @@ function ClientMealLogs(){
       console.log("Meal log deleted:", logId);
       showAlert("Meal log deleted successfully!", "success");
       await fetchMealHistory();
-      await fetchNutritionInsights(); // Refresh insights after delete
+      await fetchNutritionInsights(); 
       return true;
     } catch (err) {
       console.error("Failed to delete meal log:", err.response?.data || err);
