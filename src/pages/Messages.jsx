@@ -147,7 +147,63 @@ function Messages() {
       setSelectedConversation(location.state.conversation);
       fetchMessages(location.state.conversation.conversation_id);
     }
-  }, [location.state]);
+    
+    // Handle starting conversation with coach from coach profile
+    if (location.state?.coachUser) {
+      handleStartConversationWithCoach(location.state.coachUser);
+    }
+  }, [location]);
+
+  const handleStartConversationWithCoach = async (coachUser) => {
+    try {
+      // Check if conversation already exists with this coach
+      const existingConversation = conversations.find(conv => 
+        conv.participants?.some(participant => participant.user_id === coachUser.user_id)
+      );
+      
+      if (existingConversation) {
+        // Conversation already exists, select it
+        setSelectedConversation(existingConversation);
+        fetchMessages(existingConversation.conversation_id);
+        return;
+      }
+
+      // Check for existing relationship with this coach
+      try {
+        const relationshipsRes = await api.get("/messaging/relationships");
+        const relationships = relationshipsRes.data;
+        
+        // Find relationship with this coach
+        const coachRelationship = relationships.find(rel => 
+          (rel.coach?.user_id === coachUser.user_id || rel.client?.user_id === coachUser.user_id) &&
+          rel.status === "active"
+        );
+        
+        if (coachRelationship) {
+          // Create conversation with existing relationship
+          const response = await api.post("/messaging/conversations", {
+            relationship_id: coachRelationship.relationship_id,
+            conversation_type: "direct",
+            participant_ids: [user.user_id, coachUser.user_id]
+          });
+          
+          const newConversation = response.data;
+          setSelectedConversation(newConversation);
+          fetchMessages(newConversation.conversation_id);
+          setConversations(prev => [newConversation, ...prev]);
+        } else {
+          // No relationship exists - show message to user
+          alert("You need to have an active coaching relationship with this coach to send messages. Please hire the coach first.");
+        }
+      } catch (relError) {
+        console.error("Error checking relationships:", relError);
+        alert("Failed to check coaching relationship. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error starting conversation with coach:", error);
+      alert("Failed to start conversation with coach");
+    }
+  };
 
   console.log("ALL CONVERSATIONS:", conversations);
 

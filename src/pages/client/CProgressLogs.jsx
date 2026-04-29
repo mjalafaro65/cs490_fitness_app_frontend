@@ -50,6 +50,44 @@ function ProgressLogs(){
     status: "active"
   });
 
+  const [todayActivities, setTodayActivities] = useState([]);
+
+  const fetchTodayActivities = async () => {
+    try {
+      const response = await api.get("/workouts/workout-logs", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+        }
+      });
+      
+      console.log("Fetched activities:", response.data);
+      console.log("Response data type:", typeof response.data);
+      console.log("Response data length:", response.data.length);
+      
+      // Filter for today's activities
+      const today = new Date().toISOString().split('T')[0];
+      console.log("Today's date:", today);
+      
+      const todaysActivities = response.data.filter(log => {
+        console.log("Processing log:", log);
+        // Use the correct field name: logged_at
+        const logDate = log.logged_at ? 
+          new Date(log.logged_at).toISOString().split('T')[0] :
+          null;
+        
+        console.log("Log raw logged_at:", log.logged_at);
+        console.log("Log processed date:", logDate, "Today:", today, "Match:", logDate === today);
+        return logDate === today;
+      });
+      
+      console.log("Today's activities:", todaysActivities);
+      console.log("Today's activities count:", todaysActivities.length);
+      setTodayActivities(todaysActivities);
+    } catch (err) {
+      console.error("Failed to fetch today's activities:", err.response?.data || err);
+    }
+  };
+
   useEffect(() => {
     async function fetchUser() {
       try {
@@ -79,6 +117,7 @@ function ProgressLogs(){
     }
 
     fetchUser();
+    fetchTodayActivities();
   }, []);
 
   const handleChange = (e) => {
@@ -114,9 +153,12 @@ function ProgressLogs(){
         notes: ""
       });
 
+      // Refresh today's activities
+      fetchTodayActivities();
+
     } catch(err){
       console.error("Failed to save survey:", err.response?.data || err)
-      showAlert(error.response?.data?.message || "Failed to log workout", "error");
+      showAlert(err.response?.data?.message || "Failed to log workout", "error");
     }
   };
 
@@ -189,7 +231,7 @@ function ProgressLogs(){
       <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
       <div className="drawer-content">
         <section className="p-6 flex flex-col gap-6">
-          <div className="text-2xl font-bold mb-4">My Progress/Analystics</div>
+          <div className="text-2xl font-bold mb-4">My Progress/Analytics</div>
           <div className="flex justify-end gap-2">
             <button className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={() => setPopOpen("create")}>Create New Goal</button>
             <button className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={() => setPopOpen("editGoal")}>Edit Goals</button>
@@ -226,7 +268,32 @@ function ProgressLogs(){
             </div>
             <div className="card bg-base-300 w-1/4 rounded-box grow p-4">
               <h2 className="text-lg font-bold mb-2">Today's Activity</h2>
-                <span className="text-sm opacity-70 mb-3">Nothing logged for today</span>
+                {todayActivities.length > 0 ? (
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    {todayActivities.map((log, index) => (
+                      <div key={index} className="text-sm border-b pb-1">
+                        <div className="font-semibold">Activity Log #{index + 1}</div>
+                        {log.entries && log.entries.length > 0 ? (
+                          log.entries.map((entry, entryIndex) => (
+                            <div key={entryIndex} className="ml-2 text-sm">
+                              <div>Exercise ID: {entry.exercise_id}</div>
+                              {entry.duration_minutes && <div>Duration: {entry.duration_minutes} mins</div>}
+                              {entry.sets && <div>Sets: {entry.sets}</div>}
+                              {entry.reps && <div>Reps: {entry.reps}</div>}
+                              {entry.calories && <div>Calories: {entry.calories}</div>}
+                              {entry.weight && <div>Weight: {entry.weight}</div>}
+                              {entry.notes && <div>Notes: {entry.notes}</div>}
+                            </div>
+                          ))
+                        ) : (
+                          <div className="ml-2 text-xs">No exercise entries</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-sm opacity-70 mb-3">Nothing logged for today</span>
+                )}
                 <div className="mt-auto flex justify-center">
                   <button className="btn btn-primary bg-blue-800 btn-sm" onClick={() => setPopOpen("log")}>Log Activity</button>
                 </div>
@@ -382,7 +449,7 @@ function ProgressLogs(){
               </label>
               <label className="label">
                 Duration (mins):
-                <input className="input" type="number" value={logData.duration_minutes} name="duration" onChange={handleChange} />
+                <input className="input" type="number" value={logData.duration_minutes} name="duration_minutes" onChange={handleChange} />
               </label>
               <label className="label">
                 Notes:

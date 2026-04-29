@@ -1146,14 +1146,6 @@ function ClientWorkoutPlans() {
           <div>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold">{selectedPlan.name}</h2>
-              <div className="flex gap-2">
-                <button 
-                  className="btn btn-sm btn-error"
-                  onClick={() => handleDeletePlan(selectedPlan.plan_id)}
-                >
-                  Delete Plan
-                </button>
-              </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1330,79 +1322,87 @@ function ClientWorkoutPlans() {
                 )}
               </div>
             </div>
+            <div className="flex justify-center mt-6">
+              <button 
+                className="btn btn-sm btn-error"
+                onClick={() => handleDeletePlan(selectedPlan.plan_id)}
+              >
+                Delete Plan
+              </button>
+            </div>
           </div>
         )}
       </LargeModal>
 
-      {editingSchedule && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={() => setEditingSchedule(null)}>
-          <div className="bg-base-200 p-6 rounded-box w-[500px] max-w-[90vw]" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Edit Scheduled Workout</h2>
-              <button className="btn btn-sm btn-circle btn-ghost" onClick={() => setEditingSchedule(null)}>✕</button>
+    {editingSchedule && (
+      <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={() => setEditingSchedule(null)}>
+        <div className="bg-base-200 p-6 rounded-box w-[500px] max-w-[90vw]" onClick={(e) => e.stopPropagation()}>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">Edit Scheduled Workout</h2>
+            <button className="btn btn-sm btn-circle btn-ghost" onClick={() => setEditingSchedule(null)}>✕</button>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <label className="label">Date</label>
+              <input 
+                type="date" 
+                className="input input-bordered w-full" 
+                value={editScheduleForm.date} 
+                onChange={(e) => setEditScheduleForm({...editScheduleForm, date: e.target.value})}
+              />
             </div>
-            <div className="space-y-4">
-              <div>
-                <label className="label">Date</label>
-                <input 
-                  type="date" 
-                  className="input input-bordered w-full" 
-                  value={editScheduleForm.date} 
-                  onChange={(e) => setEditScheduleForm({...editScheduleForm, date: e.target.value})}
-                />
-              </div>
-              <div>
-                <label className="label">Workout Day</label>
-                <input 
-                  type="text" 
-                  className="input input-bordered w-full" 
-                  value={editScheduleForm.day_label} 
-                  disabled
-                />
-              </div>
-              <div>
-                <label className="label">Start Time</label>
-                <input 
-                  type="time" 
-                  className="input input-bordered w-full" 
-                  value={editScheduleForm.start_time} 
-                  onChange={(e) => setEditScheduleForm({...editScheduleForm, start_time: e.target.value})}
-                />
-              </div>
-              <div className="flex gap-2">
-                <button className="btn btn-primary flex-1" onClick={handleUpdateSchedule}>Save Changes</button>
-                <button className="btn btn-error flex-1" onClick={() => handleDeleteSchedule(editingSchedule.id)}>Delete Workout</button>
-              </div>
+            <div>
+              <label className="label">Workout Day</label>
+              <input 
+                type="text" 
+                className="input input-bordered w-full" 
+                value={editScheduleForm.day_label} 
+                disabled
+              />
+            </div>
+            <div>
+              <label className="label">Start Time</label>
+              <input 
+                type="time" 
+                className="input input-bordered w-full" 
+                value={editScheduleForm.start_time} 
+                onChange={(e) => setEditScheduleForm({...editScheduleForm, start_time: e.target.value})}
+              />
+            </div>
+            <div className="flex gap-2">
+              <button className="btn btn-primary flex-1" onClick={handleUpdateSchedule}>Save Changes</button>
+              <button className="btn btn-error flex-1" onClick={() => handleDeleteSchedule(editingSchedule.id)}>Delete Workout</button>
             </div>
           </div>
         </div>
-      )}
+      </div>
+    )}
 
-      {isBrowsePopOpen && (
-        <LargeModal open={isBrowsePopOpen} onClose={() => { setBrowsePopOpen(false); setAssigningDay(null); }}>
-          <BrowseExercises
-            planId={selectedPlan?.plan_id}
-            dayId={assigningDay?.plan_day_id}
-            weekday={assigningDay?.weekday}
-            onExerciseAdded={async () => {
-              await fetchAllData();
-              await handleSelectPlan(selectedPlan.plan_id);
-              setBrowsePopOpen(false);
-              setAssigningDay(null);
-            }}
-            onClose={() => { setBrowsePopOpen(false); setAssigningDay(null); }}
-          />
-        </LargeModal>
-      )}
+    {isBrowsePopOpen && (
+      <LargeModal open={isBrowsePopOpen} onClose={() => { setBrowsePopOpen(false); setAssigningDay(null); }}>
+        <BrowseExercises
+          planId={selectedPlan?.plan_id}
+          dayId={assigningDay?.plan_day_id}
+          weekday={assigningDay?.weekday}
+          onExerciseAdded={async () => {
+            await fetchAllData();
+            await handleSelectPlan(selectedPlan.plan_id);
+            setBrowsePopOpen(false);
+            setAssigningDay(null);
+          }}
+          onClose={() => { setBrowsePopOpen(false); setAssigningDay(null); }}
+        />
+      </LargeModal>
+    )}
 
-      <Alert 
-        isOpen={alert} 
-        message={alertMsg}
-        type={alertType}
-        onClose={() => setShowAlert(false)}
-      />
-    </div>
-  );
+    <Alert 
+      isOpen={alert} 
+      message={alertMsg}
+      type={alertType}
+      onClose={() => setShowAlert(false)}
+    />
+  </div>
+)
 }
 
 export default ClientWorkoutPlans;

@@ -219,7 +219,6 @@ const CoachPublicProfile = () => {
                                 </div>
                                 <p className="text-blue-900 font-medium mb-6">Certified Fitness Coach</p>
 
-
                                 {!isLoggedIn || (<button
                                     onClick={toggleFavorite}
                                     className="btn w-full border-none bg-white text-black hover:opacity-90"
@@ -227,9 +226,26 @@ const CoachPublicProfile = () => {
                                     {isFavorite ? "★ Favorited" : "☆ Add to Favorites"}
                                 </button>)}
 
-
-
-
+                                {isLoggedIn && (
+                                    <button
+                                        onClick={() => {
+                                            // Navigate to messages page with coach info to start conversation
+                                            navigate("/messages", { 
+                                                state: { 
+                                                    coachUser: {
+                                                        user_id: coach.user.user_id,
+                                                        first_name: coach.user.first_name,
+                                                        last_name: coach.user.last_name,
+                                                        coach_profile_id: coach.coach_profile_id
+                                                    }
+                                                } 
+                                            });
+                                        }}
+                                        className="btn w-full bg-blue-800 text-white hover:bg-blue-700 mt-2"
+                                    >
+                                        Message
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>

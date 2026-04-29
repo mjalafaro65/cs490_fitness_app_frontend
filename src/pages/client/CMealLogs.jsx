@@ -84,6 +84,8 @@ function ClientMealLogs(){
     servings: "",
     notes: ""
   });
+  const [mealPlans, setMealPlans] = useState([]);
+  const [isLoadingPlans, setIsLoadingPlans] = useState(false);
 
   const fetchUser = async () => {
     try {
@@ -197,6 +199,7 @@ function ClientMealLogs(){
   useEffect(() => {
   if (user?.user_id) {
     fetchMealHistory();
+    fetchMealPlans();
   }
 }, [user]);
 
@@ -254,6 +257,28 @@ function ClientMealLogs(){
     }
   };
 
+  const fetchMealPlans = async () => {
+    if (!user?.user_id) {
+      showAlert("Please log in to view meal plans", "error");
+      return;
+    }
+
+    setIsLoadingPlans(true);
+    try {
+      const response = await api.get("/nutrition/mealplans", {
+        params: { user_id: user.user_id }
+      });
+      console.log("Meal plans fetched:", response.data);
+      setMealPlans(response.data || []);
+    } catch (err) {
+      console.error("Failed to fetch meal plans:", err.response?.data || err);
+      const errorMessage = err.response?.data?.message || err.response?.data?.status || "Failed to fetch meal plans";
+      showAlert(errorMessage, "error");
+    } finally {
+      setIsLoadingPlans(false);
+    }
+  };
+
   const handleCreateMealPlan = async (e) => {
     e.preventDefault();
     
@@ -271,6 +296,9 @@ function ClientMealLogs(){
       });
       
       showAlert("Meal plan created successfully!", "success");
+      
+      // Refresh meal plans after creation
+      await fetchMealPlans();
       
     } catch (error) {
       console.error("Creation failed:", error.response?.data || error);
@@ -355,6 +383,62 @@ function ClientMealLogs(){
             </div>
           )}
             </div>
+            </div>
+            <div className="card bg-base-300 rounded-box flex-1 p-4 min-w-0">
+              <h2 className="text-lg font-bold mb-2">Meal Plans Listing</h2>
+              <div className="bg-base-200 rounded-box w-full">
+                {isLoadingPlans ? (
+                  <div className="text-center py-8">
+                    <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                    <p className="mt-2 opacity-70">Loading meal plans...</p>
+                  </div>
+                ) : mealPlans.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="opacity-70">No meal plans found.</p>
+                    <p className="text-sm opacity-50 mt-2">Click "Create New" to add your first meal plan.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3 max-h-[60vh] overflow-y-auto p-4">
+                    {mealPlans.map((plan) => (
+                      <div 
+                        key={plan.meal_plan_id} 
+                        className="border rounded-lg p-4 bg-base-100 hover:bg-base-200 transition cursor-pointer"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <p className="font-semibold text-lg">
+                              {plan.name}
+                            </p>
+                            {plan.description && (
+                              <p className="text-sm opacity-70 mt-2">
+                                {plan.description}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex gap-2">
+                            <button 
+                              className="btn btn-sm btn-primary"
+                              onClick={() => {
+                                console.log("Edit meal plan:", plan);
+                              }}
+                            >
+                              Edit
+                            </button>
+                            <button 
+                              className="btn btn-sm bg-red-600 text-white"
+                              onClick={() => {
+                                console.log("Delete meal plan:", plan);
+                              }}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
             <div className="card bg-base-300 rounded-box w-64 p-4 shrink-0">
               <h2 className="text-lg font-bold mb-2">Quick Actions</h2>
