@@ -103,7 +103,7 @@ function Landing() {
                                 <div className="card-actions mt-auto w-full ">
 
                                     <Link
-                                        to={`/coach/${coach.user_id}`
+                                        to={`/coach/${coach.coach_profile_id}`
 
                                         }
                                         className="btn btn-outline  btn-primary w-full"

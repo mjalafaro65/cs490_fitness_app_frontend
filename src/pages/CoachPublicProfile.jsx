@@ -5,7 +5,7 @@ import VisitorNavbar from "../components/VisitorNavbar.jsx";
 import { useAuth } from "../AuthContext.jsx";
 
 const CoachPublicProfile = () => {
-    const {user} = useAuth()
+    const { user } = useAuth()
     const isLoggedIn = !!user;
 
 
@@ -37,23 +37,29 @@ const CoachPublicProfile = () => {
 
     // State for interactive features
     const [activeTab, setActiveTab] = useState("about");
+    const [availability, setAvailability] = useState([]);
+    const [availabilityLoading, setAvailabilityLoading] = useState(true);
+
     useEffect(() => {
         const fetchCoachProfile = async () => {
             try {
                 setLoading(true);
                 const response = await api.get(`/coach/coach-profile`, {
-                    params: { user_id: id }
+                    params: { coach_profile_id: id }
                 });
+                console.log(response.data)
 
-                const response2 = await api.get(`/user/${id}`);
 
-                setCoach({
-                    ...response.data,
-                    user: response2.data
-                });
 
-                console.log(response.data);
-                console.log(response2.data);
+                // const response2 = await api.get(`/user/${response.data.user_id}`);
+
+                // console.log(response2.data)
+
+                setCoach(
+                    response.data,
+                    // user: response2.data
+                );
+
 
             } catch (err) {
                 setError("Coach not found or an error occurred.");
@@ -104,8 +110,8 @@ const CoachPublicProfile = () => {
                 setError("Payment Plans not found or an error occurred.");
             }
         };
-     
-            
+
+
         const fetchFavoriteStatus = async () => {
             try {
                 const res = await api.get("/client/favorites/coaches");
@@ -117,10 +123,34 @@ const CoachPublicProfile = () => {
                 console.log(err);
             }
         };
-        if(isLoggedIn){
+
+
+        const fetchAvailability = async () => {
+            try {
+                setAvailabilityLoading(true);
+
+                const res = await api.get("/coach/availability", {
+                    params: {
+                        coach_profile_id: coach.coach_profile_id,
+                    },
+                });
+
+                setAvailability(res.data || []);
+            } catch (err) {
+                console.log("Availability error:", err.response?.data || err);
+                setAvailability([]);
+            } finally {
+                setAvailabilityLoading(false);
+            }
+
+        };
+
+        fetchAvailability();
+        if (isLoggedIn) {
             fetchFavoriteStatus();
 
         }
+
         fetchPaymentPlans();
     }, [coach]);
 
@@ -137,7 +167,7 @@ const CoachPublicProfile = () => {
             console.log(err.response?.data);
         }
     };
-    const hireCoach=async ()=>{
+    const hireCoach = async () => {
         try {
             setHiring(true);
 
@@ -158,7 +188,7 @@ const CoachPublicProfile = () => {
             setHiring(false);
         }
     }
-    
+
 
     if (loading) return <div className="p-10 text-center">Loading profile...</div>;
     if (error || !coach) return <div className="p-10 text-center text-red-500">{error}</div>;
@@ -184,31 +214,38 @@ const CoachPublicProfile = () => {
                                 <h1 className="text-2xl font-bold">{coach.user.first_name} {coach.user.last_name}</h1>
                                 <div className="flex items-center gap-1 my-2">
                                     <span className="text-orange-500 text-lg">★</span>
-                                    <span className="font-bold">4.9</span>
-                                    <span className="text-gray-400 text-sm">(42 Reviews)</span>
+                                    <span className="font-bold">{reviewStats.average}</span>
+                                    <span className="text-gray-400 text-sm">({reviewStats.total})</span>
                                 </div>
                                 <p className="text-blue-900 font-medium mb-6">Certified Fitness Coach</p>
 
-                                {/* <button className="btn btn-primary w-full bg-blue-800 mb-3">
-                                    {isNotLoggedIn ? "Sign up to Message" : "Message Coach"}
-                                </button>
-                                <button 
-                                    className={`btn btn-block ${isHired ? 'btn-success' : 'btn-outline border-gray-300'} ${hireLoading ? 'loading' : ''}`}
-                                    onClick={handleHireCoach}
-                                    disabled={hireLoading || isHired}
-                                >
-                                    {hireLoading ? 'Hiring...' : isHired ? 'Hired' : 'Hire Coach'}
-                                </button> */}
-                                {!isLoggedIn || ( <button
+                                {!isLoggedIn || (<button
                                     onClick={toggleFavorite}
                                     className="btn w-full border-none bg-white text-black hover:opacity-90"
                                 >
                                     {isFavorite ? "★ Favorited" : "☆ Add to Favorites"}
                                 </button>)}
-                               
 
-                                
-
+                                {isLoggedIn && (
+                                    <button
+                                        onClick={() => {
+                                            // Navigate to messages page with coach info to start conversation
+                                            navigate("/messages", { 
+                                                state: { 
+                                                    coachUser: {
+                                                        user_id: coach.user.user_id,
+                                                        first_name: coach.user.first_name,
+                                                        last_name: coach.user.last_name,
+                                                        coach_profile_id: coach.coach_profile_id
+                                                    }
+                                                } 
+                                            });
+                                        }}
+                                        className="btn w-full bg-blue-800 text-white hover:bg-blue-700 mt-2"
+                                    >
+                                        Message
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -281,13 +318,13 @@ const CoachPublicProfile = () => {
                                                                 navigate("/login");
                                                                 return;
                                                             }
-                                                        
+
                                                             setSelectedPlan(plan);
                                                             setShowHireModal(true);
                                                         }}
                                                     >
-                                                        {" Hire Coach" }
-                                                       
+                                                        {" Hire Coach"}
+
                                                     </button>
                                                 </div>
                                             ))}
@@ -296,21 +333,44 @@ const CoachPublicProfile = () => {
                                 </div>
                             )}
                             {/* AVAILABILITY / CALENDAR SECTION */}
-                            {activeTab === 'availability' && (
-                                <div className="animate-fadeIn text-center">
-                                    <h3 className="text-xl font-bold mb-6 text-left">Schedule a Session</h3>
-                                    <div className="p-10 border-2 border-dashed border-gray-200 rounded-2xl">
-                                        {/* Placeholder for real calendar component like react-calendar */}
-                                        <p className="text-gray-500">Interactive Calendar Integration</p>
-                                        <div className="mt-4 flex flex-wrap justify-center gap-2">
-                                            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(day => (
-                                                <div key={day} className="p-3 bg-gray-50 rounded-lg w-16">
-                                                    <span className="text-xs block text-gray-400">{day}</span>
-                                                    <span className="font-bold text-green-600">Open</span>
+                            {activeTab === "availability" && (
+                                <div className="animate-fadeIn">
+                                    <h3 className="text-xl font-bold mb-6">Availability</h3>
+
+                                    {availabilityLoading ? (
+                                        <div className="text-center py-10">
+                                            <span className="loading loading-spinner"></span>
+                                        </div>
+                                    ) : availability.length === 0 ? (
+                                        <p className="text-gray-400 text-center">
+                                            No availability set yet
+                                        </p>
+                                    ) : (
+                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                            {availability.map((slot, i) => (
+                                                <div
+                                                    key={i}
+                                                    className="p-3 border rounded-lg bg-blue-50 text-center"
+                                                >
+                                                    <p className="font-semibold text-blue-800">
+                                                        {new Date(slot.date).toLocaleDateString(undefined, {
+                                                            weekday: "short",
+                                                            month: "short",
+                                                            day: "numeric",
+                                                        })}
+                                                    </p>
+
+                                                    <p className="text-sm text-gray-600">
+                                                        {slot.start_time} - {slot.end_time}
+                                                    </p>
+
+                                                    {/* <span className="text-xs text-gray-400">
+                                                        {slot.is_booked ? "Booked" : "Available"}
+                                                    </span> */}
                                                 </div>
                                             ))}
                                         </div>
-                                    </div>
+                                    )}
                                 </div>
                             )}
 
@@ -345,7 +405,7 @@ const CoachPublicProfile = () => {
                                             >
                                                 Cancel
                                             </button>
-                                          
+
                                             <button
                                                 className="btn btn-primary"
                                                 disabled={hiring || !selectedPlan}
@@ -457,7 +517,7 @@ const CoachPublicProfile = () => {
 
                                                         // Convert 1-5 star rating to 1-100 scale for backend
                                                         const ratingScale = (newRating / 5) * 100;
-                                                        
+
                                                         await api.post(`/client/review-coach/${coach.coach_profile_id}`, {
                                                             rating: Math.round(ratingScale),
                                                             comment: newComment
@@ -498,6 +558,8 @@ const CoachPublicProfile = () => {
                                     </div>
                                 </div>
                             )}
+
+
                         </div>
                     </div>
                 </div>

@@ -247,7 +247,7 @@ const Coaches = ({ isPublic }) => {
               </Link> */}
 
               <Link
-                to={`/coach/${coach.user_id}`
+                to={`/coach/${coach.coach_profile_id}`
 
                 }
                 className="btn btn-primary btn-sm w-full bg-blue-800 border-none rounded-xl h-10 normal-case flex items-center justify-center"
