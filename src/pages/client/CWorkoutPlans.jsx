@@ -706,13 +706,13 @@ function ClientWorkoutPlans() {
           <div className="text-2xl font-bold mb-4">My Workout Plans</div>
 
           <div className="flex w-full gap-4">
-            <div className="card bg-base-300 rounded-box flex-1 p-4">
+            <div className="card bg-base-300 rounded-box w-1/2 p-4">
               <h2 className="text-lg font-bold mb-2">Current Weight</h2>
               <p className="text-m">
                 {currentWeight !== null ? `${currentWeight} lbs` : "No data yet"}
               </p>
             </div>
-            <div className="card bg-base-300 rounded-box flex-1 p-4">
+            <div className="card bg-base-300 rounded-box w-1/2 p-4">
               <h2 className="text-lg font-bold mb-2">Goal Weight</h2>
               <p className="text-m">Not set</p>
             </div>
@@ -811,7 +811,7 @@ function ClientWorkoutPlans() {
             </div>
 
             {/* Workouts for Selected Date */}
-            <div className="card bg-base-300 rounded-box flex-1 p-4">
+            <div className="card bg-base-300 rounded-box w-1/2 p-4">
               <h2 className="text-lg font-bold mb-2">Workouts for {selectedDate?.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</h2>
               {isLoading ? (
                 <p className="text-sm opacity-70">Loading workouts...</p>

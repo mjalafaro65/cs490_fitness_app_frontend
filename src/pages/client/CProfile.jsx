@@ -19,6 +19,7 @@ function CProfile() {
   const [invoiceError, setInvoiceError] = useState(null);
 
   const [reviews, setReviews] = useState([]);
+  const [reports, setReports] = useState([]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -119,7 +120,19 @@ function CProfile() {
     setPopOpen("invoices");
     await fetchInvoices();
   };
-  
+
+  const handleOpenReports = async () => {
+    try {
+      const response = await api.get("/client/reports");
+      setReports(response.data || []);
+      setPopOpen("reports");
+    } catch (err) {
+      console.error("Failed to fetch reports:", err.response?.data || err);
+      setReports([]);
+      setPopOpen("reports");
+    }
+  };
+
   const handlePayInvoice = async (invoiceId) => {
     try {
       await api.post("/client/pay-invoice", {
@@ -192,7 +205,7 @@ function CProfile() {
           </section>
           <div className="flex gap-6">
             <button className="btn btn-primary bg-blue-800 btn-m rounded-t" onClick={handleOpenInvoices}>Invoices</button>
-            <button className="btn btn-primary bg-blue-800 btn-m rounded-t" onClick={() => setPopOpen("reports")}>View Reports</button>
+            <button className="btn btn-primary bg-blue-800 btn-m rounded-t" onClick={handleOpenReports}>View Reports</button>
           </div>
 
           {coachStatus === "switched" &&
@@ -278,6 +291,40 @@ function CProfile() {
                       <span className="text-xs opacity-70">Paid</span>
                     )}
                   </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    )}
+
+      {popOpen === "reports" && (
+      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="bg-base-100 rounded-box shadow-xl p-6 w-[700px] max-w-[90vw] max-h-[80vh] overflow-y-auto">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">My Reports</h2>
+            <button
+              className="btn btn-sm btn-circle btn-ghost"
+              onClick={() => setPopOpen(null)}
+            >
+              ✕
+            </button>
+          </div>
+
+          {reports.length === 0 ? (
+            <p className="text-sm opacity-70">No reports found.</p>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {reports.map((report) => (
+                <div
+                  key={report.report_id}
+                  className="bg-base-200 rounded-box p-4"
+                >
+                  <p className="font-bold">Report #{report.report_id}</p>
+                  <p className="text-sm">{report.description || "No description"}</p>
+                  <p className="text-xs opacity-70">
+                    Created: {report.created_at ? new Date(report.created_at).toLocaleDateString() : "—"}</p>
                 </div>
               ))}
             </div>
