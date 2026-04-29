@@ -24,6 +24,41 @@ function Notifications() {
 
   }, []);
 
+  const formatTimeAgo = (dateString) => {
+    const now = new Date();
+    const past = new Date(dateString);
+    const diff = Math.floor((now - past) / 1000);
+
+    if (diff < 60) return "Just now";
+    if (diff < 3600) return `${Math.floor(diff / 60)} min ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)} hr ago`;
+
+    return past.toLocaleDateString();
+  };
+  const groupedNotifications = notifications.reduce((acc, notif) => {
+    const key = notif.title; // your group key
+
+    if (!acc[key]) {
+      acc[key] = {
+        ...notif,
+        count: 1,
+      };
+    } else {
+      acc[key].count += 1;
+
+      // keep the most recent timestamp
+      if (new Date(notif.created_at) > new Date(acc[key].created_at)) {
+        acc[key].created_at = notif.created_at;
+        acc[key].body = notif.body;
+        acc[key].is_read = notif.is_read;
+      }
+    }
+
+    return acc;
+  }, {});
+  const groupedList = Object.values(groupedNotifications);
+
+
   return (
     <div className="drawer lg:drawer-open">
       <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
@@ -31,8 +66,8 @@ function Notifications() {
         <section className="p-6 flex flex-col gap-6">
           <h2 className="text-2xl font-bold mb-6">Notifications</h2>
           <div>
-            {notifications && notifications.length > 0 ? (
-              notifications.map((notification) => (
+            {groupedList && groupedList.length > 0 ? (
+              groupedList.map((notification) => (
                 <div
                   key={notification.notification_id}
                   className="flex items-start gap-4 p-4 mb-3 rounded-xl bg-base-200/50 border border-base-300 hover:bg-base-200 transition-colors"
@@ -45,18 +80,31 @@ function Notifications() {
                   </div>
 
                   {/* 2. Text Content */}
-                  <div className="flex-1">
-                    <div className="flex justify-between items-start">
-                      <h4 className="text-sm font-semibold text-base-content">
+                  <div className="flex items-start w-full">
+
+                    {/* LEFT SIDE (takes all space) */}
+                    <div className="flex-1">
+                      <h4 className="text-sm font-semibold text-base-content flex items-center gap-2">
                         {notification.title || "New Notification"}
+
+                        {notification.count > 1 && (
+                          <span className="text-xs bg-primary text-white px-2 py-0.5 rounded-full">
+                            {notification.count}
+                          </span>
+                        )}
                       </h4>
-                      <span className="text-[10px] uppercase tracking-wider opacity-50 font-medium">
-                        {notification.date || "Just now"}
-                      </span>
+                      <p className="text-sm opacity-70 leading-relaxed mt-0.5">
+                        {notification.body || ""}
+                      </p>
                     </div>
-                    <p className="text-sm opacity-70 leading-relaxed mt-0.5">
-                      {notification.message}
-                    </p>
+
+                    {/* RIGHT SIDE (FORCED ALL THE WAY RIGHT) */}
+                    <span className="ml-auto text-[10px] uppercase tracking-wider opacity-50 font-medium whitespace-nowrap">
+                      {notification.created_at
+                        ? formatTimeAgo(notification.created_at)
+                        : "Just now"}
+                    </span>
+
                   </div>
                 </div>
               ))
