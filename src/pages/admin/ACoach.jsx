@@ -106,20 +106,25 @@ function ACoach() {
 const acceptCoach = async (coach) => {
   if (!window.confirm(`Are you sure you want to accept ${names[coach.user_id] || "this coach"}?`)) return;
 
+  const previousAppli = [...appli];
+  setAppli(prev => prev.filter(a => a.coach_profile_id !== coach.coach_profile_id));
+  closeModal();
+  
+  showAlert(`Approving ${names[coach.user_id]}...`, "success");
+  
   setProcessingAction(prev => ({ ...prev, [coach.coach_profile_id]: true }));
 
   try {
     await api.patch("/coach/coach-profile", 
-      {status: "approved"},  { params: { user_id: coach.user_id } }
+      {status: "approved"},  
+      { params: { user_id: coach.user_id } }
     );
 
-    setAppli(prev => prev.filter(a => a.coach_profile_id !== coach.coach_profile_id));
-    
-    alert(`Coach ${names[coach.user_id] || "application"} has been approved!`);
-    closeModal();
+    showAlert(`Coach ${names[coach.user_id]} has been approved!`, "success");
   } catch (err) {
+    setAppli(previousAppli);
     console.error("Failed to accept coach:", err);
-    alert(`Failed to accept coach: ${err.response?.data?.message || err.message}`);
+    showAlert(`Failed to accept coach: ${err.response?.data?.message || err.message}`, "error");
   } finally {
     setProcessingAction(prev => ({ ...prev, [coach.coach_profile_id]: false }));
   }
@@ -138,13 +143,13 @@ const acceptCoach = async (coach) => {
 
       setAppli(prev => prev.filter(a => a.coach_profile_id !== coach.coach_profile_id));
       
-      alert(`Coach ${names[coach.user_id] || "application"} has been denied.`);
+      showAlert(`Coach ${names[coach.user_id] || "application"} has been denied.`, "success");
       closeModal();
     } catch (err) {
         console.error("Failed to deny coach:", err);
         console.error("Full error response:", err.response?.data);
         console.error("Errors details:", err.response?.data?.errors);
-        alert(`Failed to deny coach: ${JSON.stringify(err.response?.data?.errors)}`);
+        showAlert(`Failed to deny coach: ${JSON.stringify(err.response?.data?.errors)}`, "error");
     } finally {
       setProcessingAction(prev => ({ ...prev, [coach.coach_profile_id]: false }));
     }
