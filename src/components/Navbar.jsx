@@ -216,8 +216,9 @@ function Navbar() {
             </ul>
             <PopUp isOpen={isPopOpen === "confirm"} onClose={() => setPopOpen(null)}>
                 <div className="fieldset">
-                    <h3 className="fieldset-legend px-3 text-xl font-bold text-black rounded-md">Confirm Logout</h3>
-                    <p className="text-gray-700 font-medium my-2">Are you sure you want to log out?</p>
+                    <div className="p-2">
+                    <h3 className="text-xl font-bold text-black mb-2">Confirm Logout</h3>
+                    <p className="text-gray-700 font-medium my-2 mb-4">Are you sure you want to log out?</p>
                     <div className="flex gap-3 justify-end">
                         <button
                             onClick={handleCancelLogout}
@@ -231,6 +232,7 @@ function Navbar() {
                         >
                             Logout
                         </button>
+                    </div>
                     </div>
                 </div>
             </PopUp>

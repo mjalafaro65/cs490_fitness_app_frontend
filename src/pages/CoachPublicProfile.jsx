@@ -12,6 +12,7 @@ const CoachPublicProfile = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [coach, setCoach] = useState(null);
+    const [coachName, setCoachName] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -51,13 +52,16 @@ const CoachPublicProfile = () => {
 
 
 
-                // const response2 = await api.get(`/user/${response.data.user_id}`);
+                const response2 = await api.get(`/user/${response.data.user_id}`);
 
-                // console.log(response2.data)
+                console.log(response2.data)
 
                 setCoach(
                     response.data,
-                    // user: response2.data
+                );
+
+                setCoachName(
+                    response2.data,
                 );
 
 
@@ -209,9 +213,9 @@ const CoachPublicProfile = () => {
                         <div className="card bg-white shadow-xl p-6 sticky top-8">
                             <div className="flex flex-col items-center text-center">
                                 <div className="w-32 h-32 rounded-full bg-blue-800 text-white flex items-center justify-center text-4xl font-bold mb-4 shadow-lg">
-                                    {coach.user.first_name?.[0]}{coach.user.last_name?.[0]}
+                                    {coachName.first_name?.[0]}{coachName.last_name?.[0]}
                                 </div>
-                                <h1 className="text-2xl font-bold">{coach.user.first_name} {coach.user.last_name}</h1>
+                                <h1 className="text-2xl font-bold">{coachName.first_name} {coachName.last_name}</h1>
                                 <div className="flex items-center gap-1 my-2">
                                     <span className="text-orange-500 text-lg">★</span>
                                     <span className="font-bold">{reviewStats.average}</span>
