@@ -350,7 +350,7 @@ function CoMealLogs() {
 
       <PopUp isOpen={isPopOpen === "create"} onClose={() => setPopOpen(null)}>
         <div className="bg-base-200 p-6 rounded-box">
-          <h2 className="text-xl font-bold mb-4">Create Workout Plan</h2>
+          <h2 className="text-xl font-bold mb-4">Create Meal Plan</h2>
           <form onSubmit={handleCreate}>
             <div className="form-control mb-3">
               <label className="label">Name</label>
