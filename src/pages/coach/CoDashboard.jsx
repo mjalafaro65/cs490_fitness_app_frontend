@@ -42,6 +42,7 @@ function CoDashboard() {
   const [messages, setMessages] = useState([]);
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
   const [conversations, setConversations] = useState([]);
+  const [selectedClient, setSelectedClient] = useState(null);
 
   const fetchCoachDashboardData = async () => {
     setIsLoadingDashboard(true);
@@ -346,53 +347,13 @@ function CoDashboard() {
                           View Dashboard
                         </button>
 
-                        <div className="dropdown dropdown-end">
-                          <button className="btn btn-sm btn-outline">
+                        <button
+                          className="btn btn-sm btn-outline"
+                          onClick={() => setSelectedClient(client)}
+                        >
                             Manage
                           </button>
-
-                          <ul className="dropdown-content menu bg-base-100 rounded-box z-10 w-52 p-2 shadow">
-                            <li>
-                              <button
-                                onClick={() =>
-                                  navigate("/coach/workoutplans", {
-                                    state: {
-                                      clientId: client.user?.user_id,
-                                      clientName: `${client.user?.first_name} ${client.user?.last_name}`,
-                                    },
-                                  })
-                                }
-                              >
-                                Assign Workouts
-                              </button>
-                            </li>
-
-                            <li>
-                              <button
-                                onClick={() =>
-                                  navigate(
-                                    `/coach/clients/${client.user?.user_id}/progress`
-                                  )
-                                }
-                              >
-                                View Progress
-                              </button>
-                            </li>
-
-                            <li>
-                              <button onClick={() => navigate("/messages")}>
-                                Message Client
-                              </button>
-                            </li>
-
-                            <li>
-                              <button className="text-error">
-                                Drop Client
-                              </button>
-                            </li>
-                          </ul>
                         </div>
-                      </div>
                     </div>
                   ))}
                 </div>
@@ -447,6 +408,66 @@ function CoDashboard() {
           </div>
         </section>
       </div>
+      {selectedClient && (
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+          onClick={() => setSelectedClient(null)}
+        >
+          <div
+            className="bg-base-100 rounded-xl p-6 w-80"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-lg font-bold mb-4">
+              Manage {selectedClient.user?.first_name}
+            </h2>
+
+            <div className="flex flex-col gap-2">
+              <button
+                className="btn btn-sm"
+                onClick={() =>
+                  navigate("/coach/workoutplans", {
+                    state: {
+                      clientId: selectedClient.user?.user_id,
+                      clientName: `${selectedClient.user?.first_name} ${selectedClient.user?.last_name}`,
+                    },
+                  })
+                }
+              >
+                Assign Workouts
+              </button>
+
+              <button
+                className="btn btn-sm"
+                onClick={() =>
+                  navigate(
+                    `/coach/clients/${selectedClient.user?.user_id}/progress`
+                  )
+                }
+              >
+                View Progress
+              </button>
+
+              <button
+                className="btn btn-sm"
+                onClick={() => navigate("/messages")}
+              >
+                Message Client
+              </button>
+
+              <button className="btn btn-sm btn-error">
+                Drop Client
+              </button>
+            </div>
+
+            <button
+              className="btn btn-sm btn-ghost mt-4 w-full"
+              onClick={() => setSelectedClient(null)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
