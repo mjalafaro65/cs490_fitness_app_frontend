@@ -13,13 +13,39 @@ function Alert({ isOpen, onClose, message, type = 'success' }) {
 
     if (!isOpen) return null;
 
+    const ALERT_CONFIG = {
+        success: {
+            wrapper: "bg-green-50 border-green-200",
+            icon: "text-green-600",
+            text: "text-green-800",
+            button: "text-green-600 hover:text-green-800",
+        },
+        error: {
+            wrapper: "bg-red-50 border-red-200",
+            icon: "text-red-600",
+            text: "text-red-800",
+            button: "text-red-600 hover:text-red-800",
+        },
+        info: {
+            wrapper: "bg-blue-50 border-blue-200",
+            icon: "text-blue-600",
+            text: "text-blue-800",
+            button: "text-blue-600 hover:text-blue-800",
+        },
+        warning: {
+            wrapper: "bg-yellow-50 border-yellow-200",
+            icon: "text-yellow-600",
+            text: "text-yellow-800",
+            button: "text-yellow-600 hover:text-yellow-800",
+        },
+    };
+
     return (
         <div className={`fixed top-4 right-4 z-50 transition-all duration-300 transform`}>
-            <div className={`rounded-lg shadow-lg p-4 min-w-[300px] max-w-md ${
-                type === 'success' 
-                    ? 'bg-green-50 border border-green-200' 
+            <div className={`rounded-lg shadow-lg p-4 min-w-[300px] max-w-md ${type === 'success'
+                    ? 'bg-green-50 border border-green-200'
                     : 'bg-red-50 border border-red-200'
-            }`}>
+                }`}>
                 <div className="flex items-center gap-3">
                     {type === 'success' ? (
                         <svg className="h-5 w-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -30,18 +56,16 @@ function Alert({ isOpen, onClose, message, type = 'success' }) {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     )}
-                    <span className={`text-sm flex-1 ${
-                        type === 'success' ? 'text-green-800' : 'text-red-800'
-                    }`}>
+                    <span className={`text-sm flex-1 ${type === 'success' ? 'text-green-800' : 'text-red-800'
+                        }`}>
                         {message}
                     </span>
-                    <button 
+                    <button
                         onClick={() => {
                             setTimeout(() => onClose(), 300);
                         }}
-                        className={`flex-shrink-0 cursor-pointer ${
-                            type === 'success' ? 'text-green-600 hover:text-green-800' : 'text-red-600 hover:text-red-800'
-                        } transition-colors`}
+                        className={`flex-shrink-0 cursor-pointer ${type === 'success' ? 'text-green-600 hover:text-green-800' : 'text-red-600 hover:text-red-800'
+                            } transition-colors`}
                     >
                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />

@@ -4,6 +4,7 @@ import "../../App.css";
 import Navbar from "../../components/Navbar.jsx";
 import api from "../../axios.jsx";
 import { useAuth } from "../../AuthContext.jsx";
+import Alert from "../../components/Alert.jsx";
 
 const capitalize = (str) => {
   if (!str) return "—";
@@ -12,21 +13,6 @@ const capitalize = (str) => {
 const fmtDate = (iso) =>
   iso ? new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "—";
 const fmtCurrency = (val) => `$${Number(val ?? 0).toFixed(2)}`;
-
-function SectionCard({ title, subtitle, action, children }) {
-  return (
-    <div className="bg-base-100 border border-base-200 rounded-2xl overflow-hidden">
-      <div className="flex items-center justify-between px-6 py-4 border-b border-base-200">
-        <div>
-          <h2 className="text-base font-bold">{title}</h2>
-          {subtitle && <p className="text-xs text-base-content/50 mt-0.5">{subtitle}</p>}
-        </div>
-        {action}
-      </div>
-      <div className="p-6">{children}</div>
-    </div>
-  );
-}
 
 function Badge({ status }) {
   const map = {
@@ -63,62 +49,61 @@ const DAYS = [
   { label: "Sunday", value: 6 }
 ];
 
+
+
 function AvailabilitySection() {
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-
+  const [saving, setSaving] = useState(false);
+  const [alert, setAlert] = useState({
+    open: false,
+    message: "",
+    type: "success",
+  });
   const [form, setForm] = useState({
     day_of_week: 0,
     start_time: "09:00",
-    end_time: "17:00"
+    end_time: "17:00",
   });
-  const [saving, setSaving] = useState(false);
 
   const load = async () => {
     setLoading(true);
     try {
       const r = await api.get("/coach/availability");
       setSlots(r.data || []);
-      console.log(r.data)
-    }
-    catch (e) {
-      console.error(e);
-    }
-    finally {
+    } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { 
+  useEffect(() => {
     load();
-   }, []);
+  }, []);
 
   const handleAdd = async (e) => {
     e.preventDefault();
     setSaving(true);
     try {
-      const r = await api.post("/coach/availability", {
-        ...form,
-        start_time: formatTime(form.start_time),
-        end_time: formatTime(form.end_time)
-      });
-      console.log(r.data)
+      console.log(form)
+      await api.post("/coach/availability", form);
       setShowForm(false);
+      load();
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to save.");
+      setAlert({
+        open: true,
+        message: "Time slot error!",
+        type: "error",
+      });
+
+    } finally {
+      setSaving(false);
     }
-    finally { setSaving(false); }
   };
 
   const handleDelete = async (id) => {
-    try {
-      await api.delete(`/coach/availability/${id}`);
-      await load();
-
-
-    }
-    catch (e) { console.error(e); }
+    await api.delete(`/coach/availability/${id}`);
+    load();
   };
 
   const grouped = DAYS.reduce((acc, day) => {
@@ -126,67 +111,112 @@ function AvailabilitySection() {
     if (s.length) acc[day.label] = s;
     return acc;
   }, {});
+  const formatTime = (timeStr) => {
+    if (!timeStr) return "";
+
+    const [hour, minute] = timeStr.split(":");
+    let h = Number(hour);
+
+    const ampm = h >= 12 ? "PM" : "AM";
+    h = h % 12 || 12;
+
+    return `${h}:${minute} ${ampm}`;
+  };
 
   return (
-    <SectionCard
-      title="Availability"
-      subtitle="Your weekly coaching schedule"
-      action={
-        <button className="btn btn-sm btn-outline btn-primary" onClick={() => setShowForm((p) => !p)}>
+    <div className="bg-base-100 border border-base-200 rounded-2xl p-6 flex flex-col gap-4">
+
+      {/* header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="font-bold">Availability</h2>
+          <p className="text-xs text-base-content/50">
+            Your weekly coaching schedule
+          </p>
+        </div>
+
+        <button
+          className="btn btn-sm btn-outline btn-primary"
+          onClick={() => setShowForm(!showForm)}
+        >
           {showForm ? "Cancel" : "+ Add Slot"}
         </button>
-      }
-    >
+      </div>
+
+      {/* form */}
       {showForm && (
-        <form onSubmit={handleAdd} className="bg-base-200 rounded-xl p-4 mb-5 grid grid-cols-2 sm:grid-cols-4 gap-3 items-end">
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-base-content/60">Day</label>
-            <select
-              className="select select-bordered select-sm"
-              value={form.day_of_week}
-              onChange={(e) =>
-                setForm({ ...form, day_of_week: Number(e.target.value) })
-              }
-            >
-              {DAYS.map((d) => (
-                <option key={d.value} value={d.value}>
-                  {d.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-base-content/60">Start</label>
+        <form onSubmit={handleAdd} className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <select
+            className="select select-bordered select-sm"
+            value={form.day_of_week}
+            onChange={(e) =>
+              setForm({ ...form, day_of_week: Number(e.target.value) })
+            }
+          >
+            {DAYS.map((d) => (
+              <option key={d.value} value={d.value}>
+                {d.label}
+              </option>
+            ))}
+          </select>
 
-            <input type="time" className="input input-bordered input-sm" value={form.start_time}
-              onChange={(e) => setForm({ ...form, start_time: e.target.value })} />
+          <input
+            type="time"
+            className="input input-bordered input-sm"
+            value={form.start_time}
+            onChange={(e) => setForm({ ...form, start_time: e.target.value })}
+          />
 
-          </div>
+          <input
+            type="time"
+            className="input input-bordered input-sm"
+            value={form.end_time}
+            onChange={(e) => setForm({ ...form, end_time: e.target.value })}
+          />
 
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-base-content/60">End</label>
-            <input type="time" className="input input-bordered input-sm" value={form.end_time}
-              onChange={(e) => setForm({ ...form, end_time: e.target.value })} />
-          </div>
-          
-          <button type="submit" className="btn btn-sm bg-blue-800 text-white" disabled={saving}>
-            {saving ? "Saving…" : "Save"}
+          <button className="btn btn-sm bg-blue-800 text-white" disabled={saving}>
+            {saving ? "Saving..." : "Save"}
           </button>
         </form>
       )}
 
-      {loading ? <Spinner /> : Object.keys(grouped).length === 0 ? (
-        <EmptyState message="No availability set. Add a time slot to get started." />
+      <Alert
+        isOpen={alert.open}
+        message={alert.message}
+        type={alert.type}
+        onClose={() => setAlert((prev) => ({ ...prev, open: false }))}
+      />
+
+      {/* content */}
+      {loading ? (
+        <Spinner />
+      ) : Object.keys(grouped).length === 0 ? (
+        <p className="text-sm text-center text-base-content/40 py-6">
+          No availability set
+        </p>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4">
           {Object.entries(grouped).map(([day, daySlots]) => (
             <div key={day}>
-              <p className="text-xs font-bold text-base-content/40 uppercase tracking-widest mb-1.5">{day}</p>
+              <p className="text-xs font-bold uppercase text-base-content/40 mb-2">
+                {day}
+              </p>
+
               <div className="flex flex-wrap gap-2">
                 {daySlots.map((slot) => (
-                  <div key={slot.availability_id} className="flex items-center gap-2 bg-base-200 rounded-xl px-3 py-2 text-sm">
-                    <span className="font-medium">{slot.start_time} – {slot.end_time}</span>
-                    <button className="text-error text-xs font-bold" onClick={() => handleDelete(slot.availability_id)}>✕</button>
+                  <div
+                    key={slot.availability_id}
+                    className="flex items-center gap-2 bg-base-200 rounded-xl px-3 py-2 text-sm"
+                  >
+                    <span>
+                      {formatTime(slot.start_time)} – {formatTime(slot.end_time)}
+                    </span>
+                    <button
+                      className="text-error text-xs"
+                      onClick={() => handleDelete(slot.availability_id)}
+                    >
+                      ✕
+                    </button>
                   </div>
                 ))}
               </div>
@@ -194,30 +224,136 @@ function AvailabilitySection() {
           ))}
         </div>
       )}
-    </SectionCard>
+    </div>
   );
 }
-
 /* ── Documents ── */
+// function DocumentsSection() {
+//   const [docs, setDocs] = useState([]);
+//   const [loading, setLoading] = useState(true);
+//   const [showForm, setShowForm] = useState(false);
+//   const [form, setForm] = useState({ doc_type: "certification", doc_url: "", notes: "" });
+//   const [uploading, setUploading] = useState(false);
+
+//   const load = async () => {
+//     setLoading(true);
+//     try {
+//       const r = await api.get("/coach/coach-profile/documents");
+//       console.log(r.data)
+//       setDocs(r.data || []);
+//     }
+//     catch (e) { console.error(e); }
+//     finally { setLoading(false); }
+//   };
+
+//   useEffect(() => { load(); }, []);
+
+//   const handleUpload = async (e) => {
+//     e.preventDefault();
+//     setUploading(true);
+//     try {
+//       await api.post("/coach/coach-profile/documents", form);
+
+//       setShowForm(false);
+//       setForm({ doc_type: "certification", doc_url: "", notes: "" });
+//       await load();
+//     } catch (err) { alert(err.response?.data?.message || "Failed to upload."); }
+//     finally { setUploading(false); }
+//   };
+
+//   const handleDelete = async (id) => {
+//     if (!confirm("Delete this document?")) return;
+//     try { await api.delete(`/coach-profile/documents/${id}`); await load(); }
+//     catch (e) { console.error(e); }
+//   };
+
+//   return (
+//     <SectionCard
+//       title="Documents"
+//       subtitle="Certifications, licenses, and credentials"
+//       action={
+//         <button className="btn btn-sm btn-outline btn-primary" onClick={() => setShowForm((p) => !p)}>
+//           {showForm ? "Cancel" : "+ Add"}
+//         </button>
+//       }
+//     >
+//       {showForm && (
+//         <form onSubmit={handleUpload} className="bg-base-200 rounded-xl p-4 mb-5 flex flex-col gap-3">
+//           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+//             <div className="flex flex-col gap-1">
+//               <label className="text-xs font-semibold text-base-content/60">Type</label>
+//               <select className="select select-bordered select-sm" value={form.doc_type}
+//                 onChange={(e) => setForm({ ...form, doc_type: e.target.value })}>
+//                 {["certification", "license", "insurance", "other"].map((o) => (
+//                   <option key={o} value={o}>{capitalize(o)}</option>
+//                 ))}
+//               </select>
+//             </div>
+//             <div className="flex flex-col gap-1">
+//               <label className="text-xs font-semibold text-base-content/60">Notes (optional)</label>
+//               <input type="text" className="input input-bordered input-sm" placeholder="e.g. Expires Dec 2026"
+//                 value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+//             </div>
+//           </div>
+//           <div className="flex flex-col gap-1">
+//             <label className="text-xs font-semibold text-base-content/60">Document URL</label>
+//             <input type="url" required className="input input-bordered input-sm" placeholder="https://..."
+//               value={form.doc_url} onChange={(e) => setForm({ ...form, doc_url: e.target.value })} />
+//           </div>
+//           <button type="submit" className="btn btn-sm bg-blue-800 text-white" disabled={uploading}>
+//             {uploading ? "Uploading…" : "Upload"}
+//           </button>
+//         </form>
+//       )}
+
+//       {loading ? <Spinner /> : docs.length === 0 ? (
+//         <EmptyState message="No documents uploaded yet." />
+//       ) : (
+//         <div className="flex flex-col gap-2">
+//           {docs.map((doc) => (
+//             <div key={doc.doc_id} className="flex items-center justify-between bg-base-200 rounded-xl px-4 py-3 gap-4">
+//               <div className="flex flex-col gap-0.5 min-w-0">
+//                 <span className="font-semibold text-sm">{capitalize(doc.doc_type)}</span>
+//                 {doc.notes && <span className="text-xs text-base-content/50">{doc.notes}</span>}
+//                 <a href={doc.doc_url} target="_blank" rel="noreferrer"
+//                   className="text-xs text-blue-600 hover:underline truncate">{doc.doc_url}</a>
+//               </div>
+//               <div className="flex items-center gap-2 flex-shrink-0">
+//                 <Badge status={doc.status || "pending"} />
+//                 <button className="btn btn-xs btn-ghost text-error" onClick={() => handleDelete(doc.doc_id)}>✕</button>
+//               </div>
+//             </div>
+//           ))}
+//         </div>
+//       )}
+//     </SectionCard>
+//   );
+// }
+
 function DocumentsSection() {
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ doc_type: "certification", doc_url: "", notes: "" });
+  const [form, setForm] = useState({
+    doc_type: "certification",
+    doc_url: "",
+    notes: "",
+  });
   const [uploading, setUploading] = useState(false);
 
   const load = async () => {
     setLoading(true);
     try {
       const r = await api.get("/coach/coach-profile/documents");
-      console.log(r.data)
       setDocs(r.data || []);
+    } finally {
+      setLoading(false);
     }
-    catch (e) { console.error(e); }
-    finally { setLoading(false); }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   const handleUpload = async (e) => {
     e.preventDefault();
@@ -228,79 +364,156 @@ function DocumentsSection() {
       setShowForm(false);
       setForm({ doc_type: "certification", doc_url: "", notes: "" });
       await load();
-    } catch (err) { alert(err.response?.data?.message || "Failed to upload."); }
-    finally { setUploading(false); }
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to upload.");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleDelete = async (id) => {
     if (!confirm("Delete this document?")) return;
-    try { await api.delete(`/coach-profile/documents/${id}`); await load(); }
-    catch (e) { console.error(e); }
+    try {
+      await api.delete(`/coach-profile/documents/${id}`);
+      await load();
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   return (
-    <SectionCard
-      title="Documents"
-      subtitle="Certifications, licenses, and credentials"
-      action={
-        <button className="btn btn-sm btn-outline btn-primary" onClick={() => setShowForm((p) => !p)}>
+    <div className="bg-base-100 border border-base-200 rounded-2xl p-6 flex flex-col gap-4">
+
+      {/* HEADER */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="font-bold">Documents</h2>
+          <p className="text-xs text-base-content/50">
+            Certifications, licenses, and credentials
+          </p>
+        </div>
+
+        <button
+          className="btn btn-sm btn-outline btn-primary"
+          onClick={() => setShowForm((p) => !p)}
+        >
           {showForm ? "Cancel" : "+ Add"}
         </button>
-      }
-    >
+      </div>
+
+      {/* form */}
       {showForm && (
-        <form onSubmit={handleUpload} className="bg-base-200 rounded-xl p-4 mb-5 flex flex-col gap-3">
+        <form
+          onSubmit={handleUpload}
+          className="bg-base-200 rounded-xl p-4 flex flex-col gap-3"
+        >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-base-content/60">Type</label>
-              <select className="select select-bordered select-sm" value={form.doc_type}
-                onChange={(e) => setForm({ ...form, doc_type: e.target.value })}>
+              <label className="text-xs font-semibold text-base-content/60">
+                Type
+              </label>
+              <select
+                className="select select-bordered select-sm"
+                value={form.doc_type}
+                onChange={(e) =>
+                  setForm({ ...form, doc_type: e.target.value })
+                }
+              >
                 {["certification", "license", "insurance", "other"].map((o) => (
-                  <option key={o} value={o}>{capitalize(o)}</option>
+                  <option key={o} value={o}>
+                    {capitalize(o)}
+                  </option>
                 ))}
               </select>
             </div>
+
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-base-content/60">Notes (optional)</label>
-              <input type="text" className="input input-bordered input-sm" placeholder="e.g. Expires Dec 2026"
-                value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+              <label className="text-xs font-semibold text-base-content/60">
+                Notes
+              </label>
+              <input
+                className="input input-bordered input-sm"
+                value={form.notes}
+                onChange={(e) =>
+                  setForm({ ...form, notes: e.target.value })
+                }
+              />
             </div>
           </div>
+
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-base-content/60">Document URL</label>
-            <input type="url" required className="input input-bordered input-sm" placeholder="https://..."
-              value={form.doc_url} onChange={(e) => setForm({ ...form, doc_url: e.target.value })} />
+            <label className="text-xs font-semibold text-base-content/60">
+              Document URL
+            </label>
+            <label className="text-xs font-semibold text-base-content/60">
+              Link
+            </label>
+
+            <input
+              type="url"
+              required
+              placeholder="Paste document link here"
+              className="input input-bordered input-sm"
+              value={form.doc_url}
+              onChange={(e) =>
+                setForm({ ...form, doc_url: e.target.value })
+              }
+            />
           </div>
-          <button type="submit" className="btn btn-sm bg-blue-800 text-white" disabled={uploading}>
-            {uploading ? "Uploading…" : "Upload"}
+
+          <button
+            type="submit"
+            className="btn btn-sm bg-blue-800 text-white"
+            disabled={uploading}
+          >
+            {uploading ? "Uploading..." : "Upload"}
           </button>
         </form>
       )}
 
-      {loading ? <Spinner /> : docs.length === 0 ? (
-        <EmptyState message="No documents uploaded yet." />
+      {/* CONTENT */}
+      {loading ? (
+        <Spinner />
+      ) : docs.length === 0 ? (
+        <p className="text-sm text-center text-base-content/40 py-6">
+          No documents uploaded yet
+        </p>
       ) : (
         <div className="flex flex-col gap-2">
           {docs.map((doc) => (
-            <div key={doc.doc_id} className="flex items-center justify-between bg-base-200 rounded-xl px-4 py-3 gap-4">
-              <div className="flex flex-col gap-0.5 min-w-0">
-                <span className="font-semibold text-sm">{capitalize(doc.doc_type)}</span>
-                {doc.notes && <span className="text-xs text-base-content/50">{doc.notes}</span>}
-                <a href={doc.doc_url} target="_blank" rel="noreferrer"
-                  className="text-xs text-blue-600 hover:underline truncate">{doc.doc_url}</a>
+            <div
+              key={doc.document_id}
+              className="flex items-center justify-between bg-base-200 rounded-xl px-4 py-3"
+            >
+              <div className="flex flex-col min-w-0">
+                <span className="font-semibold text-sm">
+                  {capitalize(doc.document_type)}
+                </span>
+
+                <a
+                  href={doc.document_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs text-blue-600 hover:underline"
+                >
+                  View Link
+                </a>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <Badge status={doc.status || "pending"} />
-                <button className="btn btn-xs btn-ghost text-error" onClick={() => handleDelete(doc.doc_id)}>✕</button>
-              </div>
+
+              <button
+                className="btn btn-xs btn-ghost text-error"
+                onClick={() => handleDelete(doc.document_id)}
+              >
+                ✕
+              </button>
             </div>
           ))}
         </div>
       )}
-    </SectionCard>
+    </div>
   );
 }
-
 /* ── Invoices ── */
 function InvoicesSection() {
   const [invoices, setInvoices] = useState([]);
@@ -328,23 +541,49 @@ function InvoicesSection() {
   };
 
   return (
-    <SectionCard title="Invoices" subtitle="Billing history">
-      {loading ? <Spinner /> : invoices.length === 0 ? (
+    <div className="bg-base-100 border border-base-200 rounded-2xl p-6 flex flex-col gap-4">
+
+      {/* header */}
+      <div>
+        <h2 className="font-bold text-base">Invoices</h2>
+        <p className="text-xs text-base-content/50">
+          Billing history
+        </p>
+      </div>
+
+      {/* content */}
+      {loading ? (
+        <Spinner />
+      ) : invoices.length === 0 ? (
         <EmptyState message="No invoices found." />
       ) : (
         <div className="flex flex-col gap-2">
           {invoices.map((inv) => (
-            <div key={inv.invoice_id} className="flex items-center justify-between bg-base-200 rounded-xl px-4 py-3 gap-4">
+            <div
+              key={inv.invoice_id}
+              className="flex items-center justify-between bg-base-200 rounded-xl px-4 py-3 gap-4"
+            >
               <div className="flex flex-col gap-0.5">
-                <span className="font-bold text-sm">Invoice #{inv.invoice_id}</span>
-                <span className="text-sm">{fmtCurrency(inv.amount ?? inv.subtotal)}</span>
-                <span className="text-xs text-base-content/50">{fmtDate(inv.created_at)}</span>
+                <span className="font-bold text-sm">
+                  Invoice #{inv.invoice_id}
+                </span>
+                <span className="text-sm">
+                  {fmtCurrency(inv.amount ?? inv.subtotal)}
+                </span>
+                <span className="text-xs text-base-content/50">
+                  {fmtDate(inv.created_at)}
+                </span>
               </div>
+
               <div className="flex flex-col items-end gap-2">
                 <Badge status={inv.status} />
+
                 {inv.status?.toLowerCase() === "issued" && (
-                  <button className="btn btn-xs bg-blue-800 text-white"
-                    disabled={payingId === inv.invoice_id} onClick={() => handlePay(inv.invoice_id)}>
+                  <button
+                    className="btn btn-xs bg-blue-800 text-white"
+                    disabled={payingId === inv.invoice_id}
+                    onClick={() => handlePay(inv.invoice_id)}
+                  >
                     {payingId === inv.invoice_id ? "Paying…" : "Pay now"}
                   </button>
                 )}
@@ -353,7 +592,7 @@ function InvoicesSection() {
           ))}
         </div>
       )}
-    </SectionCard>
+    </div>
   );
 }
 
