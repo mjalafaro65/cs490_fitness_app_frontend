@@ -330,6 +330,15 @@ function CoWorkoutPlans() {
                     >
                       Assign
                     </button>
+                    <button
+                      className="btn btn-sm btn-error"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeletePlan(plan.plan_id);
+                      }}
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
               ))}
