@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../../axios";
+import { useNavigate } from "react-router-dom";
 
 function CoClientDashboardView() {
   const { id } = useParams();
@@ -78,10 +79,13 @@ function CoClientDashboardView() {
   return (
     <div className="p-6 flex flex-col gap-6">
       <div>
-        <div className="text-2xl font-bold">
-          {client.first_name || "Client"} {client.last_name || ""}
+        <div className="flex items-center gap-4">
+            <button className="cursor-pointer border flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200" onClick={() => navigate(-1)} > Back</button>
+          <div className="text-2xl font-bold">
+            {client.first_name || "Client"} {client.last_name || ""}
+          </div>
         </div>
-        <p className="text-sm opacity-70">
+        <p className="text-sm opacity-70 mt-4">
           Client since {client.relationship_start_date || "--"} ·{" "}
           {client.relationship_status || "--"}
         </p>

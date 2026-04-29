@@ -239,7 +239,7 @@ function ClientMealLogs(){
   if (user?.user_id) {
     fetchMealHistory();
     fetchNutritionInsights();
-    // fetchMealPlans();
+    fetchMealPlans();
   }
 }, [user]);
 

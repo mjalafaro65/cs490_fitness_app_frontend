@@ -295,7 +295,7 @@ function CoWorkoutPlans() {
 
       <div className="flex w-full gap-4">
         <div className="card bg-base-300 rounded-box flex-1 p-4">
-          <h2 className="text-lg font-bold mb-2">My Workout Plans</h2>
+          <h2 className="text-lg font-bold mb-2">Workout Plans</h2>
           {plans.length === 0 ? (
             <span className="text-sm opacity-70">No plans yet</span>
           ) : (
