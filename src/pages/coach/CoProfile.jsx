@@ -227,108 +227,180 @@ function AvailabilitySection() {
     </div>
   );
 }
-/* ── Documents ── */
-// function DocumentsSection() {
-//   const [docs, setDocs] = useState([]);
-//   const [loading, setLoading] = useState(true);
-//   const [showForm, setShowForm] = useState(false);
-//   const [form, setForm] = useState({ doc_type: "certification", doc_url: "", notes: "" });
-//   const [uploading, setUploading] = useState(false);
+function PaymentPlansSection({ coachId }) {
+  const [plans, setPlans] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [editingPlan, setEditingPlan] = useState(null);
 
-//   const load = async () => {
-//     setLoading(true);
-//     try {
-//       const r = await api.get("/coach/coach-profile/documents");
-//       console.log(r.data)
-//       setDocs(r.data || []);
-//     }
-//     catch (e) { console.error(e); }
-//     finally { setLoading(false); }
-//   };
+  const [form, setForm] = useState({
+    name: "",
+    amount: "",
+    billing_type: "onetime"
+  });
 
-//   useEffect(() => { load(); }, []);
+  const load = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get(
+        `/client/coach-payment-plans/${coachId}`
+      );
+      console.log(response.data)
+      setPlans(response.data || []);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-//   const handleUpload = async (e) => {
-//     e.preventDefault();
-//     setUploading(true);
-//     try {
-//       await api.post("/coach/coach-profile/documents", form);
+  useEffect(() => {
+    load();
+  }, []);
 
-//       setShowForm(false);
-//       setForm({ doc_type: "certification", doc_url: "", notes: "" });
-//       await load();
-//     } catch (err) { alert(err.response?.data?.message || "Failed to upload."); }
-//     finally { setUploading(false); }
-//   };
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await api.post("/coach/payment-plans", form);
+      setShowForm(false);
+      setForm({ name: "", amount: "", billing_type: "onetime" });
+      load();
+    } finally {
+      setSaving(false);
+    }
+  };
 
-//   const handleDelete = async (id) => {
-//     if (!confirm("Delete this document?")) return;
-//     try { await api.delete(`/coach-profile/documents/${id}`); await load(); }
-//     catch (e) { console.error(e); }
-//   };
+  const handleDelete = async (id) => {
+    await api.delete(`/coach/payment-plans/${id}`);
+    load();
+  };
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    setSaving(true);
 
-//   return (
-//     <SectionCard
-//       title="Documents"
-//       subtitle="Certifications, licenses, and credentials"
-//       action={
-//         <button className="btn btn-sm btn-outline btn-primary" onClick={() => setShowForm((p) => !p)}>
-//           {showForm ? "Cancel" : "+ Add"}
-//         </button>
-//       }
-//     >
-//       {showForm && (
-//         <form onSubmit={handleUpload} className="bg-base-200 rounded-xl p-4 mb-5 flex flex-col gap-3">
-//           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-//             <div className="flex flex-col gap-1">
-//               <label className="text-xs font-semibold text-base-content/60">Type</label>
-//               <select className="select select-bordered select-sm" value={form.doc_type}
-//                 onChange={(e) => setForm({ ...form, doc_type: e.target.value })}>
-//                 {["certification", "license", "insurance", "other"].map((o) => (
-//                   <option key={o} value={o}>{capitalize(o)}</option>
-//                 ))}
-//               </select>
-//             </div>
-//             <div className="flex flex-col gap-1">
-//               <label className="text-xs font-semibold text-base-content/60">Notes (optional)</label>
-//               <input type="text" className="input input-bordered input-sm" placeholder="e.g. Expires Dec 2026"
-//                 value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
-//             </div>
-//           </div>
-//           <div className="flex flex-col gap-1">
-//             <label className="text-xs font-semibold text-base-content/60">Document URL</label>
-//             <input type="url" required className="input input-bordered input-sm" placeholder="https://..."
-//               value={form.doc_url} onChange={(e) => setForm({ ...form, doc_url: e.target.value })} />
-//           </div>
-//           <button type="submit" className="btn btn-sm bg-blue-800 text-white" disabled={uploading}>
-//             {uploading ? "Uploading…" : "Upload"}
-//           </button>
-//         </form>
-//       )}
+    try {
+      await api.put(`/coach/payment-plans/${editingPlan.payment_plan_id}`, form);
 
-//       {loading ? <Spinner /> : docs.length === 0 ? (
-//         <EmptyState message="No documents uploaded yet." />
-//       ) : (
-//         <div className="flex flex-col gap-2">
-//           {docs.map((doc) => (
-//             <div key={doc.doc_id} className="flex items-center justify-between bg-base-200 rounded-xl px-4 py-3 gap-4">
-//               <div className="flex flex-col gap-0.5 min-w-0">
-//                 <span className="font-semibold text-sm">{capitalize(doc.doc_type)}</span>
-//                 {doc.notes && <span className="text-xs text-base-content/50">{doc.notes}</span>}
-//                 <a href={doc.doc_url} target="_blank" rel="noreferrer"
-//                   className="text-xs text-blue-600 hover:underline truncate">{doc.doc_url}</a>
-//               </div>
-//               <div className="flex items-center gap-2 flex-shrink-0">
-//                 <Badge status={doc.status || "pending"} />
-//                 <button className="btn btn-xs btn-ghost text-error" onClick={() => handleDelete(doc.doc_id)}>✕</button>
-//               </div>
-//             </div>
-//           ))}
-//         </div>
-//       )}
-//     </SectionCard>
-//   );
-// }
+      setEditingPlan(null);
+      setShowForm(false);
+      setForm({ name: "", amount: "", billing_type: "onetime" });
+
+      load();
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="bg-base-100 border border-base-200 rounded-2xl p-6 flex flex-col gap-4">
+
+      {/* HEADER */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="font-bold">Payment Plans</h2>
+          <p className="text-xs text-base-content/50">
+            Create pricing options for clients
+          </p>
+        </div>
+
+        <button
+          className="btn btn-sm btn-outline btn-primary"
+          onClick={() => setShowForm(!showForm)}
+        >
+          {showForm ? "Cancel" : "+ Add Plan"}
+        </button>
+      </div>
+
+      {/* FORM */}
+      {showForm && (
+        <form onSubmit={handleCreate} className="grid grid-cols-2 gap-3">
+
+          <input
+            className="input input-bordered input-sm"
+            placeholder="Plan name"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+          />
+
+          <input
+            type="number"
+            className="input input-bordered input-sm"
+            placeholder="Amount"
+            value={form.amount}
+            onChange={(e) => setForm({ ...form, amount: e.target.value })}
+          />
+
+          <select
+            className="select select-bordered select-sm col-span-2"
+            value={form.billing_type}
+            onChange={(e) => setForm({ ...form, billing_type: e.target.value })}
+          >
+            <option value="onetime">One Time</option>
+            <option value="recurring">Recurring</option>
+          </select>
+
+          <button
+            className="btn btn-sm bg-blue-800 text-white col-span-2"
+            disabled={saving}
+          >
+            {saving ? "Saving..." : "Create"}
+          </button>
+        </form>
+      )}
+
+      {/* LIST */}
+      {loading ? (
+        <Spinner />
+      ) : plans.length === 0 ? (
+        <p className="text-sm text-center text-base-content/40 py-6">
+          No payment plans yet
+        </p>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {plans.map((plan) => (
+            <div
+              key={plan.payment_plan_id}
+              className="flex justify-between items-center bg-base-200 rounded-xl px-4 py-3"
+            >
+              {/* LEFT SIDE */}
+              <div>
+                <p className="font-bold text-sm">{plan.name}</p>
+                <p className="text-xs text-base-content/60">
+                  ${plan.amount} · {plan.billing_type}
+                </p>
+              </div>
+
+              {/* RIGHT SIDE ACTIONS */}
+              <div className="flex items-center gap-2">
+                <button
+                  className="btn btn-xs btn-outline"
+                  onClick={() => {
+                    setEditingPlan(plan);
+                    setForm({
+                      name: plan.name,
+                      amount: plan.amount,
+                      billing_type: plan.billing_type,
+                    });
+                    setShowForm(true);
+                  }}
+                >
+                  Edit
+                </button>
+
+                <button
+                  className="btn btn-xs btn-ghost text-error"
+                  onClick={() => handleDelete(plan.payment_plan_id)}
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function DocumentsSection() {
   const [docs, setDocs] = useState([]);
@@ -380,6 +452,7 @@ function DocumentsSection() {
       console.error(e);
     }
   };
+
 
   return (
     <div className="bg-base-100 border border-base-200 rounded-2xl p-6 flex flex-col gap-4">
@@ -514,6 +587,8 @@ function DocumentsSection() {
     </div>
   );
 }
+
+
 /* ── Invoices ── */
 function InvoicesSection() {
   const [invoices, setInvoices] = useState([]);
@@ -738,8 +813,12 @@ function Profile() {
           }
 
           <AvailabilitySection />
+          <PaymentPlansSection coachId={fetchData?.coach_profile_id} />
           <DocumentsSection />
+
           <InvoicesSection />
+
+
 
 
         </section>
