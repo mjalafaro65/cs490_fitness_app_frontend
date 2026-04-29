@@ -286,6 +286,25 @@ function CProfile() {
       </div>
     )}
 
+    {popOpen === "reports" && (
+      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="bg-base-100 rounded-box shadow-xl p-6 w-[400px] max-w-[90vw]">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">Reports</h2>
+            <button
+              className="btn btn-sm btn-circle btn-ghost"
+              onClick={() => setPopOpen(null)}
+            >
+              ✕
+            </button>
+          </div>
+          <div className="text-center py-8">
+            <p className="text-lg opacity-70">No reports found</p>
+          </div>
+        </div>
+      </div>
+    )}
+
 
     </div>
   );
