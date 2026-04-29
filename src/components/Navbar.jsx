@@ -98,9 +98,6 @@ function Navbar() {
             to: "/coach/workoutplans", label: "Workout Plans", icon: (Icons.Workout)
         },
         {
-            to: "/coach/progresslogs", label: "Progress Logs", icon: (Icons.Logs)
-        },
-        {
             to: "/coach/meallogs", label: "Meal Logs", icon: (Icons.Meal)
         },
         {
@@ -219,7 +216,7 @@ function Navbar() {
                     <div className="p-2">
                     <h3 className="text-xl font-bold text-black mb-2">Confirm Logout</h3>
                     <p className="text-gray-700 font-medium my-2 mb-4">Are you sure you want to log out?</p>
-                    <div className="flex gap-3 justify-end">
+                    <div className="flex gap-3 justify-end mt-8">
                         <button
                             onClick={handleCancelLogout}
                             className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer"
