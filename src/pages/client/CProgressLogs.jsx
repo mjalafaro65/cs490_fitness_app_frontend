@@ -75,44 +75,6 @@ function ProgressLogs() {
     description: ""
   });
 
-  const [todayActivities, setTodayActivities] = useState([]);
-
-  const fetchTodayActivities = async () => {
-    try {
-      const response = await api.get("/workouts/workout-logs", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-        }
-      });
-      
-      console.log("Fetched activities:", response.data);
-      console.log("Response data type:", typeof response.data);
-      console.log("Response data length:", response.data.length);
-      
-      // Filter for today's activities
-      const today = new Date().toISOString().split('T')[0];
-      console.log("Today's date:", today);
-      
-      const todaysActivities = response.data.filter(log => {
-        console.log("Processing log:", log);
-        // Use the correct field name: logged_at
-        const logDate = log.logged_at ? 
-          new Date(log.logged_at).toISOString().split('T')[0] :
-          null;
-        
-        console.log("Log raw logged_at:", log.logged_at);
-        console.log("Log processed date:", logDate, "Today:", today, "Match:", logDate === today);
-        return logDate === today;
-      });
-      
-      console.log("Today's activities:", todaysActivities);
-      console.log("Today's activities count:", todaysActivities.length);
-      setTodayActivities(todaysActivities);
-    } catch (err) {
-      console.error("Failed to fetch today's activities:", err.response?.data || err);
-    }
-  };
-
   useEffect(() => {
     async function fetchAllInsights() {
       setLoadingInsights(true);
@@ -243,7 +205,6 @@ function ProgressLogs() {
     }
 
     fetchUser();
-    fetchTodayActivities();
   }, []);
 
   const handleChange = (e) => {
@@ -258,35 +219,6 @@ function ProgressLogs() {
         [e.target.name]: e.target.value
       });
     };
-
-
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-//     try{
-//       await api.post("/workouts/workout-logs", logData);
-//       setPopOpen(null);
-//       showAlert("Workout logged successfully!", "success");
-
-//       setLogData({
-//         exercise_id: 0,
-//         sets: 0,
-//         reps: 0, 
-//         weight: 0,
-//         rpe: 0, 
-//         distance: 0, 
-//         calories: 0, 
-//         duration_minutes: 0, 
-//         notes: ""
-//       });
-
-//       // Refresh today's activities
-//       fetchTodayActivities();
-
-//     } catch(err){
-//       console.error("Failed to save survey:", err.response?.data || err)
-//       showAlert(err.response?.data?.message || "Failed to log workout", "error");
-//     }
-//   };
 
   const handleCreateGoal = async (e) => {
     e.preventDefault();
