@@ -280,15 +280,14 @@ const CoachPublicProfile = () => {
                                 </div>
                                 <p className="text-blue-900 font-medium mb-6">Certified Fitness Coach</p>
 
-                                {!isLoggedIn || (<button
+                                {!isLoggedIn && <button
                                     onClick={toggleFavorite}
                                     className="btn w-full border-none bg-white text-black hover:opacity-90"
                                 >
-                                    {isFavorite ? "★ Favorited" : "☆ Add to Favorites"}
-                                </button>)}
+                                    {isFavorite ? "Favorited" : "Add to Favorites"}
+                                </button>}
 
-                                {isLoggedIn && (
-                                    <button
+                                {isLoggedIn && <button
                                         onClick={() => {
                                             // Navigate to messages page with coach info to start conversation
                                             navigate("/messages", {
@@ -305,8 +304,7 @@ const CoachPublicProfile = () => {
                                         className="btn w-full bg-blue-800 text-white hover:bg-blue-700 mt-2"
                                     >
                                         Message
-                                    </button>
-                                )}
+                                    </button>}
                             </div>
                         </div>
                     </div>
@@ -324,8 +322,7 @@ const CoachPublicProfile = () => {
                         <div className="bg-white rounded-2xl shadow-sm p-8 min-h-[400px]">
 
                             {/* ABOUT SECTION */}
-                            {activeTab === 'about' && (
-                                <div className="animate-fadeIn">
+                            {activeTab === 'about' && <div className="animate-fadeIn">
                                     <h3 className="text-xl font-bold mb-4">Biography</h3>
                                     <p className="text-gray-600 leading-relaxed mb-6 italic">"{coach.bio}"</p>
                                     <h3 className="text-xl font-bold mb-4">Specialty</h3>
@@ -336,10 +333,8 @@ const CoachPublicProfile = () => {
                                     </div>
                                     <h3 className="text-xl font-bold mb-4">Experience</h3>
                                     <p className="text-gray-600">{coach.years_experience}</p>
-                                </div>
-                            )}
-                            {activeTab === 'pricing' && (
-                                <div className="animate-fadeIn">
+                                </div>}
+                            {activeTab === 'pricing' && <div className="animate-fadeIn">
                                     <h3 className="text-xl font-bold mb-6">Choose Your Plan</h3>
 
                                     {!payments || payments.length === 0 ? (
@@ -391,11 +386,9 @@ const CoachPublicProfile = () => {
                                             ))}
                                         </div>
                                     )}
-                                </div>
-                            )}
+                                </div>}
                             {/* AVAILABILITY / CALENDAR SECTION */}
-                            {activeTab === "availability" && (
-                                <div className="animate-fadeIn">
+                            {activeTab === "availability" && <div className="animate-fadeIn">
                                     <h3 className="text-xl font-bold mb-6">Availability</h3>
 
                                     {availabilityLoading ? (
@@ -428,11 +421,9 @@ const CoachPublicProfile = () => {
                                             ))}
                                         </div>
                                     )}
-                                </div>
-                            )}
+                                </div>}
 
-                            {showHireModal && (
-                                <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                            {showHireModal && <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
                                     <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-lg">
 
                                         <h2 className="text-xl font-bold mb-4">Hire Coach</h2>
@@ -472,14 +463,12 @@ const CoachPublicProfile = () => {
                                             </button>
                                         </div>
                                     </div>
-                                </div>
-                            )}
+                                </div>}
 
                             {/* REVIEWS SECTION */}
 
 
-                            {activeTab === 'reviews' && (
-                                <div>
+                            {activeTab === 'reviews' && <div>
                                     <button
                                         className="btn btn-primary bg-blue-800 btn-sm mb-4"
                                         onClick={() => setShowReviewModal(true)}
@@ -526,11 +515,9 @@ const CoachPublicProfile = () => {
                                             </div>
                                         ))
                                     )}
-                                </div>
-                            )}
+                                </div>}
 
-                            {showReviewModal && (
-                                <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                            {showReviewModal && <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
                                     <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-lg">
 
                                         <h2 className="text-xl font-bold mb-4">Write a Review</h2>
@@ -572,11 +559,9 @@ const CoachPublicProfile = () => {
                                                     try {
                                                         setSubmitting(true);
 
-                                                        // Convert 1-5 star rating to 1-100 scale for backend
-                                                        const ratingScale = (newRating / 5) * 100;
-
+                                                        // Use 1-5 star rating directly for backend
                                                         await api.post(`/client/review-coach/${coach.coach_profile_id}`, {
-                                                            rating: Math.round(ratingScale),
+                                                            rating: newRating,
                                                             comment: newComment
                                                         });
 
@@ -594,8 +579,12 @@ const CoachPublicProfile = () => {
                                                         console.error("Error data:", err.response?.data);
 
                                                         // Show more specific error message
-                                                        if (err.response?.data?.msg) {
+                                                        if (err.response?.data?.description) {
+                                                            alert(`Failed to submit review: ${err.response.data.description}`);
+                                                        } else if (err.response?.data?.msg) {
                                                             alert(`Failed to submit review: ${err.response.data.msg}`);
+                                                        } else if (err.response?.status === 403) {
+                                                            alert("Failed to submit review: You can only review coaches you have hired or previously worked with.");
                                                         } else if (err.response?.status === 401) {
                                                             alert("Failed to submit review: Please log in again");
                                                         } else if (err.response?.status === 400) {
@@ -613,15 +602,12 @@ const CoachPublicProfile = () => {
                                         </div>
 
                                     </div>
-                                </div>
-                            )}
-                            {showAlert && (
-                                <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50">
+                                </div>}
+                            {showAlert && <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50">
                                     <div className={`p-3 rounded-lg shadow-lg ${typeStyles[type]}`}>
                                         {message}
                                     </div>
-                                </div>
-                            )}
+                                </div>}
 
 
 
