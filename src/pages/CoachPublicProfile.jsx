@@ -282,15 +282,14 @@ const CoachPublicProfile = () => {
                                 </div>
                                 <p className="text-blue-900 font-medium mb-6">Certified Fitness Coach</p>
 
-                                {!isLoggedIn || (<button
+                                {!isLoggedIn && <button
                                     onClick={toggleFavorite}
                                     className="btn w-full border-none bg-white text-black hover:opacity-90"
                                 >
-                                    {isFavorite ? "★ Favorited" : "☆ Add to Favorites"}
-                                </button>)}
+                                    {isFavorite ? "Favorited" : "Add to Favorites"}
+                                </button>}
 
-                                {isLoggedIn && (
-                                    <button
+                                {isLoggedIn && <button
                                         onClick={() => {
                                             // Navigate to messages page with coach info to start conversation
                                             navigate("/messages", {
@@ -307,8 +306,7 @@ const CoachPublicProfile = () => {
                                         className="btn w-full bg-blue-800 text-white hover:bg-blue-700 mt-2"
                                     >
                                         Message
-                                    </button>
-                                )}
+                                    </button>}
                             </div>
                         </div>
                     </div>
@@ -326,8 +324,7 @@ const CoachPublicProfile = () => {
                         <div className="bg-white rounded-2xl shadow-sm p-8 min-h-[400px]">
 
                             {/* ABOUT SECTION */}
-                            {activeTab === 'about' && (
-                                <div className="animate-fadeIn">
+                            {activeTab === 'about' && <div className="animate-fadeIn">
                                     <h3 className="text-xl font-bold mb-4">Biography</h3>
                                     <p className="text-gray-600 leading-relaxed mb-6 italic">"{coach.bio}"</p>
                                     <h3 className="text-xl font-bold mb-4">Specialty</h3>
@@ -338,10 +335,8 @@ const CoachPublicProfile = () => {
                                     </div>
                                     <h3 className="text-xl font-bold mb-4">Experience</h3>
                                     <p className="text-gray-600">{coach.years_experience}</p>
-                                </div>
-                            )}
-                            {activeTab === 'pricing' && (
-                                <div className="animate-fadeIn">
+                                </div>}
+                            {activeTab === 'pricing' && <div className="animate-fadeIn">
                                     <h3 className="text-xl font-bold mb-6">Choose Your Plan</h3>
 
                                     {!payments || payments.length === 0 ? (
@@ -393,11 +388,9 @@ const CoachPublicProfile = () => {
                                             ))}
                                         </div>
                                     )}
-                                </div>
-                            )}
+                                </div>}
                             {/* AVAILABILITY / CALENDAR SECTION */}
-                            {activeTab === "availability" && (
-                                <div className="animate-fadeIn">
+                            {activeTab === "availability" && <div className="animate-fadeIn">
                                     <h3 className="text-xl font-bold mb-6">Availability</h3>
 
                                     {availabilityLoading ? (
@@ -430,8 +423,7 @@ const CoachPublicProfile = () => {
                                             ))}
                                         </div>
                                     )}
-                                </div>
-                            )}
+                                </div>}
 
                             {showHireModal && (
                                 <div className="fixed inset-0 backdrop-blur-sm bg-opacity-40 flex items-center justify-center z-50">
@@ -474,14 +466,12 @@ const CoachPublicProfile = () => {
                                             </button>
                                         </div>
                                     </div>
-                                </div>
-                            )}
+                                </div>}
 
                             {/* REVIEWS SECTION */}
 
 
-                            {activeTab === 'reviews' && (
-                                <div>
+                            {activeTab === 'reviews' && <div>
                                     <button
                                         className="btn btn-primary text-white bg-blue-800 btn-sm mb-4"
                                         onClick={() => setShowReviewModal(true)}
@@ -528,8 +518,7 @@ const CoachPublicProfile = () => {
                                             </div>
                                         ))
                                     )}
-                                </div>
-                            )}
+                                </div>}
 
                             {showReviewModal && (
                                 <div className="fixed inset-0 backdrop-blur flex items-center justify-center z-50">
@@ -574,11 +563,9 @@ const CoachPublicProfile = () => {
                                                     try {
                                                         setSubmitting(true);
 
-                                                        // Convert 1-5 star rating to 1-100 scale for backend
-                                                        const ratingScale = (newRating / 5) * 100;
-
+                                                        // Use 1-5 star rating directly for backend
                                                         await api.post(`/client/review-coach/${coach.coach_profile_id}`, {
-                                                            rating: Math.round(ratingScale),
+                                                            rating: newRating,
                                                             comment: newComment
                                                         });
 
