@@ -372,66 +372,66 @@ function ProgressLogs() {
   };
 
 
-  const handleOpenWidget = (type) => {
-    console.log("Opening widget for type:", type);
-    setImageType(type);
+  // const handleOpenWidget = (type) => {
+  //   console.log("Opening widget for type:", type);
+  //   setImageType(type);
 
-    if (!window.cloudinary) {
-      console.error("Cloudinary script not found. Is it in index.html?");
-      return;
-    }
+  //   if (!window.cloudinary) {
+  //     console.error("Cloudinary script not found. Is it in index.html?");
+  //     return;
+  //   }
 
-    const myCloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-    const myPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+  //   const myCloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+  //   const myPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
-    const widget = window.cloudinary.createUploadWidget(
-      {
-        cloudName: myCloudName,
-        uploadPreset: myPreset,
-        sources: ["local", "url", "camera"],
-        multiple: false,
-        cropping: true,
-        clientAllowedFormats: ["jpg", "png", "jpeg", "pdf"],
-        zIndex: 2000
-      },
-      (error, result) => {
-        if (!error && result && result.event === "success") {
-          const imageUrl = result.info.secure_url;
-          console.log("Upload successful, imageType:", type, "imageUrl:", imageUrl);
+  //   const widget = window.cloudinary.createUploadWidget(
+  //     {
+  //       cloudName: myCloudName,
+  //       uploadPreset: myPreset,
+  //       sources: ["local", "url", "camera"],
+  //       multiple: false,
+  //       cropping: true,
+  //       clientAllowedFormats: ["jpg", "png", "jpeg", "pdf"],
+  //       zIndex: 2000
+  //     },
+  //     (error, result) => {
+  //       if (!error && result && result.event === "success") {
+  //         const imageUrl = result.info.secure_url;
+  //         console.log("Upload successful, imageType:", type, "imageUrl:", imageUrl);
 
-          let newBeforeImage = beforeImage;
-          let newAfterImage = afterImage;
+  //         let newBeforeImage = beforeImage;
+  //         let newAfterImage = afterImage;
 
-          // Use the type parameter directly instead of imageType state
-          if (type === 'before') {
-            console.log("Setting before image");
-            setBeforeImage(imageUrl);
-            newBeforeImage = imageUrl;
-          } else if (type === 'after') {
-            console.log("Setting after image");
-            setAfterImage(imageUrl);
-            newAfterImage = imageUrl;
-          }
+  //         // Use the type parameter directly instead of imageType state
+  //         if (type === 'before') {
+  //           console.log("Setting before image");
+  //           setBeforeImage(imageUrl);
+  //           newBeforeImage = imageUrl;
+  //         } else if (type === 'after') {
+  //           console.log("Setting after image");
+  //           setAfterImage(imageUrl);
+  //           newAfterImage = imageUrl;
+  //         }
 
-          // Save to backend
-          saveProgressPhotos(newBeforeImage, newAfterImage)
-            .then(() => {
-              showAlert("Image uploaded and saved successfully!", "success");
-            })
-            .catch((err) => {
-              console.error("Failed to save to backend:", err);
-              showAlert("Image uploaded but failed to save. Please try again.", "error");
-            });
-        }
-        if (error) {
-          console.error("Cloudinary Widget Error:", error);
-          showAlert("Failed to upload image", "error");
-        }
-      }
-    );
+  //         // Save to backend
+  //         saveProgressPhotos(newBeforeImage, newAfterImage)
+  //           .then(() => {
+  //             showAlert("Image uploaded and saved successfully!", "success");
+  //           })
+  //           .catch((err) => {
+  //             console.error("Failed to save to backend:", err);
+  //             showAlert("Image uploaded but failed to save. Please try again.", "error");
+  //           });
+  //       }
+  //       if (error) {
+  //         console.error("Cloudinary Widget Error:", error);
+  //         showAlert("Failed to upload image", "error");
+  //       }
+  //     }
+  //   );
 
-    widget.open();
-  };
+  //   widget.open();
+  // };
 
   const filterDataByPeriod = (data, period) => {
     const now = new Date();
@@ -665,12 +665,12 @@ function ProgressLogs() {
       // Update the profileData object specifically
       if (type === 'before') {
         console.log("Setting before image");
-        setBeforeImage(imageUrl);
-        newBeforeImage = imageUrl;
+        setBeforeImage(url);
+        newBeforeImage = url;
       } else if (type === 'after') {
         console.log("Setting after image");
-        setAfterImage(imageUrl);
-        newAfterImage = imageUrl;
+        setAfterImage(url);
+        newAfterImage = url;
       }
     });
   };

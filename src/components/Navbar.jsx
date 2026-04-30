@@ -49,9 +49,7 @@ function Navbar() {
         </svg>
     };
     const pages = [
-        {
-            to: "/messages", label: "Messages", icon: (Icons.Messages)
-        },
+        
         // {
         //     to: "/notifications", label: "Notifications", icon: (Icons.Notifications)
         // },
@@ -85,6 +83,9 @@ function Navbar() {
         {
             to: "/client/settings", label: "Settings", icon: (Icons.Settings)
         },
+        {
+            to: "/messages", label: "Messages", icon: (Icons.Messages)
+        }
     ];
 
     const coachPages = [
@@ -103,6 +104,9 @@ function Navbar() {
         {
             to: "/coach/settings", label: "Settings", icon: (Icons.Settings)
         },
+        {
+            to: "/messages", label: "Messages", icon: (Icons.Messages)
+        }
     ];
 
     const adminPages = [
@@ -123,7 +127,7 @@ function Navbar() {
         },
         {
             to: "/admin/progresslogs", label: "Statistics", icon: (Icons.Logs)
-        },
+        }
         //{
         //    to: "/admin/settings", label: "Settings", icon: (Icons.Settings)
         //},
