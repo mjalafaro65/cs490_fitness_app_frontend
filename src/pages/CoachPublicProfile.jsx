@@ -466,7 +466,8 @@ const CoachPublicProfile = () => {
                                             </button>
                                         </div>
                                     </div>
-                                </div>}
+                                </div>
+                            )}       
 
                             {/* REVIEWS SECTION */}
 
