@@ -214,7 +214,11 @@ function ClientWorkoutPlans() {
   };
 
 
-
+  const refreshActivePlans = async () => {
+    const data = await getMyAssignments();
+    const cleaned = simplifyAssignments(data);
+    setScheduledPlans(cleaned);
+  };
 
   useEffect(() => {
     const init = async () => {
@@ -384,6 +388,12 @@ function ClientWorkoutPlans() {
       showAlert(err.response?.data || "Failed to delete day", "error");
     }
   };
+  const refreshAll = async () => {
+    await Promise.all([
+      fetchAllData(),
+      refreshActivePlans()
+    ]);
+  };
 
   const [editingExercise, setEditingExercise] = useState(null);
 
@@ -499,6 +509,8 @@ function ClientWorkoutPlans() {
       const calendarResponse = await api.post(`/workouts/plans/${selectedPlan.plan_id}/calendar`, {
         occurrences: occurrences
       });
+      await refreshAll()
+
 
       console.log("[DEBUG] Calendar response:", calendarResponse.data);
       showAlert(`Success: ${calendarResponse.data.calendar_workout_ids?.length || 0} workout(s) scheduled.`, "success");
@@ -646,14 +658,34 @@ function ClientWorkoutPlans() {
       setTempWorkoutForLog(null);
       showAlert(`Workout logged successfully! ${response.data.log_id ? `Log ID: ${response.data.log_id}` : ''}`, "success");
 
-      await fetchAllData();
-
     } catch (err) {
       console.error("[ERROR] Failed to save workout log:", err.response?.data || err);
       const errorMessage = err.response?.data?.message || err.response?.data?.error || "Failed to log workout";
       showAlert(errorMessage, "error");
     }
   };
+
+  const fetchWorkoutsForDate = async (date) => {
+    setSelectedDate(date);
+
+    const formatted = date.toISOString().split("T")[0];
+
+    try {
+      const res = await api.get(
+        `/workouts/calendar-workouts-view?date=${formatted}`
+      );
+
+      console.log(res.data);
+
+      setSelectedWorkouts(
+        (res.data || []).filter(w => w.status !== "canceled")
+      );
+    } catch (err) {
+      console.error("Failed to fetch day workouts:", err);
+      setSelectedWorkouts([]);
+    }
+  };
+
 
 
   const year = currentDate.getFullYear();
@@ -739,23 +771,9 @@ function ClientWorkoutPlans() {
                     return (
                       <div
                         key={`day-${year}-${month}-${i}`}
-                        onClick={async () => {
+                        onClick={() => {
                           const date = new Date(year, month, i + 1);
-                          setSelectedDate(date);
-
-                          const formatted = date.toISOString().split("T")[0];
-
-                          try {
-                            const res = await api.get(
-                              `/workouts/calendar-workouts-view?date=${formatted}`
-                            );
-                            console.log(res.data)
-
-                            setSelectedWorkouts(res.data || []);
-                          } catch (err) {
-                            console.error("Failed to fetch day workouts:", err);
-                            setSelectedWorkouts([]);
-                          }
+                          fetchWorkoutsForDate(date)
                         }}
                         className={`h-16 p-1 rounded-lg cursor-pointer transition-all relative
         ${isSelected ? 'ring-2 ring-primary bg-primary/10' : ''}
@@ -861,44 +879,91 @@ function ClientWorkoutPlans() {
                           >
                             Edit Plan
                           </button> */}
-                          <button
-                            className="btn btn-xs bg-green-700 text-white"
-                            onClick={() => {
-                              const exercises = workout.plan_day?.exercises || [];
+                          {
+                            workout.status != "completed" ?
+                              (
 
-                              if (exercises.length === 0) {
-                                showAlert("This workout has no exercises to log", "error");
-                                return;
-                              }
+                                   <><button
+                                  className="btn btn-xs bg-blue-700 text-white" V
+                                  onClick={async () => {
+                                    try {
 
-                              if (exercises.length === 1) {
-                                const ex = exercises[0];
+                                      await api.patch(`/workouts/calendar-workouts/${workout.calendar_workout_id}`, {
+                                        status: "completed"
+                                      });
 
-                                setLogData({
-                                  calendar_workout_id: workout.calendar_workout_id,
-                                  exercise_id: ex.exercise?.exercise_id,
-                                  sets: ex.sets || 3,
-                                  reps: ex.reps || 10,
-                                  weight: ex.weight || 0,
-                                  rpe: 0,
-                                  distance: 0,
-                                  duration_minutes: ex.duration_minutes || 0,
-                                  notes: ""
-                                });
+                                      if (selectedDate) {
+                                        await fetchWorkoutsForDate(selectedDate);
+                                      }
 
-                                setPopOpen("log");
-                              } else {
-                                setTempWorkoutForLog({
-                                  ...workout,
-                                  exercises
-                                });
 
-                                setPopOpen("selectExercise");
-                              }
-                            }}
-                          >
-                            Log Workout
-                          </button>
+                                    } catch (err) {
+                                      console.log(err.response?.data);
+                                    }
+                                  } }
+                                >
+                                  Complete
+                                </button><button
+                                  className="btn btn-xs bg-blue-700 text-white"
+                                  onClick={() => {
+                                    const exercises = workout.plan_day?.exercises || [];
+
+                                    if (exercises.length === 0) {
+                                      showAlert("This workout has no exercises to log", "error");
+                                      return;
+                                    }
+
+                                    // prevent logging completed workouts
+                                    if (workout.status === "completed") {
+                                      showAlert("This workout is already completed", "info");
+                                      return;
+                                    }
+
+                                    // optional: prevent logging canceled workouts
+                                    if (workout.status === "canceled") {
+                                      showAlert("This workout was canceled", "error");
+                                      return;
+                                    }
+
+                                    if (exercises.length === 1) {
+                                      const ex = exercises[0];
+
+                                      setLogData({
+                                        calendar_workout_id: workout.calendar_workout_id,
+                                        exercise_id: ex.exercise?.exercise_id,
+                                        sets: ex.sets || 3,
+                                        reps: ex.reps || 10,
+                                        weight: ex.weight || 0,
+                                        rpe: 0,
+                                        distance: 0,
+                                        duration_minutes: ex.duration_minutes || 0,
+                                        notes: ""
+                                      });
+
+                                      setPopOpen("log");
+                                    } else {
+                                      setTempWorkoutForLog({
+                                        ...workout,
+                                        exercises
+                                      });
+
+                                      setPopOpen("selectExercise");
+                                    }
+                                  } }
+                                >
+                                    Log Workout
+                                  </button></>
+
+
+
+
+                              ) : (<p>Workout Completed </p>)
+
+                          }
+
+
+
+
                         </div>
                       </div>
                     ))}
@@ -908,39 +973,50 @@ function ClientWorkoutPlans() {
             </div>
           </div>
 
-          <div className="card bg-base-300 rounded-box p-4">
+          {/* <div className="card bg-base-300 rounded-box p-4">
             <h2 className="text-lg font-bold mb-4">Active Plans</h2>
 
-            {scheduledPlans.map((plan) => (
-              <div key={plan.assignment_id} className="border rounded p-4 mb-4">
-                <h2 className="font-bold text-lg mb-2">{plan.plan_name}</h2>
+            {scheduledPlans.map((plan) => {
+              if (plan?.status == "completed" || plan?.status == "canceled" ) return null;
 
-                <div className="flex flex-wrap gap-2">
-                  {plan.days?.map((d, i) => {
-                    const time = d.session?.start
-                      ? new Date(d.session.start).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
-                      : "—";
+              return (
+                <div key={plan.assignment_id} className="border rounded p-4 mb-4">
+                  <h2 className="font-bold text-lg mb-2">
+                    {plan.plan_name}
+                  </h2>
 
-                    return (
-                      <div
-                        key={i}
-                        className="flex items-center gap-2 px-3 py-1 rounded-full bg-base-200 text-sm"
-                      >
-                        <span className="font-semibold">
-                          {d.weekday} - {d.day_label}
-                        </span>
-                        <span className="opacity-60">|</span>
-                        <span className="font-mono">{time}</span>
-                      </div>
-                    );
-                  })}
+                  <div className="flex flex-wrap gap-2">
+                    {plan.days?.map((d, i) => {
+                      const time = d.session?.start
+                        ? new Date(d.session.start).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
+                        : "";
+
+                      return (
+                        <div
+                          key={i}
+                          className="flex items-center gap-2 px-3 py-1 rounded-full bg-base-200 text-sm"
+                        >
+                          <span className="font-semibold">
+                            {d.weekday || "(Schedule)"} - {d.day_label}
+                          </span>
+
+                          {time && (
+                            <>
+                              <span className="opacity-60">|</span>
+                              <span className="font-mono">{time}</span>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              );
+            })}
+          </div> */}
 
           <div className="flex w-full gap-4">
             <div className="card bg-base-300 rounded-box flex-1 p-4">
@@ -980,7 +1056,7 @@ function ClientWorkoutPlans() {
             </div>
           </div>
         </section>
-      </div>
+      </div >
 
       <PopUp isOpen={isPopOpen === "create"} onClose={() => setPopOpen(null)}>
         <div className="bg-base-200 p-6 rounded-box">
@@ -1005,21 +1081,22 @@ function ClientWorkoutPlans() {
         </div>
       </PopUp>
 
-      {isPopOpen === "selectExercise" && tempWorkoutForLog && (
-        <PopUp
-          isOpen={true}
-          onClose={() => {
-            setPopOpen(null);
-            setTempWorkoutForLog(null);
-          }}
-        >
-          <div className="">
+      {
+        isPopOpen === "selectExercise" && tempWorkoutForLog && (
+          <PopUp
+            isOpen={true}
+            onClose={() => {
+              setPopOpen(null);
+              setTempWorkoutForLog(null);
+            }}
+          >
+            <div className="">
 
-            {/* HEADER */}
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-bold">Select Exercise to Log</h2>
+              {/* HEADER */}
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-bold">Select Exercise to Log</h2>
 
-              {/* <button
+                {/* <button
                 className="btn btn-sm btn-circle btn-ghost"
                 onClick={() => {
                   setPopOpen(null);
@@ -1028,78 +1105,85 @@ function ClientWorkoutPlans() {
               >
                 ✕
               </button> */}
-            </div>
+              </div>
 
-            {/* WORKOUT INFO */}
-            <div className="bg-base-200 rounded-lg p-3 mb-4">
-              <p className="text-xs opacity-60">Workout</p>
-              {/* <p className="font-semibold text-sm">
+              {/* WORKOUT INFO */}
+              <div className="bg-base-200 rounded-lg p-3 mb-4">
+                <p className="text-xs opacity-60">Workout</p>
+                {/* <p className="font-semibold text-sm">
                 {tempWorkoutForLog.planName} — {tempWorkoutForLog.dayLabel}
               </p> */}
-            </div>
+              </div>
 
-            {/* EXERCISE LIST */}
-            <div className="space-y-2 max-h-96 ">
+              {/* EXERCISE LIST */}
+              <div className="space-y-2 max-h-96 ">
 
-              {tempWorkoutForLog.exercises.map((exercise, idx) => (
-                <button
-                  key={idx}
-                  className="
+
+                {tempWorkoutForLog.exercises.map((exercise, idx) => (
+                  <button
+                    key={idx}
+                    className="
             w-full text-left p-3 rounded-lg
             bg-base-200 hover:bg-primary/10
             transition flex justify-between items-center
           "
-                  onClick={() => {
-                    setLogData({
-                      calendar_workout_id: tempWorkoutForLog.occurrenceId,
-                      exercise_id:
-                        exercise.exercise?.exercise_id || exercise.exercise_id,
-                      sets: exercise.sets || 3,
-                      reps: exercise.reps || 10,
-                      weight: exercise.weight || 0,
-                      rpe: 0,
-                      distance: 0,
-                      duration_minutes: exercise.duration_minutes || 0,
-                      notes: ""
-                    });
+                    onClick={() => {
+                      setLogData({
+                        calendar_workout_id: tempWorkoutForLog.calendar_workout_id,
+                        exercise_id:
+                          exercise.exercise?.exercise_id || exercise.exercise_id,
+                        sets: exercise.sets || 3,
+                        reps: exercise.reps || 10,
+                        weight: exercise.weight || 0,
+                        rpe: 0,
+                        distance: 0,
+                        duration_minutes: exercise.duration_minutes || 0,
+                        notes: ""
+                      });
 
-                    setPopOpen("log");
-                    setTempWorkoutForLog(null);
-                  }}
-                >
-                  <div>
-                    <p className="font-medium text-sm">
-                      {exercise.exercise?.name || exercise.name}
-                    </p>
 
-                    <p className="text-xs opacity-60">
-                      {exercise.sets} × {exercise.reps}
-                      {exercise.weight ? ` • ${exercise.weight} lbs` : ""}
-                    </p>
-                  </div>
 
-                  <span className="text-xs bg-blue-800 text-white px-2 py-1 rounded">
-                    Log
-                  </span>
-                </button>
-              ))}
+                      setPopOpen("log");
+                    }}
+                    onClose={() => {
+                      setPopOpen(null);
+                      setTempWorkoutForLog(null);
+                    }}
+                  >
+                    <div>
+                      <p className="font-medium text-sm">
+                        {exercise.exercise?.name || exercise.name}
+                      </p>
+
+                      <p className="text-xs opacity-60">
+                        {exercise.sets} × {exercise.reps}
+                        {exercise.weight ? ` • ${exercise.weight} lbs` : ""}
+                      </p>
+                    </div>
+
+                    <span className="text-xs bg-blue-800 text-white px-2 py-1 rounded">
+                      Log
+                    </span>
+                  </button>
+                ))}
+
+              </div>
+
+              {/* FOOTER */}
+              <button
+                className="btn btn-sm btn-ghost w-full mt-4"
+                onClick={() => {
+                  setPopOpen(null);
+                  setTempWorkoutForLog(null);
+                }}
+              >
+                Cancel
+              </button>
 
             </div>
-
-            {/* FOOTER */}
-            <button
-              className="btn btn-sm btn-ghost w-full mt-4"
-              onClick={() => {
-                setPopOpen(null);
-                setTempWorkoutForLog(null);
-              }}
-            >
-              Cancel
-            </button>
-
-          </div>
-        </PopUp>
-      )}
+          </PopUp>
+        )
+      }
 
       <PopUp isOpen={isPopOpen === "log"} onClose={() => {
         setPopOpen(null);
@@ -1312,7 +1396,7 @@ function ClientWorkoutPlans() {
                         <option value="">Weekday</option>
                         {WEEKDAY_NAMES.map((name, i) => <option key={i} value={i}>{name}</option>)}
                       </select>
-                      <input className="input input-xs w-28" type="time" placeholder="Time" value={newDayByPlan[selectedPlan.plan_id]?.session_time || ""} onChange={(e) => handleDayChange(selectedPlan.plan_id, "session_time", e.target.value)} />
+                      {/* <input className="input input-xs w-28" type="time" placeholder="Time" value={newDayByPlan[selectedPlan.plan_id]?.session_time || ""} onChange={(e) => handleDayChange(selectedPlan.plan_id, "session_time", e.target.value)} /> */}
                       <button className="btn btn-xs btn-primary bg-blue-800" onClick={() => handleAddDay(selectedPlan.plan_id)}>Add Day</button>
                     </div>
                   </div>
@@ -1412,22 +1496,13 @@ function ClientWorkoutPlans() {
         )}
       </LargeModal>
 
-      {editingSchedule && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={() => setEditingSchedule(null)}>
-          <div className="bg-base-200 p-6 rounded-box w-[500px] max-w-[90vw]" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Edit Scheduled Workout</h2>
-              <button className="btn btn-sm btn-circle btn-ghost" onClick={() => setEditingSchedule(null)}>✕</button>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <label className="label">Date</label>
-                <input
-                  type="date"
-                  className="input input-bordered w-full"
-                  value={editScheduleForm.date}
-                  onChange={(e) => setEditScheduleForm({ ...editScheduleForm, date: e.target.value })}
-                />
+      {
+        editingSchedule && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={() => setEditingSchedule(null)}>
+            <div className="bg-base-200 p-6 rounded-box w-[500px] max-w-[90vw]" onClick={(e) => e.stopPropagation()}>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">Edit Scheduled Workout</h2>
+                <button className="btn btn-sm btn-circle btn-ghost" onClick={() => setEditingSchedule(null)}>✕</button>
               </div>
               <div className="space-y-4">
                 <div>
@@ -1439,50 +1514,63 @@ function ClientWorkoutPlans() {
                     onChange={(e) => setEditScheduleForm({ ...editScheduleForm, date: e.target.value })}
                   />
                 </div>
-                <div>
-                  <label className="label">Workout Day</label>
-                  <input
-                    type="text"
-                    className="input input-bordered w-full"
-                    value={editScheduleForm.day_label}
-                    disabled
-                  />
-                </div>
-                <div>
-                  <label className="label">Start Time</label>
-                  <input
-                    type="time"
-                    className="input input-bordered w-full"
-                    value={editScheduleForm.start_time}
-                    onChange={(e) => setEditScheduleForm({ ...editScheduleForm, start_time: e.target.value })}
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <button className="btn btn-primary bg-blue-800 flex-1" onClick={handleUpdateSchedule}>Save Changes</button>
-                  <button className="btn bg-red-600 text-white flex-1" onClick={() => handleDeleteSchedule(editingSchedule.id)}>Delete Workout</button>
+                <div className="space-y-4">
+                  <div>
+                    <label className="label">Date</label>
+                    <input
+                      type="date"
+                      className="input input-bordered w-full"
+                      value={editScheduleForm.date}
+                      onChange={(e) => setEditScheduleForm({ ...editScheduleForm, date: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="label">Workout Day</label>
+                    <input
+                      type="text"
+                      className="input input-bordered w-full"
+                      value={editScheduleForm.day_label}
+                      disabled
+                    />
+                  </div>
+                  <div>
+                    <label className="label">Start Time</label>
+                    <input
+                      type="time"
+                      className="input input-bordered w-full"
+                      value={editScheduleForm.start_time}
+                      onChange={(e) => setEditScheduleForm({ ...editScheduleForm, start_time: e.target.value })}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button className="btn btn-primary bg-blue-800 flex-1" onClick={handleUpdateSchedule}>Save Changes</button>
+                    <button className="btn bg-red-600 text-white flex-1" onClick={() => handleDeleteSchedule(editingSchedule.id)}>Delete Workout</button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
-      {isBrowsePopOpen && (
-        <LargeModal open={isBrowsePopOpen} onClose={() => { setBrowsePopOpen(false); setAssigningDay(null); }}>
-          <BrowseExercises
-            planId={selectedPlan?.plan_id}
-            dayId={assigningDay?.plan_day_id}
-            weekday={assigningDay?.weekday}
-            onExerciseAdded={async () => {
-              await fetchAllData();
-              await handleSelectPlan(selectedPlan.plan_id);
-              setBrowsePopOpen(false);
-              setAssigningDay(null);
-            }}
-            onClose={() => { setBrowsePopOpen(false); setAssigningDay(null); }}
-          />
-        </LargeModal>
-      )}
+      {
+        isBrowsePopOpen && (
+          <LargeModal open={isBrowsePopOpen} onClose={() => { setBrowsePopOpen(false); setAssigningDay(null); }}>
+            <BrowseExercises
+              planId={selectedPlan?.plan_id}
+              dayId={assigningDay?.plan_day_id}
+              weekday={assigningDay?.weekday}
+              onExerciseAdded={async () => {
+                await fetchAllData();
+                await handleSelectPlan(selectedPlan.plan_id);
+                setBrowsePopOpen(false);
+                setAssigningDay(null);
+              }}
+              onClose={() => { setBrowsePopOpen(false); setAssigningDay(null); }}
+            />
+          </LargeModal>
+        )
+      }
 
       <Alert
         isOpen={alert}
@@ -1490,7 +1578,7 @@ function ClientWorkoutPlans() {
         type={alertType}
         onClose={() => setShowAlert(false)}
       />
-    </div>
+    </div >
   )
 }
 

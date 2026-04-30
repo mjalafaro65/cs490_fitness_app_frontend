@@ -270,7 +270,7 @@ function CoWorkoutPlans() {
     try {
       await api.post(`/workouts/plans/${plan_id}/assignments`, {
         assigned_to_user_id: targetClient.clientId,
-        repeat_rule: "weekly",
+        repeat_rule: "none",
         start_date: assignData.start_date || null,
         end_date: assignData.end_date || null,
       });
@@ -696,7 +696,7 @@ function CoWorkoutPlans() {
                           </option>
                         ))}
                       </select>
-                      <input
+                      {/* <input
                         className="input input-xs w-28"
                         type="time"
                         placeholder="Time"
@@ -704,7 +704,7 @@ function CoWorkoutPlans() {
                         onChange={(e) =>
                           handleDayChange(selectedPlan.plan_id, "session_time", e.target.value)
                         }
-                      />
+                      /> */}
                       <button
                         className="btn btn-xs btn-primary text-white bg-blue-800"
                         onClick={() => handleAddDay(selectedPlan.plan_id)}
@@ -714,34 +714,7 @@ function CoWorkoutPlans() {
                     </div>
                   </div>
                 </div>
-                <div className="bg-base-300 p-4 rounded-box">
-                  <h3 className="font-bold mb-3">Assigned Clients</h3>
-                  {loadingAssignments ? (
-                    <p className="text-xs opacity-50">Loading...</p>
-                  ) : planAssignments.length === 0 ? (
-                    <p className="text-xs opacity-50 text-center py-4">
-                      Not assigned to any clients yet.
-                    </p>
-                  ) : (
-                    <div className="flex flex-col gap-2">
-                      {planAssignments.map((a) => (
-                        <div key={a.assignment_id} className="bg-base-200 rounded-lg px-3 py-2 flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-semibold">
-                              {a.client_name || `User ${a.assigned_to_user_id}`}
-                            </p>
-                            <p className="text-xs opacity-60">
-                              {a.start_date ? `${a.start_date} → ${a.end_date || "ongoing"}` : "No dates set"}
-                            </p>
-                          </div>
-                          <span className={`badge badge-sm ${a.status === "active" ? "badge-success" : "badge-ghost"}`}>
-                            {a.status}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+
               </div>
 
               <div className="bg-base-300 p-4 rounded-box">
@@ -773,11 +746,13 @@ function CoWorkoutPlans() {
                       })
                     )}
                   </div>
+
                 </div>
+
 
                 {/* Quick assign (no dates) */}
                 <div className="space-y-2 mb-3">
-                  <div>
+                  {/* <div>
                     <label className="text-xs opacity-70">Start Date (optional)</label>
                     <input
                       type="date"
@@ -794,7 +769,7 @@ function CoWorkoutPlans() {
                       value={assignData.end_date}
                       onChange={(e) => setAssignData({ ...assignData, end_date: e.target.value })}
                     />
-                  </div>
+                  </div> */}
                   <button
                     className="btn btn-primary bg-blue-800 btn-sm w-full"
                     disabled={!assignPopupClient}
@@ -804,6 +779,34 @@ function CoWorkoutPlans() {
                       ? `Assign to ${assignPopupClient.clientName}`
                       : "Select a client first"}
                   </button>
+                </div>
+                <div className="bg-base-300 p-4 rounded-box">
+                  <h3 className="font-bold mb-3">Assigned Clients</h3>
+                  {loadingAssignments ? (
+                    <p className="text-xs opacity-50">Loading...</p>
+                  ) : planAssignments.length === 0 ? (
+                    <p className="text-xs opacity-50 text-center py-4">
+                      Not assigned to any clients yet.
+                    </p>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      {planAssignments.map((a) => (
+                        <div key={a.assignment_id} className="bg-base-200 rounded-lg px-3 py-2 flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-semibold">
+                              {a.client_name || `User ${a.assigned_to_user_id}`}
+                            </p>
+                            <p className="text-xs opacity-60">
+                              {a.start_date ? `${a.start_date} → ${a.end_date || "ongoing"}` : "No dates set"}
+                            </p>
+                          </div>
+                          <span className={`badge badge-sm ${a.status === "active" ? "badge-success" : "badge-ghost"}`}>
+                            {a.status}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -843,7 +846,7 @@ function CoWorkoutPlans() {
             </div>
           )}
 
-          <div className="space-y-2 mb-4">
+          {/* <div className="space-y-2 mb-4">
             <div>
               <label className="text-xs opacity-70">Start Date (optional)</label>
               <input
@@ -862,7 +865,7 @@ function CoWorkoutPlans() {
                 onChange={(e) => setAssignData({ ...assignData, end_date: e.target.value })}
               />
             </div>
-          </div>
+          </div> */}
 
           <button
             className="btn btn-primary w-full"
