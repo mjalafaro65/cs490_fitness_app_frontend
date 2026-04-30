@@ -89,7 +89,7 @@ function ProgressLogs() {
     status: ""
   });
 
-   const fetchProgressPhotos = async () => {
+  const fetchProgressPhotos = async () => {
     try {
       const response = await api.get("/client/progress-photos");
       if (response.data) {
@@ -118,6 +118,9 @@ function ProgressLogs() {
     async function fetchAllInsights() {
       setLoadingInsights(true);
       try {
+        // Fetch progress photos
+        await fetchProgressPhotos();
+
         const surveyRes = await api.get("/insights/survey");
         if (surveyRes.data?.history) {
           setSurveyData(surveyRes.data.history);
@@ -368,6 +371,7 @@ const handleEditChange = (e) => {
 
 
     const handleOpenWidget = (type) => {
+        console.log("Opening widget for type:", type);
         setImageType(type);
         
         if (!window.cloudinary) {
@@ -390,16 +394,36 @@ const handleEditChange = (e) => {
             },
             (error, result) => {
                 if (!error && result && result.event === "success") {
-                  if (imageType === 'before') {
-                      setBeforeImage(result.info.secure_url);
-                    } else if (imageType === 'after') {
-                      setAfterImage(result.info.secure_url);
+                  const imageUrl = result.info.secure_url;
+                  console.log("Upload successful, imageType:", type, "imageUrl:", imageUrl);
+                  
+                  let newBeforeImage = beforeImage;
+                  let newAfterImage = afterImage;
+                  
+                  // Use the type parameter directly instead of imageType state
+                  if (type === 'before') {
+                      console.log("Setting before image");
+                      setBeforeImage(imageUrl);
+                      newBeforeImage = imageUrl;
+                    } else if (type === 'after') {
+                      console.log("Setting after image");
+                      setAfterImage(imageUrl);
+                      newAfterImage = imageUrl;
                     }
-                    showAlert("Image uploaded successfully!", "success");
+                    
+                  // Save to backend
+                  saveProgressPhotos(newBeforeImage, newAfterImage)
+                    .then(() => {
+                      showAlert("Image uploaded and saved successfully!", "success");
+                    })
+                    .catch((err) => {
+                      console.error("Failed to save to backend:", err);
+                      showAlert("Image uploaded but failed to save. Please try again.", "error");
+                    });
                 }
                 if (error) {
                     console.error("Cloudinary Widget Error:", error);
-                    showAlert("Image failed to upload", "error");
+                    showAlert("Failed to upload image", "error");
                 }
             }
         );
@@ -865,7 +889,7 @@ const handleEditChange = (e) => {
                     <div className="flex items-center gap-4">
                         <button
                             type="button"
-                            onClick={() => handleOpenWidget('after')}
+                            onClick={() => handleOpenWidget('before')}
                             className="btn btn-outline border-blue-800 text-blue-800 hover:bg-blue-800 hover:text-white bg-white dark:bg-gray-700"
                         >
                           Upload Before Image
@@ -873,8 +897,8 @@ const handleEditChange = (e) => {
                     </div>
 
                   <div className="w-1/2 aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center overflow-hidden">
-                    {afterImage ? (
-                      <img src={afterImage} alt="After" className="w-full h-full object-cover" />
+                    {beforeImage ? (
+                      <img src={beforeImage} alt="Before" className="w-full h-full object-cover" />
                     ) : (
                       <div className="text-center text-gray-400">
                         <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -890,25 +914,25 @@ const handleEditChange = (e) => {
                     <div className="flex items-center gap-4">
                         <button
                             type="button"
-                            onClick={() => handleOpenWidget('before')}
+                            onClick={() => handleOpenWidget('after')}
                             className="btn btn-outline border-blue-800 text-blue-800 hover:bg-blue-800 hover:text-white bg-white dark:bg-gray-700"
                         >
                           Upload After Image
                         </button>
                     </div>
 
-                          <div className="w-1/2 aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center overflow-hidden">
-        {beforeImage ? (
-          <img src={beforeImage} alt="Before" className="w-full h-full object-cover" />
-        ) : (
-          <div className="text-center text-gray-400">
-            <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <span className="text-sm">No image uploaded</span>
-          </div>
-        )}
-      </div>
+                  <div className="w-1/2 aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center overflow-hidden">
+                    {afterImage ? (
+                      <img src={afterImage} alt="After" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="text-center text-gray-400">
+                        <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span className="text-sm">No image uploaded</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
             </form>
         </section>
