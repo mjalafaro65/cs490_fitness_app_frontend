@@ -404,13 +404,13 @@ function ClientMealLogs(){
         {/* Chart Type Selector */}
         <div className="flex gap-2 mb-4">
           <button
-            className={`btn btn-sm ${selectedChartType === 'daily' ? 'btn-primary bg-blue-800' : 'btn-ghost'}`}
+            className={`btn btn-sm text-white ${selectedChartType === 'daily' ? 'btn-primary bg-blue-800' : 'btn-ghost'}`}
             onClick={() => setSelectedChartType('daily')}
           >
             Daily Trend
           </button>
           <button
-            className={`btn btn-sm ${selectedChartType === 'weekly' ? 'btn-primary bg-blue-800' : 'btn-ghost'}`}
+            className={`btn btn-sm text-white ${selectedChartType === 'weekly' ? 'btn-primary bg-blue-800' : 'btn-ghost'}`}
             onClick={() => setSelectedChartType('weekly')}
           >
             Weekly Trend
@@ -451,8 +451,8 @@ function ClientMealLogs(){
                 <YAxis label={{ value: 'Average Calories', angle: -90, position: 'insideLeft' }} />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="calories" fill="#8884d8" name="Avg Calories" />
-                <Bar dataKey="meals" fill="#82ca9d" name="Total Meals" />
+                <Bar dataKey="calories" fill="#5e6c9a" name="Avg Calories" />
+                <Bar dataKey="meals" fill="#5e8ac6" name="Total Meals" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -527,7 +527,7 @@ function ClientMealLogs(){
                     </div>
                     <div className="flex gap-2">
                       <button 
-                        className="btn btn-sm btn-primary"
+                        className="btn btn-sm btn-primary bg-blue-800 text-white"
                         onClick={(e) => {
                           e.stopPropagation();
                           fetchMealLogDetails(meal.meal_log_id);
@@ -586,7 +586,7 @@ function ClientMealLogs(){
                           </div>
                           <div className="flex gap-2">
                             <button 
-                              className="btn btn-sm btn-primary"
+                              className="btn btn-sm btn-primary bg-blue-800 text-white"
                               onClick={() => {
                                 console.log("Edit meal plan:", plan);
                               }}
@@ -612,8 +612,8 @@ function ClientMealLogs(){
             <div className="card bg-base-300 rounded-box w-64 p-4 shrink-0">
               <h2 className="text-lg font-bold mb-2">Quick Actions</h2>
                 <div className="mt-auto flex flex-col gap-2 justify-center">
-                  <button className="btn btn-primary bg-blue-800 btn-sm" type="button" onClick={() => setPopOpen("create")}>Create New</button>
-                  <button type="button" className="btn btn-primary bg-blue-800 btn-sm rounded-t" onClick={() => setPopOpen("log")}>Log Meals</button>
+                  <button className="btn btn-primary text-white bg-blue-800 btn-sm" type="button" onClick={() => setPopOpen("create")}>Create New</button>
+                  <button type="button" className="btn btn-primary text-white bg-blue-800 btn-sm rounded-t" onClick={() => setPopOpen("log")}>Log Meals</button>
                 </div>
             </div>
           </div>

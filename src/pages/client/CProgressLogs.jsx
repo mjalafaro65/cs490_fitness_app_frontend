@@ -38,6 +38,7 @@ function ProgressLogs() {
 
   const [beforeImage, setBeforeImage] = useState(null);
   const [afterImage, setAfterImage] = useState(null);
+  const [imageType, setImageType] = useState(null);
   
   const [timeView, setTimeView] = useState('weekly');
 
@@ -65,7 +66,7 @@ function ProgressLogs() {
   })
 
   const [goalData, setGoalData] = useState({
-    goal_type: "",
+    goal_type: "weight",
     status: "active",
     title: "",
     target_value: "",
@@ -75,10 +76,51 @@ function ProgressLogs() {
     description: ""
   });
 
+  const [editingGoal, setEditingGoal] = useState(null);
+  const [editGoalData, setEditGoalData] = useState({
+    goal_id: null,
+    title: "",
+    goal_type: "",
+    description: "",
+    target_value: "",
+    unit: "",
+    start_date: "",
+    end_date: "",
+    status: ""
+  });
+
+  const fetchProgressPhotos = async () => {
+    try {
+      const response = await api.get("/client/progress-photos");
+      if (response.data) {
+        setBeforeImage(response.data.before_photo_url);
+        setAfterImage(response.data.after_photo_url);
+      }
+    } catch (err) {
+      console.error("Failed to fetch progress photos:", err);
+    }
+  };
+
+  const saveProgressPhotos = async (beforeUrl, afterUrl) => {
+    try {
+      const response = await api.post("/client/progress-photos", {
+        before_photo_url: beforeUrl,
+        after_photo_url: afterUrl
+      });
+      return response.data;
+    } catch (err) {
+      console.error("Failed to save progress photos:", err);
+      throw err;
+    }
+  };
+
   useEffect(() => {
     async function fetchAllInsights() {
       setLoadingInsights(true);
       try {
+        // Fetch progress photos
+        await fetchProgressPhotos();
+
         const surveyRes = await api.get("/insights/survey");
         if (surveyRes.data?.history) {
           setSurveyData(surveyRes.data.history);
@@ -220,18 +262,30 @@ function ProgressLogs() {
       });
     };
 
-  const handleCreateGoal = async (e) => {
-    e.preventDefault();
-  
-    try {
-      await api.post("/client/create-goal", goalData);
-      showAlert("Goal created successfully!", "success");
+const handleCreateGoal = async (e) => {
+  e.preventDefault();
 
-      const userRes = await api.get("/user/me");
+  try {
+    const userRes = await api.get("/user/me");
+    console.log("User data:", userRes.data);
+
+    const payload = {
+      goal_type: goalData.goal_type,
+      title: goalData.title,
+      description: goalData.description,
+      target_value: parseFloat(goalData.target_value),
+      unit: goalData.unit,
+      start_date: goalData.start_date,
+      end_date: goalData.end_date,
+      status: goalData.status,
+      for_user_id: userRes.data.user_id
+    };
+    
+    await api.post("/client/create-goal", payload);
+    showAlert("Goal created successfully!", "success");
   
       setGoalData({
-        for_user_id: userRes.data,
-        goal_type: "",
+        goal_type: "weight",
         status: "active",
         title: "",
         target_value: "",
@@ -243,12 +297,83 @@ function ProgressLogs() {
   
       setPopOpen(null);
     } catch (err) {
-      console.error(err.response?.data || err);
+    console.log("Full error response:", err.response);
+    
+    if (err.response?.data?.errors) {
+      const errorMessages = Object.values(err.response.data.errors).flat();
+      showAlert(errorMessages.join(", "), "error");
+    } else {
       showAlert("Failed to create goal", "error");
     }
-  };
+  }
+};
 
-    const handleOpenWidget = () => {
+const handleEditGoal = (goal) => {
+  setEditingGoal(goal);
+  setEditGoalData({
+    goal_id: goal.goal_id || goal.id,
+    title: goal.title || "",
+    goal_type: goal.goal_type || "",
+    description: goal.description || "",
+    target_value: goal.target_value || "",
+    unit: goal.unit || "",
+    start_date: goal.start_date ? goal.start_date.split('T')[0] : "",
+    end_date: goal.end_date ? goal.end_date.split('T')[0] : "",
+    status: goal.status || "active"
+  });
+  setPopOpen("edit");
+};
+
+const handleUpdateGoal = async (e) => {
+  e.preventDefault();
+  
+  try {
+    const payload = {
+      title: editGoalData.title,
+      goal_type: editGoalData.goal_type,
+      description: editGoalData.description,
+      target_value: parseFloat(editGoalData.target_value),
+      unit: editGoalData.unit,
+      start_date: editGoalData.start_date,
+      end_date: editGoalData.end_date,
+      status: editGoalData.status
+    };
+    
+    await api.patch(`/client/goal/${editGoalData.goal_id}`, payload);
+    showAlert("Goal updated successfully!", "success");
+ 
+    const goalsRes = await api.get("/insights/goals");
+    if (Array.isArray(goalsRes.data)) {
+      setGoalsData(goalsRes.data);
+    } else if (goalsRes.data?.goals) {
+      setGoalsData(goalsRes.data.goals);
+    }
+    
+    setPopOpen(null);
+    setEditingGoal(null);
+  } catch (err) {
+    console.error("Error updating goal:", err.response?.data);
+    if (err.response?.data?.errors) {
+      const errorMessages = Object.values(err.response.data.errors).flat();
+      showAlert(errorMessages.join(", "), "error");
+    } else {
+      showAlert("Failed to update goal", "error");
+    }
+  }
+};
+
+const handleEditChange = (e) => {
+  setEditGoalData({
+    ...editGoalData,
+    [e.target.name]: e.target.value
+  });
+};
+
+
+    const handleOpenWidget = (type) => {
+        console.log("Opening widget for type:", type);
+        setImageType(type);
+        
         if (!window.cloudinary) {
             console.error("Cloudinary script not found. Is it in index.html?");
             return;
@@ -269,15 +394,36 @@ function ProgressLogs() {
             },
             (error, result) => {
                 if (!error && result && result.event === "success") {
-                  if (imageType === 'before') {
-                      setBeforeImage(result.info.secure_url);
-                    } else if (imageType === 'after') {
-                      setAfterImage(result.info.secure_url);
+                  const imageUrl = result.info.secure_url;
+                  console.log("Upload successful, imageType:", type, "imageUrl:", imageUrl);
+                  
+                  let newBeforeImage = beforeImage;
+                  let newAfterImage = afterImage;
+                  
+                  // Use the type parameter directly instead of imageType state
+                  if (type === 'before') {
+                      console.log("Setting before image");
+                      setBeforeImage(imageUrl);
+                      newBeforeImage = imageUrl;
+                    } else if (type === 'after') {
+                      console.log("Setting after image");
+                      setAfterImage(imageUrl);
+                      newAfterImage = imageUrl;
                     }
-                    showAlert("Image uploaded successfully!", "success");
+                    
+                  // Save to backend
+                  saveProgressPhotos(newBeforeImage, newAfterImage)
+                    .then(() => {
+                      showAlert("Image uploaded and saved successfully!", "success");
+                    })
+                    .catch((err) => {
+                      console.error("Failed to save to backend:", err);
+                      showAlert("Image uploaded but failed to save. Please try again.", "error");
+                    });
                 }
                 if (error) {
                     console.error("Cloudinary Widget Error:", error);
+                    showAlert("Failed to upload image", "error");
                 }
             }
         );
@@ -685,56 +831,72 @@ function ProgressLogs() {
           <div className="flex w-full h-80 gap-4">
             <div className="card bg-base-300 rounded-box w-1/3 grow p-4">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-bold mb-4">Goals Progress</h2>
-                <button className="btn btn-primary bg-blue-800 btn-sm" onClick={() => setPopOpen("create")}>
-                  Add New Goal
-                </button>
-              </div>
-              {loadingInsights ? (
-                <div className="flex items-center justify-center h-48">
-                  <p className="text-sm opacity-50">Loading...</p>
-                </div>
-              ) : goalsData.length > 0 ? (
-                <div className="space-y-3 overflow-y-auto max-h-64">
-                  {goalsData.map((goal, idx) => (
-                    <div key={idx}>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="truncate">{goal.goal || goal.description || 'Untitled Goal'}</span>
-                        <span>{goal.progress || 0}%</span>
-                      </div>
-                      <div className="w-full bg-gray-700 rounded-full h-2">
-                        <div 
-                          className="bg-blue-500 h-2 rounded-full transition-all duration-500"
-                          style={{ width: `${goal.progress || 0}%` }}
-                        />
-                      </div>
-                      {goal.target_date && (
-                        <p className="text-xs opacity-50 mt-1">Target: {new Date(goal.target_date).toLocaleDateString()}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex items-center justify-center h-48">
-                  <p className="text-sm opacity-50">No goals data available</p>
-                </div>
-              )}
+              <h2 className="text-lg font-bold">Goals Progress</h2>
+    <button className="btn btn-primary text-white bg-blue-800 btn-sm" onClick={() => setPopOpen("create")}>
+      Add New Goal
+    </button>
+  </div>
+  {loadingInsights ? (
+    <div className="flex items-center justify-center h-48">
+      <p className="text-sm opacity-50">Loading...</p>
+    </div>
+  ) : goalsData.length > 0 ? (
+    <div className="space-y-3 overflow-y-auto max-h-64">
+      {goalsData.map((goal, idx) => (
+        <div 
+          key={idx} 
+          className="cursor-pointer hover:bg-base-200 p-2 rounded-lg transition-colors"
+          onClick={() => handleEditGoal(goal)}
+        >
+          <div className="flex justify-between text-xs mb-1">
+            <span className="truncate font-medium">
+              {goal.title || goal.goal || goal.description || 'Untitled Goal'}
+            </span>
+            <span className="text-blue-600 font-bold">{goal.progress || 0}%</span>
+          </div>
+          <div className="w-full bg-gray-700 rounded-full h-2">
+            <div 
+              className="bg-blue-500 h-2 rounded-full transition-all duration-500"
+              style={{ width: `${goal.progress || 0}%` }}
+            />
+          </div>
+          <div className="flex justify-between text-xs opacity-50 mt-1">
+            {goal.goal_type && (
+              <span className="capitalize">Type: {goal.goal_type}</span>
+            )}
+            {goal.target_value && goal.unit && (
+              <span>Target: {goal.target_value} {goal.unit}</span>
+            )}
+          </div>
+          {goal.target_date && (
+            <p className="text-xs opacity-50 mt-1">
+              Target Date: {new Date(goal.target_date).toLocaleDateString()}
+            </p>
+          )}
+        </div>
+      ))}
+    </div>
+  ) : (
+    <div className="flex items-center justify-center h-48">
+      <p className="text-sm opacity-50">No goals data available</p>
+    </div>
+  )}
             </div>
           </div>
             <form className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full p-6 bg-white rounded-xl shadow-lg border border-gray-100 dark:bg-gray-800">
-                  <div className="form-control">
+                  <div className="form-control flex flex-col items-center">
                     <label className="label font-semibold text-gray-600 dark:text-gray-300">Before Photo:</label>
                     <div className="flex items-center gap-4">
                         <button
                             type="button"
-                            onClick={handleOpenWidget}
+                            onClick={() => handleOpenWidget('before')}
                             className="btn btn-outline border-blue-800 text-blue-800 hover:bg-blue-800 hover:text-white bg-white dark:bg-gray-700"
                         >
                           Upload Before Image
                         </button>
                     </div>
 
-                  <div className="h-48 bg-gray-100 dark:bg-gray-700 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center overflow-hidden">
+                  <div className="w-1/2 aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center overflow-hidden">
                     {beforeImage ? (
                       <img src={beforeImage} alt="Before" className="w-full h-full object-cover" />
                     ) : (
@@ -747,30 +909,30 @@ function ProgressLogs() {
                     )}
                   </div>
                 </div>
-                <div className="form-control">
+                <div className="form-control flex flex-col items-center">
                     <label className="label font-semibold text-gray-600 dark:text-gray-300">After Photo:</label>
                     <div className="flex items-center gap-4">
                         <button
                             type="button"
-                            onClick={handleOpenWidget}
+                            onClick={() => handleOpenWidget('after')}
                             className="btn btn-outline border-blue-800 text-blue-800 hover:bg-blue-800 hover:text-white bg-white dark:bg-gray-700"
                         >
                           Upload After Image
                         </button>
                     </div>
 
-                          <div className="w-full h-48 bg-gray-100 dark:bg-gray-700 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center overflow-hidden">
-        {beforeImage ? (
-          <img src={beforeImage} alt="Before" className="w-full h-full object-cover" />
-        ) : (
-          <div className="text-center text-gray-400">
-            <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <span className="text-sm">No image uploaded</span>
-          </div>
-        )}
-      </div>
+                  <div className="w-1/2 aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center overflow-hidden">
+                    {afterImage ? (
+                      <img src={afterImage} alt="After" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="text-center text-gray-400">
+                        <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span className="text-sm">No image uploaded</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
             </form>
         </section>
@@ -799,15 +961,19 @@ function ProgressLogs() {
 
             <label className="label flex flex-col items-start gap-1 mb-2">
               <span>Goal Type:</span>
-              <input
-                className="input input-bordered w-full"
-                type="text"
+              <select
+                className="select select-bordered w-full"
                 name="goal_type"
                 value={goalData.goal_type}
                 onChange={handleGoalChange}
-                placeholder="e.g. Weight, Strength, Nutrition"
                 required
-              />
+              >
+                <option value="weight">Weight</option>
+                <option value="strength">Strength</option>
+                <option value="performance">Performance</option>
+                <option value="nutrition">Nutrition</option>
+                <option value="custom">Custom</option>
+              </select>
             </label>
 
             <label className="label flex flex-col items-start gap-1 mb-2">
@@ -870,7 +1036,7 @@ function ProgressLogs() {
             </label>
 
             <button
-              className="btn btn-primary bg-blue-800 w-full"
+              className="btn btn-primary text-white bg-blue-800 w-full"
               type="submit"
             >
               Create Goal
@@ -878,6 +1044,128 @@ function ProgressLogs() {
           </form>
         </>
       )}
+      {isPopOpen === "edit" && (
+  <form
+    onSubmit={handleUpdateGoal}
+    className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4"
+  >
+    <div className="flex justify-between items-center mb-4">
+      <h2 className="text-xl font-bold">Edit Goal</h2>
+    </div>
+
+    <label className="label flex flex-col items-start gap-1 mb-2">
+      <span>Goal Name:</span>
+      <input
+        className="input input-bordered w-full"
+        type="text"
+        name="title"
+        value={editGoalData.title}
+        onChange={handleEditChange}
+        required
+      />
+    </label>
+
+    <label className="label flex flex-col items-start gap-1 mb-2">
+      <span>Goal Type:</span>
+      <select
+        className="select select-bordered w-full"
+        name="goal_type"
+        value={editGoalData.goal_type}
+        onChange={handleEditChange}
+        required
+      >
+        <option value="weight">Weight</option>
+        <option value="strength">Strength</option>
+        <option value="performance">Performance</option>
+        <option value="nutrition">Nutrition</option>
+        <option value="custom">Custom</option>
+      </select>
+    </label>
+
+    <label className="label flex flex-col items-start gap-1 mb-2">
+      <span>Status:</span>
+      <select
+        className="select select-bordered w-full"
+        name="status"
+        value={editGoalData.status}
+        onChange={handleEditChange}
+        required
+      >
+        <option value="active">Active</option>
+        <option value="completed">Completed</option>
+        <option value="archived">Archived</option>
+      </select>
+    </label>
+
+    <label className="label flex flex-col items-start gap-1 mb-2">
+      <span>Description:</span>
+      <textarea
+        className="textarea textarea-bordered w-full"
+        name="description"
+        value={editGoalData.description}
+        onChange={handleEditChange}
+      />
+    </label>
+
+    <label className="label flex flex-col items-start gap-1 mb-2">
+      <span>Target Value:</span>
+      <input
+        className="input input-bordered w-full"
+        type="number"
+        name="target_value"
+        value={editGoalData.target_value}
+        onChange={handleEditChange}
+        required
+      />
+    </label>
+
+    <label className="label flex flex-col items-start gap-1 mb-2">
+      <span>Unit:</span>
+      <input
+        className="input input-bordered w-full"
+        type="text"
+        name="unit"
+        value={editGoalData.unit}
+        onChange={handleEditChange}
+        placeholder="e.g. lbs, reps, miles"
+        required
+      />
+    </label>
+
+    <label className="label flex flex-col items-start gap-1 mb-2">
+      <span>Start Date:</span>
+      <input
+        className="input input-bordered w-full"
+        type="date"
+        name="start_date"
+        value={editGoalData.start_date}
+        onChange={handleEditChange}
+        required
+      />
+    </label>
+
+    <label className="label flex flex-col items-start gap-1 mb-4">
+      <span>End Date:</span>
+      <input
+        className="input input-bordered w-full"
+        type="date"
+        name="end_date"
+        value={editGoalData.end_date}
+        onChange={handleEditChange}
+        required
+      />
+    </label>
+
+    <div className="flex gap-2">
+      <button
+        className="btn btn-primary text-white bg-blue-800 flex-1"
+        type="submit"
+      >
+        Update Goal
+      </button>
+    </div>
+  </form>
+)}
     </PopUp>
     <Alert 
         isOpen={alert} 

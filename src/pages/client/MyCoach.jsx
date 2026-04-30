@@ -154,7 +154,6 @@ function MyCoach() {
     const fetchCoach = async () => {
       try {
         const res = await api.get("client/my-coaches");
-        console.log(res.data)
         setHiredCoaches(res.data.active_relationships)
 
       } catch (err) {
@@ -193,6 +192,7 @@ function MyCoach() {
       const response = await api.delete(`/client/hire-request/${id}`)
 
       console.log(response.data)
+      showAlert("Coach request cancelled!", "success");
       setRequestsInfo((prev) =>
         prev.filter((req) => req.request_id !== id)
       );
@@ -407,9 +407,18 @@ function MyCoach() {
                     <div key={rel.relationship_id} className="pb-3 border-b border-base-300">
                       <div className="flex justify-between items-start gap-4">
                       <div className="flex-1">
-                      <p className="font-semibold text-base-content">
-                        {rel.coach_name}
-                      </p>
+                      {rel.coach_profile_id ? (
+                        <Link 
+                          to={`/coach/${rel.coach_profile_id}`}
+                          className="font-semibold text-base-content hover:text-blue-800 cursor-pointer underline"
+                        >
+                          {rel.coach_name}
+                        </Link>
+                      ) : (
+                        <span className="font-semibold text-base-content">
+                          {rel.coach_name}
+                        </span>
+                      )}
 
                       <p className="text-sm text-base-content/70">
                         Specialty: {rel.specialty}
@@ -455,7 +464,7 @@ function MyCoach() {
                 Specialty: {rel.specialty}
               </p>
               <p className="text-xs text-base-content/60 mt-1">
-                Previously hired: {rel.started_at ? new Date(rel.started_at).toLocaleDateString() : "—"}
+                Previously hired: {rel.started_at ? new Date(rel.started_at).toLocaleDateString() : "â"}
               </p>
               {rel.fired_date && (
                 <p className="text-xs text-red-600 mt-1">

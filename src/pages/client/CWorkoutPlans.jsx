@@ -266,7 +266,6 @@ function ClientWorkoutPlans() {
 
   const handleDeletePlan = async (plan_id) => {
     console.log("[DEBUG] handleDeletePlan called for plan_id:", plan_id);
-    if (!window.confirm("Are you sure you want to delete this entire workout plan? This action cannot be undone.")) return;
     try {
       await api.delete(`/workouts/plans/${plan_id}`);
       console.log("[DEBUG] Plan deleted successfully:", plan_id);
@@ -965,7 +964,7 @@ function ClientWorkoutPlans() {
                 </div>
               )}
               <div className="mt-3">
-                <button onClick={() => navigate("/plans")} className="btn bg-blue-800 btn-sm w-full text-white">
+                <button onClick={() => navigate("/plans")} className="btn btn-primary bg-blue-800 btn-sm w-full text-white">
                   Browse Plans
                 </button>
               </div>
@@ -981,6 +980,24 @@ function ClientWorkoutPlans() {
           </div>
         </section>
       </div>
+
+      <PopUp isOpen={isPopOpen === "delete"} onClose={() => setPopOpen(null)}>
+        <div className="bg-base-200 p-6 rounded-box">
+    <h3 className="text-lg font-bold mb-2">Delete Workout Plan?</h3>
+    <p className="text-sm text-base-content/70 mb-4">
+        This will permanently delete the entire workout plan. 
+        <span className="text-red-600 font-medium"> This action cannot be undone.</span>
+    </p>
+    <div className="flex gap-2">
+        <button 
+            className="btn btn-sm bg-red-600 hover:bg-red-700 text-white border-none ml-auto"
+            onClick={() => setPopOpen("delete")}
+        >
+            Delete
+        </button>
+    </div>
+</div>
+      </PopUp>
 
       <PopUp isOpen={isPopOpen === "create"} onClose={() => setPopOpen(null)}>
         <div className="bg-base-200 p-6 rounded-box">
@@ -1105,21 +1122,9 @@ function ClientWorkoutPlans() {
         setPopOpen(null);
         setTempWorkoutForLog(null);
       }}>
-        <form onSubmit={handleLogSubmit} className="fieldset bg-base-200 border-base-300 rounded-box w-sm border p-4">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">Log Workout</h2>
-            <button
-              type="button"
-              className="btn btn-sm btn-circle btn-ghost"
-              onClick={() => {
-                setPopOpen(null);
-                setTempWorkoutForLog(null);
-              }}
-            >
-              ✕
-            </button>
-          </div>
-
+        <form onSubmit={handleLogSubmit} className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+            <h2 className="text-xl font-bold mb-4">Log Workout</h2>
+          
           <div className="bg-base-300 p-2 rounded mb-3">
             <p className="text-xs opacity-70">Logging:</p>
             <p className="text-sm font-semibold">Exercise ID: {logData.exercise_id || 'Not selected'}</p>
@@ -1153,13 +1158,21 @@ function ClientWorkoutPlans() {
 
           <label className="label flex flex-col items-start gap-1 mb-2">
             <span>Weight (lbs)</span>
-            <input
-              className="input input-bordered w-full"
-              type="number"
-              step="0.5"
-              value={logData.weight}
-              name="weight"
-              onChange={handleLogChange}
+//             <input
+//               className="input input-bordered w-full"
+//               type="number"
+//               step="0.5"
+//               value={logData.weight}
+//               name="weight"
+//               onChange={handleLogChange}
+            <input 
+              className="input input-bordered w-full" 
+              type="number" 
+              min="0"
+              step="0.5" 
+              value={logData.weight} 
+              name="weight" 
+              onChange={handleLogChange} 
             />
           </label>
 
@@ -1179,12 +1192,19 @@ function ClientWorkoutPlans() {
 
           <label className="label flex flex-col items-start gap-1 mb-2">
             <span>Duration (minutes)</span>
-            <input
-              className="input input-bordered w-full"
-              type="number"
-              value={logData.duration_minutes}
-              name="duration_minutes"
-              onChange={handleLogChange}
+//             <input
+//               className="input input-bordered w-full"
+//               type="number"
+//               value={logData.duration_minutes}
+//               name="duration_minutes"
+//               onChange={handleLogChange}
+            <input 
+              className="input input-bordered w-full" 
+              min="0"
+              type="number" 
+              value={logData.duration_minutes} 
+              name="duration_minutes" 
+              onChange={handleLogChange} 
             />
           </label>
 
@@ -1199,7 +1219,9 @@ function ClientWorkoutPlans() {
             />
           </label>
 
-          <button className="btn btn-primary bg-blue-800 w-full" type="submit">
+//           <button className="btn btn-primary bg-blue-800 w-full" type="submit">
+          
+          <button className="btn btn-primary text-white bg-blue-800 w-full" type="submit">
             Submit Log
           </button>
         </form>
@@ -1210,14 +1232,14 @@ function ClientWorkoutPlans() {
           <div>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold">{selectedPlan.name}</h2>
-              <div className="flex gap-2">
-                <button
-                  className="btn btn-sm bg-red-600 text-white"
-                  onClick={() => handleDeletePlan(selectedPlan.plan_id)}
-                >
-                  Delete Plan
-                </button>
-              </div>
+//               <div className="flex gap-2">
+//                 <button
+//                   className="btn btn-sm bg-red-600 text-white"
+//                   onClick={() => handleDeletePlan(selectedPlan.plan_id)}
+//                 >
+//                   Delete Plan
+//                 </button>
+//               </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1307,7 +1329,7 @@ function ClientWorkoutPlans() {
                   <div className="mt-4 p-3 bg-base-100 rounded-lg">
                     <p className="text-sm font-semibold mb-2">Add New Day</p>
                     <div className="flex gap-2 flex-wrap">
-                      <input className="input input-xs flex-1" placeholder="Day name" value={newDayByPlan[selectedPlan.plan_id]?.day_label || ""} onChange={(e) => handleDayChange(selectedPlan.plan_id, "day_label", e.target.value)} />
+                      <input className="input input-xs flex-1" placeholder="Workout name" value={newDayByPlan[selectedPlan.plan_id]?.day_label || ""} onChange={(e) => handleDayChange(selectedPlan.plan_id, "day_label", e.target.value)} />
                       <select className="select select-xs w-28" value={newDayByPlan[selectedPlan.plan_id]?.weekday ?? ""} onChange={(e) => handleDayChange(selectedPlan.plan_id, "weekday", e.target.value)}>
                         <option value="">Weekday</option>
                         {WEEKDAY_NAMES.map((name, i) => <option key={i} value={i}>{name}</option>)}
@@ -1391,19 +1413,18 @@ function ClientWorkoutPlans() {
                         <p className="text-xs font-semibold mb-1">Assigned ({tempActiveDays.length}):</p>
                         <div className="flex flex-wrap gap-1">{tempActiveDays.map((item, idx) => (<span key={idx} className="badge border-black badge-sm">{item.date.toLocaleDateString()}: {item.day.day_label}<button className="ml-1 hover:text-error" onClick={() => setTempActiveDays(prev => prev.filter((_, i) => i !== idx))}>✕</button></span>))}</div>
                       </div>
-                    )}
-                    <div className="flex gap-2">
-                      <button className="btn btn-primary bg-blue-800 btn-sm flex-1" onClick={handleAssignPlan} disabled={tempActiveDays.length === 0}>Confirm Schedule ({tempActiveDays.length} day{tempActiveDays.length !== 1 ? "s" : ""})</button>
-                      <button className="btn btn-ghost btn-sm" onClick={() => { setShowScheduleCalendar(false); setTempActiveDays([]); setTempSelectedCalendarDay(null); }}>Cancel</button>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
             <div className="flex justify-center mt-6">
-              <button
-                className="btn btn-sm btn-error"
-                onClick={() => handleDeletePlan(selectedPlan.plan_id)}
+//               <button
+//                 className="btn btn-sm btn-error"
+//                 onClick={() => handleDeletePlan(selectedPlan.plan_id)}
+              <button 
+                className="btn btn-sm bg-red-500 text-white"
+                onClick={() => setPopOpen("delete")}
               >
                 Delete Plan
               </button>
