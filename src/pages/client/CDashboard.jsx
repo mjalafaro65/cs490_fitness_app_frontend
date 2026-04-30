@@ -480,7 +480,10 @@ function CDashboard() {
 
 
   useEffect(() => {
-    async function fetchInsights() {
+    fetchInsights();
+  }, []);
+ 
+  const  fetchInsights=async()=> {
       setInsightsLoading(true);
       try {
         const response = await api.get("/insights/survey");
@@ -523,8 +526,7 @@ function CDashboard() {
       }
     }
 
-    fetchInsights();
-  }, []);
+
 
 
   useEffect(() => {
@@ -581,6 +583,7 @@ function CDashboard() {
 
       console.log("Survey submitted successfully");
       showAlert("Daily wellness logged successfully!", "success");
+      await fetchInsights();
 
       const insightsResponse = await api.get("/insights/survey");
       console.log(insightsResponse)

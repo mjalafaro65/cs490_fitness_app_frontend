@@ -44,6 +44,7 @@ function CoWorkoutPlans() {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [editingExercise, setEditingExercise] = useState(null);
 
+
   const [editData, setEditData] = useState({
     name: "",
     description: "",
@@ -79,6 +80,8 @@ function CoWorkoutPlans() {
   const [alert, setShowAlert] = useState(false);
   const [alertMsg, setAlertMsg] = useState("");
   const [alertType, setAlertType] = useState("success");
+  const [planAssignments, setPlanAssignments] = useState([]);
+  const [loadingAssignments, setLoadingAssignments] = useState(false);
 
   const showAlert = (message, type = "success") => {
     setAlertMsg(message);
@@ -106,6 +109,18 @@ function CoWorkoutPlans() {
     }
   };
 
+  const fetchPlanAssignments = async (plan_id) => {
+    setLoadingAssignments(true);
+    try {
+      const res = await api.get(`/workouts/plans/${plan_id}/assignments`);
+      setPlanAssignments(res.data.assignments || res.data || []);
+    } catch (err) {
+      console.error("Failed to fetch assignments:", err);
+      setPlanAssignments([]);
+    } finally {
+      setLoadingAssignments(false);
+    }
+  };
   useEffect(() => {
     fetchPlansWithDetails();
     fetchClients();
@@ -136,6 +151,7 @@ function CoWorkoutPlans() {
         is_public: plan.is_public,
       });
       setPopOpen("details");
+      await fetchPlanAssignments(plan_id);
     } catch (err) {
       console.error("Failed to fetch plan details:", err);
     }
@@ -146,6 +162,8 @@ function CoWorkoutPlans() {
       await api.patch(`/workouts/plans/${selectedPlan.plan_id}`, editData);
       await fetchPlansWithDetails();
       await handleSelectPlan(selectedPlan.plan_id);
+
+
       showAlert("Plan updated successfully!", "success");
     } catch (err) {
       showAlert(err.response?.data || "Failed to update plan", "error");
@@ -245,23 +263,26 @@ function CoWorkoutPlans() {
     }
   };
 
-  const handleAssignPlan = async () => {
-    if (!selectedClient || !selectedPlan) return;
-  
+  const handleAssignPlan = async (plan_id, client) => {
+    const targetClient = client || selectedClient;;
+    if (!targetClient || !plan_id) return;
+
     try {
-      await api.post("/coach/assign-workout/plan", {
-        plan_id: selectedPlan.plan_id,
-        assigned_to_client_id: selectedClient.clientId,
-        repeat_rules: "weekly",
-        status: "active",
-        start_date: null,
-        end_date: null,
+      await api.post(`/workouts/plans/${plan_id}/assignments`, {
+        assigned_to_user_id: targetClient.clientId,
+        repeat_rule: "weekly",
+        start_date: assignData.start_date || null,
+        end_date: assignData.end_date || null,
       });
-  
-      alert(`Assigned ${selectedPlan.name} to ${selectedClient.clientName}`);
+
+      showAlert(`Assigned plan to ${targetClient.clientName}`, "success");
+      setPopOpen(null);
+      setAssigningPlan(null);
+      setAssignPopupClient(null);
+      setAssignData({ start_date: "", end_date: "" });
     } catch (err) {
-      console.error("Assign workout failed:", err.response?.data || err);
-      alert("Failed to assign workout plan.");
+      console.error("Assign failed:", err.response?.data || err);
+      showAlert(err.response?.data?.message || "Failed to assign plan.", "error");
     }
   };
 
@@ -701,45 +722,97 @@ function CoWorkoutPlans() {
                     </div>
                   </div>
                 </div>
+                <div className="bg-base-300 p-4 rounded-box">
+                  <h3 className="font-bold mb-3">Assigned Clients</h3>
+                  {loadingAssignments ? (
+                    <p className="text-xs opacity-50">Loading...</p>
+                  ) : planAssignments.length === 0 ? (
+                    <p className="text-xs opacity-50 text-center py-4">
+                      Not assigned to any clients yet.
+                    </p>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      {planAssignments.map((a) => (
+                        <div key={a.assignment_id} className="bg-base-200 rounded-lg px-3 py-2 flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-semibold">
+                              {a.client_name || `User ${a.assigned_to_user_id}`}
+                            </p>
+                            <p className="text-xs opacity-60">
+                              {a.start_date ? `${a.start_date} → ${a.end_date || "ongoing"}` : "No dates set"}
+                            </p>
+                          </div>
+                          <span className={`badge badge-sm ${a.status === "active" ? "badge-success" : "badge-ghost"}`}>
+                            {a.status}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="bg-base-300 p-4 rounded-box">
-                <h3 className="font-bold mb-3">Assign Plan</h3>
-                {selectedClient ? (
-                  <div className="space-y-3">
-                    <p className="text-sm opacity-70">
-                      Assigning <b>{selectedPlan.name}</b> to <b>{selectedClient.clientName}</b>
-                    </p>
-                    <div>
-                      <label className="text-xs opacity-70">Start Date (optional)</label>
-                      <input
-                        type="date"
-                        className="input input-sm input-bordered w-full"
-                        value={assignData.start_date}
-                        onChange={(e) => setAssignData({ ...assignData, start_date: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs opacity-70">End Date (optional)</label>
-                      <input
-                        type="date"
-                        className="input input-sm input-bordered w-full"
-                        value={assignData.end_date}
-                        onChange={(e) => setAssignData({ ...assignData, end_date: e.target.value })}
-                      />
-                    </div>
-                    <button
-                      className="btn btn-primary btn-sm w-full"
-                      onClick={() => handleAssignPlan(selectedPlan.plan_id)}
-                    >
-                      Assign to {selectedClient.clientName}
-                    </button>
+                <h3 className="font-bold mb-3">Assign & Schedule</h3>
+
+                {/* Client selector */}
+                <div className="mb-3">
+                  <label className="text-xs opacity-70 font-semibold">Select Client</label>
+                  <div className="flex flex-col gap-1 mt-1 max-h-32 overflow-y-auto">
+                    {clients.length === 0 ? (
+                      <p className="text-xs opacity-50">No clients found.</p>
+                    ) : (
+                      clients.map((c) => {
+                        const id = c.user?.user_id ?? c.client_user_id;
+                        const name = c.user
+                          ? `${c.user.first_name} ${c.user.last_name}`
+                          : `Client ${id}`;
+                        const isSelected = assignPopupClient?.clientId === id;
+                        return (
+                          <button
+                            key={c.relationship_id ?? id}
+                            className={`p-2 rounded text-left text-sm transition ${isSelected ? "bg-primary text-white" : "bg-base-100 hover:bg-base-300"
+                              }`}
+                            onClick={() => setAssignPopupClient({ clientId: id, clientName: name })}
+                          >
+                            {name}
+                          </button>
+                        );
+                      })
+                    )}
                   </div>
-                ) : (
-                  <p className="text-sm opacity-70">
-                    Navigate here from a client's profile to assign this plan to them.
-                  </p>
-                )}
+                </div>
+
+                {/* Quick assign (no dates) */}
+                <div className="space-y-2 mb-3">
+                  <div>
+                    <label className="text-xs opacity-70">Start Date (optional)</label>
+                    <input
+                      type="date"
+                      className="input input-sm input-bordered w-full"
+                      value={assignData.start_date}
+                      onChange={(e) => setAssignData({ ...assignData, start_date: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs opacity-70">End Date (optional)</label>
+                    <input
+                      type="date"
+                      className="input input-sm input-bordered w-full"
+                      value={assignData.end_date}
+                      onChange={(e) => setAssignData({ ...assignData, end_date: e.target.value })}
+                    />
+                  </div>
+                  <button
+                    className="btn btn-primary bg-blue-800 btn-sm w-full"
+                    disabled={!assignPopupClient}
+                    onClick={() => handleAssignPlan(selectedPlan.plan_id, assignPopupClient)}
+                  >
+                    {assignPopupClient
+                      ? `Assign to ${assignPopupClient.clientName}`
+                      : "Select a client first"}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -759,13 +832,16 @@ function CoWorkoutPlans() {
           ) : (
             <div className="flex flex-col gap-2 max-h-48 overflow-y-auto mb-4">
               {clients.map((c) => {
-                const name = `${c.user?.first_name} ${c.user?.last_name}`;
-                const id = c.user?.user_id;
+                const id = c.user?.user_id ?? c.client_user_id;
+                const name = c.user
+                  ? `${c.user.first_name} ${c.user.last_name}`
+                  : `Client ${id}`;
                 const isSelected = assignPopupClient?.clientId === id;
                 return (
                   <button
-                    key={c.relationship_id}
-                    className={`p-2 rounded text-left text-sm transition ${isSelected ? "bg-primary text-white" : "bg-base-100 hover:bg-base-300"}`}
+                    key={c.relationship_id ?? id}
+                    className={`p-2 rounded text-left text-sm transition ${isSelected ? "bg-primary text-white" : "bg-base-100 hover:bg-base-300"
+                      }`}
                     onClick={() => setAssignPopupClient({ clientId: id, clientName: name })}
                   >
                     {name}
