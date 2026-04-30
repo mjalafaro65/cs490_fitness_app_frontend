@@ -243,11 +243,11 @@ function PaymentPlansSection({ coachId }) {
   const load = async () => {
     setLoading(true);
     try {
-      const response = await api.get(
-        `/client/coach-payment-plans/${coachId}`
-      );
+      const response = await api.get(`/client/coach-payment-plans/${coachId}`);
       console.log(response.data)
       setPlans(response.data || []);
+    }catch (err){
+      console.log(err)
     } finally {
       setLoading(false);
     }
@@ -255,7 +255,7 @@ function PaymentPlansSection({ coachId }) {
 
   useEffect(() => {
     load();
-  }, []);
+  }, [coachId]);
 
   const handleCreate = async (e) => {
     e.preventDefault();
@@ -598,7 +598,8 @@ function InvoicesSection() {
   const load = async () => {
     setLoading(true);
     try {
-      const r = await api.get("/coach/invoices"); setInvoices(r.data.invoices || r.data || []);
+      const r = await api.get("/coach/invoices"); 
+      setInvoices(r.data.invoices || r.data || []);
       console.log(r.data)
     }
     catch (e) { console.error(e); }

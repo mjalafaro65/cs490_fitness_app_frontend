@@ -49,6 +49,7 @@ function CoDashboard() {
 
     try {
       const clientsRes = await api.get("/coach/show-client-relationships");
+      console.log(clientsRes)
       setClients(clientsRes.data || []);
 
       const requestsRes = await api.get("/coach/pending-requests");
