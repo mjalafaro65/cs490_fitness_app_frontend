@@ -40,9 +40,6 @@ function AWorkoutPlans() {
   const [editPlanData, setEditPlanData] = useState({
     name: "",
     description: "",
-    muscle_group: "",
-    equipment: "",
-    training_type: "",
     is_public: true
   });
   
@@ -197,9 +194,7 @@ function AWorkoutPlans() {
     setEditPlanData({
       name: plan.name || "",
       description: plan.description || "",
-      muscle_group: plan.muscle_group || "",
-      equipment: plan.equipment || "",
-      training_type: plan.training_type || ""
+      is_public: plan.is_public ?? true
     });
     setIsEditing(true);
     setPopOpen("editPlan");
@@ -208,12 +203,15 @@ function AWorkoutPlans() {
   const handleUpdatePlan = async (e) => {
     e.preventDefault();
     try {
-      await api.put(`/workouts/plans/${selectedPlan.plan_id}`, editPlanData);
+      await api.patch(`/workouts/plans/${selectedPlan.plan_id}`, editPlanData);
       showAlert(`Plan "${editPlanData.name}" updated successfully`, "success");
       setPopOpen(null);
       fetchPlans();
     } catch (err) {
       console.error("Failed to update plan:", err);
+      const errorMsg = err.response?.data?.message || 
+                    err.response?.data?.error ||
+                    "Failed to update plan";
       showAlert(err.response?.data?.message || "Failed to update plan", "error");
     }
   };
@@ -286,7 +284,7 @@ const handleViewPlan = async (plan) => {
   const handleUpdateExercise = async (e) => {
     e.preventDefault();
     try {
-      await api.put(`/workouts/exercises/${selectedExercise.id || selectedExercise.exercise_id}`, editExerciseData);
+      await api.patch(`/workouts/exercises/${selectedExercise.id || selectedExercise.exercise_id}`, editExerciseData);
       showAlert(`Exercise "${editExerciseData.name}" updated successfully`, "success");
       setPopOpen(null);
       fetchExercises();
@@ -715,7 +713,7 @@ const handleViewPlan = async (plan) => {
           rows="3"
         />
       </div>
-
+{/*
       <div className="grid grid-cols-3 gap-3">
         <div>
           <label className="label font-semibold opacity-70 text-sm">Muscle Group</label>
@@ -769,7 +767,7 @@ const handleViewPlan = async (plan) => {
           </select>
         </div>
       </div>
-
+*/}
       <div className="flex gap-2">
         <div className="flex-1">
           <label className="label font-semibold opacity-70 text-sm">Public Status</label>
@@ -798,7 +796,7 @@ const handleViewPlan = async (plan) => {
     </div>
     
     <div className="flex gap-2 mt-6">
-      <button type="submit" className="btn btn-primary flex-1">Save Changes</button>
+      <button type="submit" className="btn btn-primary bg-blue-800 text-white flex-1">Save Changes</button>
       <button type="button" onClick={closePopUp} className="btn btn-ghost flex-1">Cancel</button>
     </div>
   </form>
@@ -921,7 +919,7 @@ const handleViewPlan = async (plan) => {
             </div>
           </div>
           <div className="flex gap-2 mt-6">
-            <button type="submit" className="btn btn-primary flex-1">Save Changes</button>
+            <button type="submit" className="btn btn-primary bg-blue-800 text-white flex-1">Save Changes</button>
             <button type="button" onClick={closePopUp} className="btn btn-ghost flex-1">Cancel</button>
           </div>
         </form>

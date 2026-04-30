@@ -151,7 +151,77 @@ function ADashboard() {
                 View Requests
               </button>
             </div>
+            <div className="card bg-base-300 rounded-box p-5">
+  <div className="flex items-center justify-between mb-4">
+    <h2 className="text-sm text-black font-semibold opacity-70 uppercase tracking-wide">
+      Quick Actions
+    </h2>
+  </div>
+  
+  <div className="space-y-2">
+    <button
+      onClick={() => navigate("/admin/profile")}
+      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-blue-50 hover:bg-blue-100 transition-all duration-200 group border border-blue-100 cursor-pointer"
+    >
+      <div className="p-1.5 rounded-lg bg-white text-blue-700">
+        <svg className="w-4 h-4" fill="none" stroke="black" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+      </div>
+      <span className="flex-1 text-left text-sm font-medium text-gray-700">Manage Users</span>
+      <svg className="w-4 h-4 text-blue-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+      </svg>
+    </button>
+
+    <button
+      onClick={() => navigate("/admin/workouts")}
+      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-blue-50 hover:bg-blue-100 transition-all duration-200 group border border-blue-100 cursor-pointer"
+    >
+      <div className="p-1.5 rounded-lg bg-white text-blue-700">
+        <svg className="w-4 h-4" fill="none" stroke="black" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+        </svg>
+      </div>
+      <span className="flex-1 text-left text-sm font-medium text-gray-700">View Workouts</span>
+      <svg className="w-4 h-4 text-blue-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+      </svg>
+    </button>
+
+    <button
+      onClick={() => navigate("/admin/progresslogs")}
+      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-blue-50 hover:bg-blue-100 transition-all duration-200 group border border-blue-100 cursor-pointer"
+    >
+      <div className="p-1.5 rounded-lg bg-white text-blue-700">
+        <svg className="w-4 h-4" fill="none" stroke="black" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+      </div>
+      <span className="flex-1 text-left text-sm font-medium text-gray-700">Analytics</span>
+      <svg className="w-4 h-4 text-blue-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+      </svg>
+    </button>
+
+    <button
+      onClick={() => navigate("/admin/reviews")}
+      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-blue-50 hover:bg-blue-100 transition-all duration-200 group border border-blue-100 cursor-pointer"
+    >
+      <div className="p-1.5 rounded-lg bg-white text-blue-700">
+        <svg className="w-4 h-4" fill="none" stroke="black" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+        </svg>
+      </div>
+      <span className="flex-1 text-left text-sm font-medium text-gray-700">Manage Reviews</span>
+      <svg className="w-4 h-4 text-blue-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+      </svg>
+    </button>
+  </div>
+</div>
           </div>
+
 
           {loading ? (
             <div className="text-center py-8 opacity-50">Loading stats...</div>

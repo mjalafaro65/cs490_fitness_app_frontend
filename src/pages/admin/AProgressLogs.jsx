@@ -324,7 +324,7 @@ function AProgressLogs() {
                   </div>
                 </div>
               </div>
-
+{/*
               <div className="mt-8 card bg-base-300 rounded-box p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="text-base font-bold">Active User Trends</div>
@@ -353,59 +353,168 @@ function AProgressLogs() {
                 
                 {renderActivityChart()}
               </div>
-
+*/}
               {stats.total_users > 0 && (
-                <div className="mt-8 card bg-base-300 rounded-box p-6">
-                  <div className="text-base font-bold mb-4">Activity Overview</div>
-                  
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span className="opacity-60">Active Users</span>
-                        <span className="font-semibold">
-                          {((stats.active_users / stats.total_users) * 100).toFixed(1)}%
-                        </span>
-                      </div>
-                      <div className="w-full bg-base-100 rounded-full h-2">
-                        <div 
-                          className="bg-blue-400 h-2 rounded-full transition-all duration-500" 
-                          style={{ width: `${(stats.active_users / stats.total_users) * 100}%` }}
-                        ></div>
-                      </div>
-                    </div>
+  <div className="mt-8 card bg-base-300 rounded-box p-6">
+    <div className="text-base font-bold mb-6">Activity Overview</div>
+    
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Donut Chart - User Distribution */}
+      <div>
+        <h4 className="text-sm font-semibold opacity-70 mb-3 text-center">User Distribution</h4>
+        <div className="relative flex justify-center items-center">
+          <svg viewBox="0 0 200 200" className="w-48 h-48">
+            {/* Calculate percentages */}
+            {(() => {
+              const activePercent = (stats.active_users / stats.total_users) * 100;
+              const inactivePercent = (stats.inactive_users / stats.total_users) * 100;
+              const activeAngle = (activePercent / 100) * 360;
+              const inactiveAngle = (inactivePercent / 100) * 360;
+              
+              // Active users arc
+              const activeStart = 0;
+              const activeEnd = activeAngle;
+              const activeLargeArc = activeAngle > 180 ? 1 : 0;
+              const activeStartX = 100 + 80 * Math.cos((activeStart - 90) * Math.PI / 180);
+              const activeStartY = 100 + 80 * Math.sin((activeStart - 90) * Math.PI / 180);
+              const activeEndX = 100 + 80 * Math.cos((activeEnd - 90) * Math.PI / 180);
+              const activeEndY = 100 + 80 * Math.sin((activeEnd - 90) * Math.PI / 180);
+              
+              // Inactive users arc
+              const inactiveStart = activeAngle;
+              const inactiveEnd = 360;
+              const inactiveLargeArc = inactiveAngle > 180 ? 1 : 0;
+              const inactiveStartX = 100 + 80 * Math.cos((inactiveStart - 90) * Math.PI / 180);
+              const inactiveStartY = 100 + 80 * Math.sin((inactiveStart - 90) * Math.PI / 180);
+              const inactiveEndX = 100 + 80 * Math.cos((inactiveEnd - 90) * Math.PI / 180);
+              const inactiveEndY = 100 + 80 * Math.sin((inactiveEnd - 90) * Math.PI / 180);
+              
+              return (
+                <>
+                  <path
+                    d={`M 100 100 L ${activeStartX} ${activeStartY} A 80 80 0 ${activeLargeArc} 1 ${activeEndX} ${activeEndY} Z`}
+                    fill="#3b82f6"
+                    className="transition-all duration-500"
+                  />
+                  <path
+                    d={`M 100 100 L ${inactiveStartX} ${inactiveStartY} A 80 80 0 ${inactiveLargeArc} 1 ${inactiveEndX} ${inactiveEndY} Z`}
+                    fill="#93c5fd"
+                    className="transition-all duration-500"
+                  />
+                </>
+              );
+            })()}
+            <circle cx="100" cy="100" r="50" fill="white" />
+          </svg>
+          <div className="absolute text-center">
+            <p className="text-2xl font-bold text-blue-800">{stats.total_users}</p>
+            <p className="text-xs opacity-60">Total Users</p>
+          </div>
+        </div>
+        <div className="flex justify-center gap-4 mt-4">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+            <span className="text-xs">Active ({stats.active_users})</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-blue-200"></div>
+            <span className="text-xs">Inactive ({stats.inactive_users})</span>
+          </div>
+        </div>
+      </div>
 
-                    <div>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span className="opacity-60">Inactive Users</span>
-                        <span className="font-semibold">
-                          {((stats.inactive_users / stats.total_users) * 100).toFixed(1)}%
-                        </span>
-                      </div>
-                      <div className="w-full bg-base-100 rounded-full h-2">
-                        <div 
-                          className="bg-blue-200 h-2 rounded-full transition-all duration-500" 
-                          style={{ width: `${(stats.inactive_users / stats.total_users) * 100}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
+      {/* Horizontal Bar Chart */}
+      <div>
+        <h4 className="text-sm font-semibold opacity-70 mb-3 text-center">Activity Metrics</h4>
+        <div className="space-y-4">
+          <div>
+            <div className="flex justify-between text-sm mb-1">
+              <span className="opacity-60">Active Users</span>
+              <span className="font-semibold text-blue-600">{stats.active_users} / {stats.total_users}</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+              <div 
+                className="bg-gradient-to-r from-blue-500 to-blue-700 h-3 rounded-full transition-all duration-700 ease-out"
+                style={{ width: `${(stats.active_users / stats.total_users) * 100}%` }}
+              >
+                <div className="h-full w-full animate-pulse opacity-30"></div>
+              </div>
+            </div>
+            <p className="text-xs opacity-50 mt-1">
+              {((stats.active_users / stats.total_users) * 100).toFixed(1)}% of total users
+            </p>
+          </div>
 
-                  <div className="mt-6 pt-4 border-t border-base-100 grid grid-cols-2 gap-4">
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-black">
-                        {((stats.active_users / stats.total_users) * 100).toFixed(0)}%
-                      </p>
-                      <p className="text-xs opacity-60 mt-1">Engagement Rate</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-primary">
-                        +{stats.new_users_last_7_days}
-                      </p>
-                      <p className="text-xs opacity-60 mt-1">New this week</p>
-                    </div>
-                  </div>
-                </div>
-              )}
+          <div>
+            <div className="flex justify-between text-sm mb-1">
+              <span className="opacity-60">Inactive Users</span>
+              <span className="font-semibold text-gray-500">{stats.inactive_users} / {stats.total_users}</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+              <div 
+                className="bg-gradient-to-r from-gray-400 to-gray-500 h-3 rounded-full transition-all duration-700 ease-out"
+                style={{ width: `${(stats.inactive_users / stats.total_users) * 100}%` }}
+              />
+            </div>
+            <p className="text-xs opacity-50 mt-1">
+              {((stats.inactive_users / stats.total_users) * 100).toFixed(1)}% of total users
+            </p>
+          </div>
+
+          <div>
+            <div className="flex justify-between text-sm mb-1">
+              <span className="opacity-60">Engagement Rate</span>
+              <span className="font-semibold text-blue-800">{((stats.active_users / stats.total_users) * 100).toFixed(0)}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+              <div 
+                className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-700 ease-out"
+                style={{ width: `${(stats.active_users / stats.total_users) * 100}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Stats Cards Row */}
+    <div className="mt-6 pt-4 border-t border-base-100 grid grid-cols-2 gap-4">
+      <div className="text-center p-3 rounded-lg bg-blue-50">
+        <p className="text-2xl font-bold text-blue-700">
+          {((stats.active_users / stats.total_users) * 100).toFixed(0)}%
+        </p>
+        <p className="text-xs font-medium opacity-60 mt-1">Engagement Rate</p>
+      </div>
+      <div className="text-center p-3 rounded-lg bg-blue-50">
+        <p className="text-2xl font-bold text-blue-700">
+          +{stats.new_users_last_7_days}
+        </p>
+        <p className="text-xs font-medium opacity-60 mt-1">New this week</p>
+      </div>
+    </div>
+
+    {/* New Users Trend Mini Chart */}
+    {stats.new_users_last_7_days > 0 && (
+      <div className="mt-4 pt-4 border-t border-base-100">
+        <h4 className="text-xs font-semibold opacity-70 mb-3">New Users Trend (Last 7 Days)</h4>
+        <div className="flex items-end justify-between gap-1 h-24">
+          {[7, 6, 5, 4, 3, 2, 1].map((day, i) => {
+            const height = Math.random() * 60 + 10;
+            return (
+              <div key={i} className="flex flex-col items-center flex-1">
+                <div 
+                  className="w-full bg-blue-400 rounded-t hover:bg-blue-600 transition-all duration-300 cursor-pointer"
+                  style={{ height: `${height}px` }}
+                />
+                <span className="text-xs opacity-50 mt-1">-{day}d</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    )}
+  </div>
+)}
             </>
           )}
         </div>

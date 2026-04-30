@@ -320,7 +320,7 @@ function AReviews() {
                               className={`px-3 py-1 rounded-md text-sm font-medium transition-colors cursor-pointer ${
                                 review.is_flagged 
                                   ? 'bg-blue-800 text-white hover:bg-blue-700' 
-                                  : 'bg-black-600 text-white hover:bg-black-700'
+                                  : 'border border-black text-black hover:bg-yellow-200'
                               }`}
                               title={review.is_flagged ? 'Remove flag' : 'Flag review'}
                             >
@@ -331,7 +331,7 @@ function AReviews() {
                               className={`px-3 py-1 rounded-md text-sm font-medium transition-colors cursor-pointer ${
                                 review.is_visible 
                                   ? 'bg-blue-800 text-white hover:bg-blue-700' 
-                                  : 'bg-black-600 text-white hover:bg-black-700'
+                                  : 'border border-black text-black hover:bg-yellow-200'
                               }`}
                               title={review.is_visible ? 'Hide review' : 'Show review'}
                             >
