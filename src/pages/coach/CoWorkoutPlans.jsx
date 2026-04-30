@@ -320,7 +320,7 @@ function CoWorkoutPlans() {
                       Edit
                     </button>
                     <button
-                      className="btn btn-sm btn-primary"
+                      className="btn btn-sm bg-blue-800 text-white"
                       onClick={() => {
                         setAssigningPlan(plan);
                         setAssignPopupClient(null);
@@ -331,7 +331,7 @@ function CoWorkoutPlans() {
                       Assign
                     </button>
                     <button
-                      className="btn btn-sm btn-error"
+                      className="btn btn-sm bg-red-600 text-white"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDeletePlan(plan.plan_id);
@@ -349,7 +349,7 @@ function CoWorkoutPlans() {
         <div className="card bg-base-300 p-4 rounded-box w-64 flex flex-col items-center justify-center gap-2">
           <h2 className="text-lg font-bold">Create New Plan</h2>
           <button
-            className="btn btn-primary btn-sm w-full"
+            className="btn btn-primary bg-blue-800 text-white btn-sm w-full"
             onClick={() => setPopOpen("create")}
           >
             Create New
@@ -403,14 +403,6 @@ function CoWorkoutPlans() {
           <div>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold">{selectedPlan.name}</h2>
-              <div className="flex gap-2">
-                <button
-                  className="btn btn-sm btn-error"
-                  onClick={() => handleDeletePlan(selectedPlan.plan_id)}
-                >
-                  Delete Plan
-                </button>
-              </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -444,7 +436,7 @@ function CoWorkoutPlans() {
                       Public
                     </label>
                     <button
-                      className="btn btn-primary btn-sm w-full"
+                      className="btn btn-primary bg-blue-800 text-white btn-sm w-full"
                       onClick={handleUpdate}
                     >
                       Save Changes
@@ -480,7 +472,7 @@ function CoWorkoutPlans() {
                             </div>
                             <div className="flex gap-1">
                               <button
-                                className="btn btn-xs btn-primary"
+                                className="btn btn-xs btn-primary bg-blue-800 text-white"
                                 onClick={() => {
                                   setAssigningDay(day);
                                   setBrowsePopOpen(true);
@@ -489,7 +481,7 @@ function CoWorkoutPlans() {
                                 + Exercise
                               </button>
                               <button
-                                className="btn btn-xs btn-error btn-outline"
+                                className="btn btn-xs outline-red-600 text-red-600 hover:bg-red-600 hover:text-white"
                                 onClick={() =>
                                   handleDeleteDay(selectedPlan.plan_id, day.plan_day_id)
                                 }
@@ -577,7 +569,7 @@ function CoWorkoutPlans() {
                                         />
                                         <div className="flex gap-2">
                                           <button
-                                            className="btn btn-xs btn-primary"
+                                            className="btn btn-xs btn-primary bg-blue-800 text-white"
                                             onClick={handleUpdateDayExercise}
                                           >
                                             Save
@@ -589,7 +581,7 @@ function CoWorkoutPlans() {
                                             Cancel
                                           </button>
                                           <button
-                                            className="btn btn-xs btn-error ml-auto"
+                                            className="btn btn-xs bg-red-600 text-white ml-auto"
                                             onClick={() =>
                                               handleDeleteDayExercise(
                                                 selectedPlan.plan_id,
@@ -693,7 +685,7 @@ function CoWorkoutPlans() {
                         }
                       />
                       <button
-                        className="btn btn-xs btn-primary"
+                        className="btn btn-xs btn-primary text-white bg-blue-800"
                         onClick={() => handleAddDay(selectedPlan.plan_id)}
                       >
                         Add Day

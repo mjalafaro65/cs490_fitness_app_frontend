@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import api from "../axios.jsx";
 import VisitorNavbar from "../components/VisitorNavbar.jsx";
 import { useAuth } from "../AuthContext.jsx";
+import Alert from "../components/Alert.jsx";
 
 const CoachPublicProfile = () => {
     const { user } = useAuth()
@@ -53,9 +54,17 @@ const CoachPublicProfile = () => {
         info:
             "bg-black text-white border border-gray-700 shadow-lg shadow-black/50"
     };
-    const [showAlert, setShowAlert] = useState(false);
-    const [type, setType] = useState("success");
-    const [message, setMessage] = useState("");
+
+    const [alert, setShowAlert] = useState(false);
+    const [alertMsg, setAlertMsg] = useState('');
+    const [alertType, setAlertType] = useState('success');
+
+    const showAlert = (message, type = 'success') => {
+        console.log("ALERT FUNCTION CALLED with:", message, type);
+        setAlertMsg(message);
+        setAlertType(type);
+        setShowAlert(true);
+    };
 
 
     useEffect(() => {
@@ -182,9 +191,11 @@ const CoachPublicProfile = () => {
             if (isFavorite) {
                 await api.delete(`/client/favorites/coaches/${coach.coach_profile_id}`);
                 setIsFavorite(false);
+                showAlert("Coach unfavorited", "success");
             } else {
                 await api.post(`/client/favorites/coaches/${coach.coach_profile_id}`);
                 setIsFavorite(true);
+                showAlert("Coach favorited!", "success");
             }
         } catch (err) {
             console.log(err.response?.data);
@@ -215,15 +226,6 @@ const CoachPublicProfile = () => {
     }
 
 
-    const showAlertMessage = (msg, type = "success") => {
-        setMessage(msg);
-        setType(type);
-        setShowAlert(true);
-
-        setTimeout(() => {
-            setShowAlert(false);
-        }, 3000);
-    };
     const DAYS = [
         { label: "Monday", value: 0 },
         { label: "Tuesday", value: 1 },
@@ -423,7 +425,8 @@ const CoachPublicProfile = () => {
                                     )}
                                 </div>}
 
-                            {showHireModal && <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                            {showHireModal && (
+                                <div className="fixed inset-0 backdrop-blur-sm bg-opacity-40 flex items-center justify-center z-50">
                                     <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-lg">
 
                                         <h2 className="text-xl font-bold mb-4">Hire Coach</h2>
@@ -470,7 +473,7 @@ const CoachPublicProfile = () => {
 
                             {activeTab === 'reviews' && <div>
                                     <button
-                                        className="btn btn-primary bg-blue-800 btn-sm mb-4"
+                                        className="btn btn-primary text-white bg-blue-800 btn-sm mb-4"
                                         onClick={() => setShowReviewModal(true)}
                                     >
                                         Write a Review
@@ -517,7 +520,8 @@ const CoachPublicProfile = () => {
                                     )}
                                 </div>}
 
-                            {showReviewModal && <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                            {showReviewModal && (
+                                <div className="fixed inset-0 backdrop-blur flex items-center justify-center z-50">
                                     <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-lg">
 
                                         <h2 className="text-xl font-bold mb-4">Write a Review</h2>
@@ -554,7 +558,7 @@ const CoachPublicProfile = () => {
                                             </button>
 
                                             <button
-                                                className="btn btn-primary"
+                                                className="btn btn-primary bg-blue-800 text-white"
                                                 onClick={async () => {
                                                     try {
                                                         setSubmitting(true);
@@ -566,6 +570,7 @@ const CoachPublicProfile = () => {
                                                         });
 
                                                         const res = await api.get(`/coach/${id}/reviews`);
+                                                        showAlert("Review submitted!", "success");
                                                         setReviews(res.data);
 
                                                         setShowReviewModal(false);
@@ -578,20 +583,6 @@ const CoachPublicProfile = () => {
                                                         console.error("Error status:", err.response?.status);
                                                         console.error("Error data:", err.response?.data);
 
-                                                        // Show more specific error message
-                                                        if (err.response?.data?.description) {
-                                                            alert(`Failed to submit review: ${err.response.data.description}`);
-                                                        } else if (err.response?.data?.msg) {
-                                                            alert(`Failed to submit review: ${err.response.data.msg}`);
-                                                        } else if (err.response?.status === 403) {
-                                                            alert("Failed to submit review: You can only review coaches you have hired or previously worked with.");
-                                                        } else if (err.response?.status === 401) {
-                                                            alert("Failed to submit review: Please log in again");
-                                                        } else if (err.response?.status === 400) {
-                                                            alert("Failed to submit review: Invalid data provided");
-                                                        } else {
-                                                            alert("Failed to submit review: Server error. Please try again.");
-                                                        }
                                                     } finally {
                                                         setSubmitting(false);
                                                     }
@@ -602,14 +593,13 @@ const CoachPublicProfile = () => {
                                         </div>
 
                                     </div>
-                                </div>}
-                            {showAlert && <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50">
-                                    <div className={`p-3 rounded-lg shadow-lg ${typeStyles[type]}`}>
-                                        {message}
-                                    </div>
-                                </div>}
-
-
+                                </div>
+                            )}
+                            <Alert 
+                                isOpen={alert} 
+                                message={alertMsg}
+                                type={alertType}
+                                onClose={() => setShowAlert(false)}/>
 
                         </div>
                     </div>
