@@ -1311,14 +1311,6 @@ function ClientWorkoutPlans() {
           <div>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold">{selectedPlan.name}</h2>
-              <div className="flex gap-2">
-                <button 
-                  className="btn btn-sm bg-red-600 text-white"
-                  onClick={() => handleDeletePlan(selectedPlan.plan_id)}
-                >
-                  Delete Plan
-                </button>
-              </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1408,7 +1400,7 @@ function ClientWorkoutPlans() {
                   <div className="mt-4 p-3 bg-base-100 rounded-lg">
                     <p className="text-sm font-semibold mb-2">Add New Day</p>
                     <div className="flex gap-2 flex-wrap">
-                      <input className="input input-xs flex-1" placeholder="Day name" value={newDayByPlan[selectedPlan.plan_id]?.day_label || ""} onChange={(e) => handleDayChange(selectedPlan.plan_id, "day_label", e.target.value)} />
+                      <input className="input input-xs flex-1" placeholder="Workout name" value={newDayByPlan[selectedPlan.plan_id]?.day_label || ""} onChange={(e) => handleDayChange(selectedPlan.plan_id, "day_label", e.target.value)} />
                       <select className="select select-xs w-28" value={newDayByPlan[selectedPlan.plan_id]?.weekday ?? ""} onChange={(e) => handleDayChange(selectedPlan.plan_id, "weekday", e.target.value)}>
                         <option value="">Weekday</option>
                         {WEEKDAY_NAMES.map((name, i) => <option key={i} value={i}>{name}</option>)}
@@ -1422,81 +1414,80 @@ function ClientWorkoutPlans() {
 
               <div className="bg-base-300 p-4 rounded-box">
                 <h3 className="font-bold mb-3">Schedule Plan</h3>
-                {!showScheduleCalendar ? (
-                  <>
-                    <div className="space-y-3 mb-3">
-                      <div>
-                        <label className="text-xs opacity-70">Start Date</label>
-                        <input type="date" className="input input-sm input-bordered w-full" value={assignData.start_date} onChange={(e) => setAssignData({...assignData, start_date: e.target.value})} />
-                      </div>
-                      <div>
-                        <label className="text-xs opacity-70">End Date</label>
-                        <input type="date" className="input input-sm input-bordered w-full" value={assignData.end_date} onChange={(e) => setAssignData({...assignData, end_date: e.target.value})} />
-                      </div>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-xs opacity-70">Start Date</label>
+                      <input type="date" className="input input-sm input-bordered w-full" value={assignData.start_date} onChange={(e) => setAssignData({...assignData, start_date: e.target.value})} />
                     </div>
-                    <button className="btn btn-primary bg-blue-800 btn-sm w-full" onClick={handleShowScheduleCalendar}>Set Schedule Dates</button>
-                  </>
-                ) : (
-                  <div className="space-y-3">
-                    <p className="text-sm font-semibold">Schedule: {assignData.start_date} to {assignData.end_date}</p>
-                    <div className="mb-3">
-                      <p className="text-xs opacity-70 mb-2">Click on a date to assign a workout:</p>
-                      <div className="grid grid-cols-7 gap-1 max-h-64 overflow-y-auto p-2 bg-base-200 rounded">
-                        {(() => {
-                          const start = parseLocalDate(assignData.start_date);
-                          const end = parseLocalDate(assignData.end_date);
-                          const dates = [];
-                          for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-                            dates.push(new Date(d));
-                          }
-                          return dates.map((date, idx) => {
-                            const isAssigned = tempActiveDays.some(d => d.date.toDateString() === date.toDateString());
-                            const weekday = date.getDay();
-                            const matchingDays = selectedPlan?.days?.filter(day => day.weekday === weekday) || [];
-                            const hasMatchingDays = matchingDays.length > 0;
-                            return (
-                              <div key={idx} className="relative">
-                                <button className={`w-full p-2 text-xs rounded transition ${isAssigned ? 'bg-blue-600 text-white' : hasMatchingDays ? 'bg-base-100 hover:bg-primary/20 cursor-pointer border border-primary/50' : 'bg-base-100 opacity-40 cursor-not-allowed'}`} onClick={() => { if (!hasMatchingDays) { alert(`No workout days configured for ${WEEKDAY_NAMES[weekday]}.`); return; } setTempSelectedCalendarDay(date); }} disabled={!hasMatchingDays}>
-                                  {date.getDate()}
-                                  <span className="block text-[10px] opacity-60">{WEEKDAY_NAMES[weekday].slice(0, 3)}</span>
-                                </button>
-                              </div>
-                            );
-                          });
-                        })()}
-                      </div>
-                    </div>
-                    {tempSelectedCalendarDay && (
-                      <div className="p-3 bg-base-100 rounded border border-primary">
-                        <div className="flex justify-between items-center mb-2">
-                          <p className="text-sm font-bold">{tempSelectedCalendarDay.toLocaleDateString()} ({WEEKDAY_NAMES[tempSelectedCalendarDay.getDay()]})</p>
-                          <button className="btn btn-xs btn-circle btn-ghost" onClick={() => setTempSelectedCalendarDay(null)}>✕</button>
-                        </div>
-                        <p className="text-xs opacity-70 mb-2">Select workout day:</p>
-                        <div className="flex gap-2 flex-wrap">
-                          {selectedPlan?.days?.filter(day => day.weekday === tempSelectedCalendarDay.getDay()).map(day => (
-                            <button key={day.plan_day_id} className="btn btn-xs btn-outline btn-primary" onClick={() => { setTempActiveDays(prev => { const filtered = prev.filter(d => d.date.toDateString() !== tempSelectedCalendarDay.toDateString()); return [...filtered, { date: tempSelectedCalendarDay, day }]; }); setTempSelectedCalendarDay(null); }}>{day.day_label}</button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {tempActiveDays.length > 0 && (
-                      <div className="p-2 bg-base-200 rounded">
-                        <p className="text-xs font-semibold mb-1">Assigned ({tempActiveDays.length}):</p>
-                        <div className="flex flex-wrap gap-1">{tempActiveDays.map((item, idx) => (<span key={idx} className="badge border-black badge-sm">{item.date.toLocaleDateString()}: {item.day.day_label}<button className="ml-1 hover:text-error" onClick={() => setTempActiveDays(prev => prev.filter((_, i) => i !== idx))}>✕</button></span>))}</div>
-                      </div>
-                    )}
-                    <div className="flex gap-2">
-                      <button className="btn btn-primary bg-blue-800 btn-sm flex-1" onClick={handleAssignPlan} disabled={tempActiveDays.length === 0}>Confirm Schedule ({tempActiveDays.length} day{tempActiveDays.length !== 1 ? "s" : ""})</button>
-                      <button className="btn btn-ghost btn-sm" onClick={() => { setShowScheduleCalendar(false); setTempActiveDays([]); setTempSelectedCalendarDay(null); }}>Cancel</button>
+                    <div>
+                      <label className="text-xs opacity-70">End Date</label>
+                      <input type="date" className="input input-sm input-bordered w-full" value={assignData.end_date} onChange={(e) => setAssignData({...assignData, end_date: e.target.value})} />
                     </div>
                   </div>
-                )}
+                  
+                  {assignData.start_date && assignData.end_date && (
+                    <div className="space-y-3">
+                      <p className="text-sm font-semibold">Schedule: {assignData.start_date} to {assignData.end_date}</p>
+                      <div className="mb-3">
+                        <p className="text-xs opacity-70 mb-2">Click on a date to assign a workout:</p>
+                        <div className="grid grid-cols-7 gap-1 max-h-64 overflow-y-auto p-2 bg-base-200 rounded">
+                          {(() => {
+                            const start = parseLocalDate(assignData.start_date);
+                            const end = parseLocalDate(assignData.end_date);
+                            const dates = [];
+                            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                              dates.push(new Date(d));
+                            }
+                            return dates.map((date, idx) => {
+                              const isAssigned = tempActiveDays.some(d => d.date.toDateString() === date.toDateString());
+                              const weekday = date.getDay();
+                              const matchingDays = selectedPlan?.days?.filter(day => day.weekday === weekday) || [];
+                              const hasMatchingDays = matchingDays.length > 0;
+                              return (
+                                <div key={idx} className="relative">
+                                  <button className={`w-full p-2 text-xs rounded transition ${isAssigned ? 'bg-blue-600 text-white' : hasMatchingDays ? 'bg-base-100 hover:bg-primary/20 cursor-pointer border border-primary/50' : 'bg-base-100 opacity-40 cursor-not-allowed'}`} onClick={() => { if (!hasMatchingDays) { alert(`No workout days configured for ${WEEKDAY_NAMES[weekday]}.`); return; } setTempSelectedCalendarDay(date); }} disabled={!hasMatchingDays}>
+                                    {date.getDate()}
+                                    <span className="block text-[10px] opacity-60">{WEEKDAY_NAMES[weekday].slice(0, 3)}</span>
+                                  </button>
+                                </div>
+                              );
+                            });
+                          })()}
+                        </div>
+                      </div>
+                      {tempSelectedCalendarDay && (
+                        <div className="p-3 bg-base-100 rounded border border-primary">
+                          <div className="flex justify-between items-center mb-2">
+                            <p className="text-sm font-bold">{tempSelectedCalendarDay.toLocaleDateString()} ({WEEKDAY_NAMES[tempSelectedCalendarDay.getDay()]})</p>
+                            <button className="btn btn-xs btn-circle btn-ghost" onClick={() => setTempSelectedCalendarDay(null)}>×</button>
+                          </div>
+                          <p className="text-xs opacity-70 mb-2">Select workout:</p>
+                          <div className="flex gap-2 flex-wrap">
+                            {selectedPlan?.days?.filter(day => day.weekday === tempSelectedCalendarDay.getDay()).map(day => (
+                              <button key={day.plan_day_id} className="btn btn-xs btn-outline btn-primary" onClick={() => { setTempActiveDays(prev => { const filtered = prev.filter(d => d.date.toDateString() !== tempSelectedCalendarDay.toDateString()); return [...filtered, { date: tempSelectedCalendarDay, day }]; }); setTempSelectedCalendarDay(null); }}>{day.day_label}</button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {tempActiveDays.length > 0 && (
+                        <div className="p-2 bg-base-200 rounded">
+                          <p className="text-xs font-semibold mb-1">Assigned ({tempActiveDays.length}):</p>
+                          <div className="flex flex-wrap gap-1">{tempActiveDays.map((item, idx) => (<span key={idx} className="badge border-black badge-sm">{item.date.toLocaleDateString()}: {item.day.day_label}<button className="ml-1 hover:text-error" onClick={() => setTempActiveDays(prev => prev.filter((_, i) => i !== idx))}>×</button></span>))}</div>
+                        </div>
+                      )}
+                      <div className="flex gap-2">
+                        <button className="btn btn-primary bg-blue-800 btn-sm flex-1" onClick={handleAssignPlan} disabled={tempActiveDays.length === 0}>Confirm Schedule ({tempActiveDays.length} day{tempActiveDays.length !== 1 ? "s" : ""})</button>
+                        <button className="btn btn-ghost btn-sm" onClick={() => { setAssignData({ start_date: "", end_date: "" }); setTempActiveDays([]); setTempSelectedCalendarDay(null); }}>Clear</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
             <div className="flex justify-center mt-6">
               <button 
-                className="btn btn-sm btn-error"
+                className="btn btn-sm bg-red-500 text-white"
                 onClick={() => handleDeletePlan(selectedPlan.plan_id)}
               >
                 Delete Plan
@@ -1562,7 +1553,7 @@ function ClientWorkoutPlans() {
     )}
 
     {isBrowsePopOpen && (
-      <LargeModal open={isBrowsePopOpen} onClose={() => { setBrowsePopOpen(false); setAssigningDay(null); }}>
+      <LargeModal open={isBrowsePopOpen} onClose={() => { setBrowsePopOpen(false); setAssigningDay(null); }} width="60vw" height="70vh">
         <BrowseExercises
           planId={selectedPlan?.plan_id}
           dayId={assigningDay?.plan_day_id}
