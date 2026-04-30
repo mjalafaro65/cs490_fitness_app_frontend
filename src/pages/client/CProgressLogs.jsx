@@ -89,6 +89,31 @@ function ProgressLogs() {
     status: ""
   });
 
+   const fetchProgressPhotos = async () => {
+    try {
+      const response = await api.get("/client/progress-photos");
+      if (response.data) {
+        setBeforeImage(response.data.before_photo_url);
+        setAfterImage(response.data.after_photo_url);
+      }
+    } catch (err) {
+      console.error("Failed to fetch progress photos:", err);
+    }
+  };
+
+  const saveProgressPhotos = async (beforeUrl, afterUrl) => {
+    try {
+      const response = await api.post("/client/progress-photos", {
+        before_photo_url: beforeUrl,
+        after_photo_url: afterUrl
+      });
+      return response.data;
+    } catch (err) {
+      console.error("Failed to save progress photos:", err);
+      throw err;
+    }
+  };
+
   useEffect(() => {
     async function fetchAllInsights() {
       setLoadingInsights(true);
