@@ -25,6 +25,7 @@ function AProfile() {
   const [profileType, setProfileType] = useState(null);
   
   const [userCoachStatus, setUserCoachStatus] = useState({});
+  const [actionUser, setActionUser] = useState(null); 
 
   const showAlert = (message, type = 'success') => {
       console.log("ALERT FUNCTION CALLED with:", message, type);
@@ -181,60 +182,65 @@ useEffect(() => {
   fetchUserInfo();
 }, [selectedUser]);
 
-  const handleDeleteUser = async (userId) => {
-    if (!window.confirm("Are you sure you want to delete this user?")) return;
-    
+const handleDeleteUser = async (userId) => {
+  try {
+    let coachProfileId = null;
     try {
-      const response = await api.delete("/admin/purge-user", {
-        data: {user_id: userId}
+      const coachCheck = await api.get("/coach/coach-profile", {
+        params: { user_id: userId }
       });
-      console.log("User deleted:", response.data);
-      showAlert("User deleted successfully", "success");
-      
-      const fetchResponse = await api.get("/admin/users", {
-        params: {
-          page: currentPage,
-          per_page: 20
-        }
-      });
-      
-      const newData = fetchResponse.data;
-      let usersArray = [];
-      if (Array.isArray(newData)) {
-        usersArray = newData;
-      } else if (newData.users && Array.isArray(newData.users)) {
-        usersArray = newData.users;
-      } else if (newData.data && Array.isArray(newData.data)) {
-        usersArray = newData.data;
+      if (coachCheck.data && coachCheck.data.coach_profile_id) {
+        coachProfileId = coachCheck.data.coach_profile_id;
+        console.log("Found coach profile ID:", coachProfileId);
       }
-      
-      setUsers(usersArray);
-      
-      setUserCoachStatus(prev => {
-        const newStatus = { ...prev };
-        delete newStatus[userId];
-        return newStatus;
-      });
-      
-      if (sortedUsers.length === 0 && currentPage > 1) {
-        setCurrentPage(currentPage - 1);
-      }
-      
-      if (selectedUser === userId) {
-        setSelectedUser(null);
-        setUser({ first_name: "", last_name: "", phone_number: "" });
-        setHasCoachProfile(false);
-        setCoachProfile(null);
-      }
-    } catch (error) {
-      console.error("Failed to delete user:", error.response?.data || error);
-      showAlert(error.response?.data?.message || "Failed to delete user", "error");
+    } catch (err) {
+      console.log("No coach profile found for user");
     }
-  };
+
+    if (coachProfileId) {
+      console.log("Deleting coach profile first...");
+      try {
+        await api.delete("/admin/purge-user", { data: { coach_profile_id: coachProfileId } });
+      } catch (err) {
+        console.error("Failed to delete coach profile:", err);
+      }
+    }
+
+    console.log("Deleting user...");
+    const response = await api.delete("/admin/purge-user", {
+      data: { user_id: userId }
+    });
+
+    console.log("User deleted:", response.data);
+    showAlert("User deleted successfully", "success");
+    
+    // Update UI
+    const updatedUsers = users.filter(user => user.user_id !== userId);
+    setUsers(updatedUsers);
+
+    if (updatedUsers.length === 0 && currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+    
+    if (selectedUser === userId) {
+      setSelectedUser(null);
+      setUser({ first_name: "", last_name: "", phone_number: "" });
+      setHasCoachProfile(false);
+      setCoachProfile(null);
+    }
+    
+    if (actionUser?.user_id === userId) {
+      setActionUser(null);
+    }
+    
+  } catch (error) {
+    console.error("Failed to delete user:", error.response?.data || error);
+    showAlert(error.response?.data?.message || "Failed to delete user", "error");
+  }
+};
 
   const handleUser = async (userId, currentStatus) => {
     const shouldActivate = !currentStatus;
-    if (!window.confirm(`Are you sure you want to ${shouldActivate ? 'activate': 'deactivate'} this user?`)) return;
     
     try {
       const response = await api.patch("/admin/users/disable", {
@@ -267,7 +273,6 @@ useEffect(() => {
     setHasCoachProfile(false);
     setCoachProfile(null);
     setProfileType(null);
-    setCoachDebug(null);
   };
 
   const nextPage = () => {
@@ -359,17 +364,19 @@ useEffect(() => {
                                 View
                               </button>
                               <button 
-                                onClick={() => handleUser(user.user_id, user.is_active)}
-                                className={`btn btn-sm ${
-                                  user.is_active 
-                                    ? 'border-black text-black'  
-                                    : 'border-black text-black' 
-                                }`}
+                                onClick={() => {
+                                  setActionUser(user);
+                                  setPopOpen("deactivate");
+                                }}
+                                className="btn btn-sm border-black text-black"
                               >
                                 {user.is_active ? 'Deactivate' : 'Activate'}
                               </button>
                               <button 
-                                onClick={() => handleDeleteUser(user.user_id)}
+                                onClick={() => {
+                                  setActionUser(user);
+                                  setPopOpen("deleteConfirm");
+                                }}
                                 className="btn btn-sm bg-red-600 text-white"
                               >
                                 Delete
@@ -415,61 +422,167 @@ useEffect(() => {
             )}
           </div>
           
-          <PopUp isOpen={popOpen === "userDetails"} onClose={closePopUp}>
-            {selectedUser && (      
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                <div className="col-span-full mt-2">
-                    <h3 className="font-bold text-lg text-blue-800">User Details</h3>
-                    <hr className="my-2" />
+            <PopUp isOpen={popOpen === "userDetails"} onClose={closePopUp}>
+            {selectedUser && (
+              <div className="px-2 pb-4">
+                {/* User Details Section */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-xl font-bold text-gray-800 border-l-4 border-blue-300 pl-3">
+                      User Details
+                    </h3>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-gray-50 p-3 rounded-lg">
+                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                        First Name
+                      </label>
+                      <p className="text-gray-900 font-medium mt-1">{user.first_name || "—"}</p>
+                    </div>
+                    
+                    <div className="bg-gray-50 p-3 rounded-lg">
+                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                        Last Name
+                      </label>
+                      <p className="text-gray-900 font-medium mt-1">{user.last_name || "—"}</p>
+                    </div>
+                    
+                    <div className="bg-gray-50 p-3 rounded-lg md:col-span-2">
+                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                        Phone Number
+                      </label>
+                      <p className="text-gray-900 font-medium mt-1">{user.phone_number || "—"}</p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className="font-semibold">First Name:</label>
-                  <p className="text-md">{user.first_name || "—"}</p>
-                </div>
-                <div>
-                  <label className="font-semibold">Last Name:</label>
-                  <p className="text-md">{user.last_name || "—"}</p>
-                </div>
-                <div>
-                  <label className="font-semibold">Phone Number:</label>
-                  <p className="text-md">{user.phone_number || "—"}</p>
-                </div>
-                
+
                 {/* Coach Profile Section */}
                 {hasCoachProfile && coachProfile && (
-                  <>
-                    <div className="col-span-full mt-4">
-                      <h3 className="font-bold text-lg text-blue-800">Coach Profile</h3>
-                      <hr className="my-2" />
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-xl font-bold text-gray-800 border-l-4 border-blue-800 pl-3">
+                        Coach Profile
+                      </h3>
                     </div>
-                    <div>
-                      <label className="font-semibold">Specialty:</label>
-                      <p className="text-md">{coachProfile.specialty_name || "—"}</p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                          Specialty
+                        </label>
+                        <p className="text-gray-900 font-medium mt-1">{coachProfile.specialty_name || "—"}</p>
+                      </div>
+                      
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                          Years Experience
+                        </label>
+                        <p className="text-gray-900 font-medium mt-1">{coachProfile.years_experience || "—"}</p>
+                      </div>
+                      
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                          Status
+                        </label>
+                        <div className="mt-1">
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
+                            coachProfile.status === 'approved' ? 'bg-green-100 text-green-800' :
+                            coachProfile.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${
+                              coachProfile.status === 'approved' ? 'bg-green-600' :
+                              coachProfile.status === 'pending' ? 'bg-yellow-600' :
+                              'bg-red-600'
+                            }`}></span>
+                            {coachProfile.status || "—"}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="md:col-span-2 bg-gray-50 p-3 rounded-lg">
+                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                          Bio
+                        </label>
+                        <p className="text-gray-900 font-medium mt-1 leading-relaxed">
+                          {coachProfile.bio || "—"}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <label className="font-semibold">Years Experience:</label>
-                      <p className="text-md">{coachProfile.years_experience || "—"}</p>
-                    </div>
-                    <div>
-                      <label className="font-semibold">Status:</label>
-                      <p className="text-lg">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                          coachProfile.status === 'approved' ? 'bg-green-100 text-green-800' :
-                          coachProfile.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {coachProfile.status || "—"}
-                        </span>
-                      </p>
-                    </div>
-                    <div className="col-span-full">
-                      <label className="font-semibold">Bio:</label>
-                      <p className="text-md">{coachProfile.bio || "—"}</p>
-                    </div>
-                  </>
+                  </div>
                 )}
               </div>
             )}
+          </PopUp>
+          <PopUp isOpen={popOpen === "deleteConfirm"} onClose={closePopUp}>
+            <div className="text-center p-4">
+
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Delete User</h3>
+              
+              <p className="text-sm text-gray-500 mb-6">
+                Are you sure you want to delete <span className="font-semibold text-gray-700">{actionUser?.first_name} {actionUser?.last_name}</span>?<br />
+                <p className="text-red-600 font-semibold">This action cannot be undone.</p>
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={closePopUp}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    handleDeleteUser(actionUser?.user_id);
+                    closePopUp();
+                  }}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors cursor-pointer"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </PopUp>
+
+          <PopUp isOpen={popOpen === "deactivate"} onClose={closePopUp}>
+            <div className="text-center p-4">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">
+                {actionUser?.is_active ? 'Deactivate User' : 'Activate User'}
+              </h3>
+              
+              <p className="text-sm text-gray-500 mb-6">
+                Are you sure you want to {actionUser?.is_active ? 'deactivate' : 'activate'} 
+                <span className="font-semibold text-gray-700"> {actionUser?.first_name} {actionUser?.last_name}</span>?
+                {actionUser?.is_active && (
+                  <span className="block mt-2 text-xs text-red-600">
+                    Note: Deactivated users will not be able to access the platform.
+                  </span>
+                )}
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={closePopUp}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    handleUser(actionUser?.user_id, actionUser?.is_active);
+                    closePopUp();
+                  }}
+                  className={`flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors cursor-pointer ${
+                    actionUser?.is_active 
+                      ? 'bg-blue-800 hover:bg-blue-700' 
+                      : 'bg-blue-800 hover:bg-blue-700'
+                  }`}
+                >
+                  {actionUser?.is_active ? 'Deactivate' : 'Activate'}
+                </button>
+              </div>
+            </div>
           </PopUp>
         </div>
       </div>

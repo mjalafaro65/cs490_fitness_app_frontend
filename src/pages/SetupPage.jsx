@@ -5,6 +5,8 @@ import { useAuth } from "../AuthContext.jsx";
 
 function SetupPage() {
     const {fetchUser}=useAuth()
+    const DEFAULT_PHOTO = "https://res.cloudinary.com/dh1rjok0f/image/upload/v1777335485/unknown_pfp_adcb09_zzqxwp.png";
+
     const [profileData, setProfileData] = useState({
         "first_name": "",
         "last_name": "",
@@ -45,11 +47,7 @@ function SetupPage() {
         e.preventDefault();
         try {
             console.log(profileData)
-            if ( profileData.profile_photo==""){
-                // const default = import.meta.env.DEFAULT_PHOTO;
-                profileData.profile_photo="https://res.cloudinary.com/dh1rjok0f/image/upload/v1777335485/unknown_pfp_adcb09_zzqxwp.png"
-            }
-
+          
             const res = await api.post("/auth/setup", profileData);
             console.log(res)
             await fetchUser()

@@ -2,14 +2,18 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "./AuthContext";
 import api
- from "./axios";
+from "./axios";
+
 export const useCoachStatus = () => {
     const { user } = useAuth();
     const [coachStatus, setCoachStatus] = useState(null);
   
     useEffect(() => {
       const fetchCoach = async () => {
-        if (!user?.roles?.includes(2)) return;
+        if (!user?.roles?.includes(2)){
+          setCoachStatus(null);
+          return;
+        } 
   
         try {
           const res = await api.get("/coach/coach-profile");

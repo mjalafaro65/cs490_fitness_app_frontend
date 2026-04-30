@@ -122,7 +122,7 @@ function CDashboard() {
   const [hiredCoaches, setHiredCoaches] = useState([]);
 
 
-
+ 
   const fetchScheduledWorkouts = async (date = null, view = "week") => {
     setIsLoadingWorkouts(true);
 
@@ -454,22 +454,22 @@ function CDashboard() {
 
   const filterDataForCurrentWeek = (data) => {
     if (!data.length) return [];
-    
+
     const weekStart = weekDays[0];
     const weekEnd = weekDays[6];
-    
+
     // Create date strings for comparison (YYYY-MM-DD format)
     const weekStartStr = `${weekStart.getFullYear()}-${String(weekStart.getMonth() + 1).padStart(2, '0')}-${String(weekStart.getDate()).padStart(2, '0')}`;
     const weekEndStr = `${weekEnd.getFullYear()}-${String(weekEnd.getMonth() + 1).padStart(2, '0')}-${String(weekEnd.getDate()).padStart(2, '0')}`;
-    
+
     console.log("Filtering for week:", weekStartStr, "to", weekEndStr);
     console.log("Data entries:", data.map(d => ({ date: d.date, dateStr: d.dateStr })));
-    
-     const filtered = data.filter(item => {
+
+    const filtered = data.filter(item => {
       if (!item.dateStr) return false;
       return item.dateStr >= weekStartStr && item.dateStr <= weekEndStr;
     });
-    
+
     console.log("Filtered data:", filtered);
     return filtered;
   };
@@ -480,38 +480,43 @@ function CDashboard() {
 
 
   useEffect(() => {
-    async function fetchInsights() {
+    fetchInsights();
+  }, []);
+ 
+  const  fetchInsights=async()=> {
       setInsightsLoading(true);
       try {
         const response = await api.get("/insights/survey");
         console.log("Insights response:", response.data);
-        
+
         const historyArray = response.data?.history || [];
-        
+
         const transformedData = historyArray
           .filter(entry => entry.date)
-          .sort((a, b) => new Date(a.date) - new Date(b.date)) 
+          .sort((a, b) => new Date(a.date) - new Date(b.date))
           .map(entry => {
-            const dateObj = new Date(entry.date);
+            // const dateObj = new Date(entry.date);
+            const [year, month, day] = entry.date.split("-");
+            const dateObj = new Date(year, month - 1, day);
             dateObj.setHours(0, 0, 0, 0);
 
-          const year = dateObj.getFullYear();
-          const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-          const day = String(dateObj.getDate()).padStart(2, '0');
-          const dateStr = `${year}-${month}-${day}`;
+            // const year = dateObj.getFullYear();
+            // const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            // const day = String(dateObj.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
 
             return {
-            date: dateObj,
-            dateStr: dateStr,
-            displayDate: `${month}/${day}`,
-            sleep: entry.sleep_hours || 0,
-            mood: entry.mood_score || 0,
-            energy: entry.energy_level || 0,
-            water: entry.water_oz || 0,
-            weight: entry.weight_lbs || 0
-          };
+              date: dateStr,
+              dateStr: dateStr,
+              displayDate: `${month}/${day}`,
+              sleep: entry.sleep_hours || 0,
+              mood: entry.mood_score || 0,
+              energy: entry.energy_level || 0,
+              water: entry.water_oz || 0,
+              weight: entry.weight_lbs || 0
+            };
           });
-        
+
         setInsightsData(transformedData);
         console.log("Transformed chart data:", transformedData);
       } catch (err) {
@@ -520,9 +525,8 @@ function CDashboard() {
         setInsightsLoading(false);
       }
     }
-    
-    fetchInsights();
-  }, []);
+
+
 
 
   useEffect(() => {
@@ -579,8 +583,10 @@ function CDashboard() {
 
       console.log("Survey submitted successfully");
       showAlert("Daily wellness logged successfully!", "success");
+      await fetchInsights();
 
       const insightsResponse = await api.get("/insights/survey");
+      console.log(insightsResponse)
       const historyArray = insightsResponse.data?.history || [];
       const transformedData = historyArray
         .filter(entry => entry.date)
@@ -617,50 +623,50 @@ function CDashboard() {
       if (item.dateStr) {
         dataMap.set(item.dateStr, item);
       }
-  });
+    });
 
-  const last7Days = [];
-  for (let i = 6; i >= 0; i--) {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    date.setHours(0, 0, 0, 0);
-    last7Days.push(date);
-  }
-  
-  const chartData = last7Days.map(day => {
-    const year = day.getFullYear();
-    const month = String(day.getMonth() + 1).padStart(2, '0');
-    const dayOfMonth = String(day.getDate()).padStart(2, '0');
-    const dateStr = `${year}-${month}-${dayOfMonth}`;
-    const dayData = dataMap.get(dateStr);
-  
-    const hasData = dayData && (
-      dayData.sleep > 0 || 
-      dayData.mood > 0 || 
-      dayData.energy > 0 || 
-      dayData.water > 0 || 
-      dayData.weight > 0
-    );
-    
-    return {
-      date: `${month}/${dayOfMonth}`,
-      fullDate: `${month}/${dayOfMonth}/${year}`,
-      actualDate: dateStr,
-      sleep: dayData?.sleep || 0,
-      mood: dayData?.mood || 0,
-      energy: dayData?.energy || 0,
-      water: dayData?.water || 0,
-      weight: dayData?.weight || 0,
-      hasData: hasData,  
-      isLogged: dayData !== undefined  
-    };
-  });
-  
-  console.log("Chart data with dates:", chartData);
-  return chartData;
-};
+    const last7Days = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      date.setHours(0, 0, 0, 0);
+      last7Days.push(date);
+    }
 
-const weeklyChartData = prepareWeeklyChartData();
+    const chartData = last7Days.map(day => {
+      const year = day.getFullYear();
+      const month = String(day.getMonth() + 1).padStart(2, '0');
+      const dayOfMonth = String(day.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${dayOfMonth}`;
+      const dayData = dataMap.get(dateStr);
+
+      const hasData = dayData && (
+        dayData.sleep > 0 ||
+        dayData.mood > 0 ||
+        dayData.energy > 0 ||
+        dayData.water > 0 ||
+        dayData.weight > 0
+      );
+
+      return {
+        date: `${month}/${dayOfMonth}`,
+        fullDate: `${month}/${dayOfMonth}/${year}`,
+        actualDate: dateStr,
+        sleep: dayData?.sleep || 0,
+        mood: dayData?.mood || 0,
+        energy: dayData?.energy || 0,
+        water: dayData?.water || 0,
+        weight: dayData?.weight || 0,
+        hasData: hasData,
+        isLogged: dayData !== undefined
+      };
+    });
+
+    console.log("Chart data with dates:", chartData);
+    return chartData;
+  };
+
+  const weeklyChartData = prepareWeeklyChartData();
 
 
 
@@ -1058,7 +1064,7 @@ const weeklyChartData = prepareWeeklyChartData();
                       <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                       <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#9CA3AF' }} />
                       <YAxis domain={[0, 12]} tick={{ fontSize: 10, fill: '#9CA3AF' }} />
-                      <Tooltip 
+                      <Tooltip
                         labelFormatter={(label) => {
                           const dayData = weeklyChartData.find(d => d.date === label);
                           return dayData ? dayData.fullDate : label;
@@ -1070,15 +1076,15 @@ const weeklyChartData = prepareWeeklyChartData();
                           }
                           return [`${value}`, name];
                         }}
-                        contentStyle={{ backgroundColor: '#ffffff', border: 'none', borderRadius: '8px' }} 
+                        contentStyle={{ backgroundColor: '#ffffff', border: 'none', borderRadius: '8px' }}
                       />
-                      <Line type="monotone" dataKey="sleep" stroke="#3c74ba" name="Sleep Hours" strokeWidth={2} dot={{ r: 3 }}/>
+                      <Line type="monotone" dataKey="sleep" stroke="#3c74ba" name="Sleep Hours" strokeWidth={2} dot={{ r: 3 }} />
                     </LineChart>
                   </ResponsiveContainer>
                 )}
               </div>
 
-            <div className="card bg-base-300 rounded-box p-4 flex">
+              <div className="card bg-base-300 rounded-box p-4 flex">
                 <h2 className="text-lg font-bold mb-2">Weight</h2>
                 <p className="text-xs opacity-60 mb-4">This week's weight (lbs)</p>
                 {insightsLoading ? (
@@ -1091,7 +1097,7 @@ const weeklyChartData = prepareWeeklyChartData();
                       <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                       <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#9CA3AF' }} />
                       <YAxis tick={{ fontSize: 10, fill: '#9CA3AF' }} domain={['auto', 'auto']} />
-                      <Tooltip 
+                      <Tooltip
                         labelFormatter={(label) => {
                           const dayData = weeklyChartData.find(d => d.date === label);
                           return dayData ? dayData.fullDate : label;
@@ -1103,7 +1109,7 @@ const weeklyChartData = prepareWeeklyChartData();
                           }
                           return [`${value}`, name];
                         }}
-                        contentStyle={{ backgroundColor: '#ffffff', border: 'none', borderRadius: '8px' }} 
+                        contentStyle={{ backgroundColor: '#ffffff', border: 'none', borderRadius: '8px' }}
                       />
                       <Line type="monotone" dataKey="weight" stroke="#5cbbf6" name="Weight (lbs)" strokeWidth={2} dot={{ r: 3 }} />
                     </LineChart>
@@ -1124,7 +1130,7 @@ const weeklyChartData = prepareWeeklyChartData();
                       <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                       <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#9CA3AF' }} />
                       <YAxis tick={{ fontSize: 10, fill: '#9CA3AF' }} domain={['auto', 'auto']} />
-                      <Tooltip 
+                      <Tooltip
                         labelFormatter={(label) => {
                           const dayData = weeklyChartData.find(d => d.date === label);
                           return dayData ? dayData.fullDate : label;
@@ -1136,7 +1142,7 @@ const weeklyChartData = prepareWeeklyChartData();
                           }
                           return [`${value}`, name];
                         }}
-                        contentStyle={{ backgroundColor: '#ffffff', border: 'none', borderRadius: '8px' }} 
+                        contentStyle={{ backgroundColor: '#ffffff', border: 'none', borderRadius: '8px' }}
                       />
                       <Line type="monotone" dataKey="water" stroke="#194dfa" name="Water (oz)" strokeWidth={2} dot={{ r: 3 }} />
                     </LineChart>

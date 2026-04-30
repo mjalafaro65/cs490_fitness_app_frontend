@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import api from "../axios.jsx";
 import VisitorNavbar from "../components/VisitorNavbar.jsx";
 import { useAuth } from "../AuthContext.jsx";
+import Alert from "../components/Alert.jsx";
 
 const CoachPublicProfile = () => {
     const { user } = useAuth()
@@ -12,6 +13,7 @@ const CoachPublicProfile = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [coach, setCoach] = useState(null);
+    const [coachName, setCoachName] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -39,6 +41,31 @@ const CoachPublicProfile = () => {
     const [activeTab, setActiveTab] = useState("about");
     const [availability, setAvailability] = useState([]);
     const [availabilityLoading, setAvailabilityLoading] = useState(true);
+    const typeStyles = {
+        success:
+            "bg-blue-800 text-white border border-blue-600 shadow-lg shadow-blue-900/40",
+
+        error:
+            "bg-red-600 text-white border border-red-400 shadow-lg shadow-red-900/40",
+
+        warning:
+            "bg-gray-800 text-white border border-gray-600 shadow-lg shadow-black/30",
+
+        info:
+            "bg-black text-white border border-gray-700 shadow-lg shadow-black/50"
+    };
+
+    const [alert, setShowAlert] = useState(false);
+    const [alertMsg, setAlertMsg] = useState('');
+    const [alertType, setAlertType] = useState('success');
+
+    const showAlert = (message, type = 'success') => {
+        console.log("ALERT FUNCTION CALLED with:", message, type);
+        setAlertMsg(message);
+        setAlertType(type);
+        setShowAlert(true);
+    };
+
 
     useEffect(() => {
         const fetchCoachProfile = async () => {
@@ -51,13 +78,16 @@ const CoachPublicProfile = () => {
 
 
 
-                // const response2 = await api.get(`/user/${response.data.user_id}`);
+                const response2 = await api.get(`/user/${response.data.user_id}`);
 
-                // console.log(response2.data)
+                console.log(response2.data)
 
                 setCoach(
                     response.data,
-                    // user: response2.data
+                );
+
+                setCoachName(
+                    response2.data,
                 );
 
 
@@ -125,6 +155,8 @@ const CoachPublicProfile = () => {
         };
 
 
+
+
         const fetchAvailability = async () => {
             try {
                 setAvailabilityLoading(true);
@@ -137,13 +169,13 @@ const CoachPublicProfile = () => {
 
                 setAvailability(res.data || []);
             } catch (err) {
-                console.log("Availability error:", err.response?.data || err);
+                console.log(err);
                 setAvailability([]);
             } finally {
                 setAvailabilityLoading(false);
             }
-
         };
+
 
         fetchAvailability();
         if (isLoggedIn) {
@@ -159,9 +191,11 @@ const CoachPublicProfile = () => {
             if (isFavorite) {
                 await api.delete(`/client/favorites/coaches/${coach.coach_profile_id}`);
                 setIsFavorite(false);
+                showAlert("Coach unfavorited", "success");
             } else {
                 await api.post(`/client/favorites/coaches/${coach.coach_profile_id}`);
                 setIsFavorite(true);
+                showAlert("Coach favorited!", "success");
             }
         } catch (err) {
             console.log(err.response?.data);
@@ -178,18 +212,47 @@ const CoachPublicProfile = () => {
 
             });
 
-            alert("Hire request sent!");
+            showAlertMessage("Hire request sent!", "success");
+
+
             setShowHireModal(false);
 
         } catch (err) {
             console.error(err.response?.data || err);
-            alert(err.response?.data?.description || "Failed to send request");
+            showAlertMessage("Failed to send hire request", "error");
         } finally {
             setHiring(false);
         }
     }
 
 
+    const DAYS = [
+        { label: "Monday", value: 0 },
+        { label: "Tuesday", value: 1 },
+        { label: "Wednesday", value: 2 },
+        { label: "Thursday", value: 3 },
+        { label: "Friday", value: 4 },
+        { label: "Saturday", value: 5 },
+        { label: "Sunday", value: 6 }
+    ];
+
+    const grouped = DAYS.reduce((acc, day) => {
+        const s = availability.filter((x) => x.day_of_week === day.value);
+        if (s.length) acc[day.label] = s;
+        return acc;
+    }, {});
+
+    const formatTime = (timeStr) => {
+        if (!timeStr) return "";
+
+        const [hour, minute] = timeStr.split(":");
+        let h = Number(hour);
+
+        const ampm = h >= 12 ? "PM" : "AM";
+        h = h % 12 || 12;
+
+        return `${h}:${minute} ${ampm}`;
+    };
     if (loading) return <div className="p-10 text-center">Loading profile...</div>;
     if (error || !coach) return <div className="p-10 text-center text-red-500">{error}</div>;
 
@@ -209,9 +272,9 @@ const CoachPublicProfile = () => {
                         <div className="card bg-white shadow-xl p-6 sticky top-8">
                             <div className="flex flex-col items-center text-center">
                                 <div className="w-32 h-32 rounded-full bg-blue-800 text-white flex items-center justify-center text-4xl font-bold mb-4 shadow-lg">
-                                    {coach.user.first_name?.[0]}{coach.user.last_name?.[0]}
+                                    {coachName.first_name?.[0]}{coachName.last_name?.[0]}
                                 </div>
-                                <h1 className="text-2xl font-bold">{coach.user.first_name} {coach.user.last_name}</h1>
+                                <h1 className="text-2xl font-bold">{coachName.first_name} {coachName.last_name}</h1>
                                 <div className="flex items-center gap-1 my-2">
                                     <span className="text-orange-500 text-lg">★</span>
                                     <span className="font-bold">{reviewStats.average}</span>
@@ -219,33 +282,31 @@ const CoachPublicProfile = () => {
                                 </div>
                                 <p className="text-blue-900 font-medium mb-6">Certified Fitness Coach</p>
 
-                                {!isLoggedIn || (<button
+                                {!isLoggedIn && <button
                                     onClick={toggleFavorite}
                                     className="btn w-full border-none bg-white text-black hover:opacity-90"
                                 >
-                                    {isFavorite ? "★ Favorited" : "☆ Add to Favorites"}
-                                </button>)}
+                                    {isFavorite ? "Favorited" : "Add to Favorites"}
+                                </button>}
 
-                                {isLoggedIn && (
-                                    <button
+                                {isLoggedIn && <button
                                         onClick={() => {
                                             // Navigate to messages page with coach info to start conversation
-                                            navigate("/messages", { 
-                                                state: { 
+                                            navigate("/messages", {
+                                                state: {
                                                     coachUser: {
                                                         user_id: coach.user.user_id,
                                                         first_name: coach.user.first_name,
                                                         last_name: coach.user.last_name,
                                                         coach_profile_id: coach.coach_profile_id
                                                     }
-                                                } 
+                                                }
                                             });
                                         }}
                                         className="btn w-full bg-blue-800 text-white hover:bg-blue-700 mt-2"
                                     >
                                         Message
-                                    </button>
-                                )}
+                                    </button>}
                             </div>
                         </div>
                     </div>
@@ -263,8 +324,7 @@ const CoachPublicProfile = () => {
                         <div className="bg-white rounded-2xl shadow-sm p-8 min-h-[400px]">
 
                             {/* ABOUT SECTION */}
-                            {activeTab === 'about' && (
-                                <div className="animate-fadeIn">
+                            {activeTab === 'about' && <div className="animate-fadeIn">
                                     <h3 className="text-xl font-bold mb-4">Biography</h3>
                                     <p className="text-gray-600 leading-relaxed mb-6 italic">"{coach.bio}"</p>
                                     <h3 className="text-xl font-bold mb-4">Specialty</h3>
@@ -275,10 +335,8 @@ const CoachPublicProfile = () => {
                                     </div>
                                     <h3 className="text-xl font-bold mb-4">Experience</h3>
                                     <p className="text-gray-600">{coach.years_experience}</p>
-                                </div>
-                            )}
-                            {activeTab === 'pricing' && (
-                                <div className="animate-fadeIn">
+                                </div>}
+                            {activeTab === 'pricing' && <div className="animate-fadeIn">
                                     <h3 className="text-xl font-bold mb-6">Choose Your Plan</h3>
 
                                     {!payments || payments.length === 0 ? (
@@ -290,7 +348,7 @@ const CoachPublicProfile = () => {
                                                     key={plan.payment_plan_id}
                                                     className="border-2 border-blue-100 rounded-2xl p-6 hover:border-blue-500 transition-all"
                                                 >
-                                                    <span className="badge badge-primary mb-2">
+                                                    <span className="badge bg-blue-800 badge-primary mb-2">
                                                         {plan.billing_type}
                                                     </span>
 
@@ -312,7 +370,7 @@ const CoachPublicProfile = () => {
 
 
                                                     <button
-                                                        className="btn btn-sm btn-block btn-primary"
+                                                        className="btn btn-sm btn-block bg-blue-800 btn-primary"
                                                         onClick={() => {
                                                             if (!isLoggedIn) {
                                                                 navigate("/login");
@@ -330,52 +388,45 @@ const CoachPublicProfile = () => {
                                             ))}
                                         </div>
                                     )}
-                                </div>
-                            )}
+                                </div>}
                             {/* AVAILABILITY / CALENDAR SECTION */}
-                            {activeTab === "availability" && (
-                                <div className="animate-fadeIn">
+                            {activeTab === "availability" && <div className="animate-fadeIn">
                                     <h3 className="text-xl font-bold mb-6">Availability</h3>
 
                                     {availabilityLoading ? (
                                         <div className="text-center py-10">
                                             <span className="loading loading-spinner"></span>
                                         </div>
-                                    ) : availability.length === 0 ? (
+                                    ) : Object.keys(grouped).length === 0 ? (
                                         <p className="text-gray-400 text-center">
                                             No availability set yet
                                         </p>
                                     ) : (
-                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                            {availability.map((slot, i) => (
-                                                <div
-                                                    key={i}
-                                                    className="p-3 border rounded-lg bg-blue-50 text-center"
-                                                >
-                                                    <p className="font-semibold text-blue-800">
-                                                        {new Date(slot.date).toLocaleDateString(undefined, {
-                                                            weekday: "short",
-                                                            month: "short",
-                                                            day: "numeric",
-                                                        })}
+                                        <div className="flex flex-col gap-4">
+                                            {Object.entries(grouped).map(([day, daySlots]) => (
+                                                <div key={day}>
+                                                    <p className="text-xs font-bold uppercase text-base-content/40 mb-2">
+                                                        {day}
                                                     </p>
 
-                                                    <p className="text-sm text-gray-600">
-                                                        {slot.start_time} - {slot.end_time}
-                                                    </p>
-
-                                                    {/* <span className="text-xs text-gray-400">
-                                                        {slot.is_booked ? "Booked" : "Available"}
-                                                    </span> */}
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {daySlots.map((slot) => (
+                                                            <div
+                                                                key={slot.availability_id}
+                                                                className="p-3 bg-blue-50 border rounded-lg text-sm"
+                                                            >
+                                                                {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
+                                                            </div>
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             ))}
                                         </div>
                                     )}
-                                </div>
-                            )}
+                                </div>}
 
                             {showHireModal && (
-                                <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                                <div className="fixed inset-0 backdrop-blur-sm bg-opacity-40 flex items-center justify-center z-50">
                                     <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-lg">
 
                                         <h2 className="text-xl font-bold mb-4">Hire Coach</h2>
@@ -416,15 +467,14 @@ const CoachPublicProfile = () => {
                                         </div>
                                     </div>
                                 </div>
-                            )}
+                            )}       
 
                             {/* REVIEWS SECTION */}
 
 
-                            {activeTab === 'reviews' && (
-                                <div>
+                            {activeTab === 'reviews' && <div>
                                     <button
-                                        className="btn btn-primary bg-blue-800 btn-sm mb-4"
+                                        className="btn btn-primary text-white bg-blue-800 btn-sm mb-4"
                                         onClick={() => setShowReviewModal(true)}
                                     >
                                         Write a Review
@@ -469,11 +519,10 @@ const CoachPublicProfile = () => {
                                             </div>
                                         ))
                                     )}
-                                </div>
-                            )}
+                                </div>}
 
                             {showReviewModal && (
-                                <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                                <div className="fixed inset-0 backdrop-blur flex items-center justify-center z-50">
                                     <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-lg">
 
                                         <h2 className="text-xl font-bold mb-4">Write a Review</h2>
@@ -510,20 +559,19 @@ const CoachPublicProfile = () => {
                                             </button>
 
                                             <button
-                                                className="btn btn-primary"
+                                                className="btn btn-primary bg-blue-800 text-white"
                                                 onClick={async () => {
                                                     try {
                                                         setSubmitting(true);
 
-                                                        // Convert 1-5 star rating to 1-100 scale for backend
-                                                        const ratingScale = (newRating / 5) * 100;
-
+                                                        // Use 1-5 star rating directly for backend
                                                         await api.post(`/client/review-coach/${coach.coach_profile_id}`, {
-                                                            rating: Math.round(ratingScale),
+                                                            rating: newRating,
                                                             comment: newComment
                                                         });
 
                                                         const res = await api.get(`/coach/${id}/reviews`);
+                                                        showAlert("Review submitted!", "success");
                                                         setReviews(res.data);
 
                                                         setShowReviewModal(false);
@@ -536,16 +584,6 @@ const CoachPublicProfile = () => {
                                                         console.error("Error status:", err.response?.status);
                                                         console.error("Error data:", err.response?.data);
 
-                                                        // Show more specific error message
-                                                        if (err.response?.data?.msg) {
-                                                            alert(`Failed to submit review: ${err.response.data.msg}`);
-                                                        } else if (err.response?.status === 401) {
-                                                            alert("Failed to submit review: Please log in again");
-                                                        } else if (err.response?.status === 400) {
-                                                            alert("Failed to submit review: Invalid data provided");
-                                                        } else {
-                                                            alert("Failed to submit review: Server error. Please try again.");
-                                                        }
                                                     } finally {
                                                         setSubmitting(false);
                                                     }
@@ -558,7 +596,11 @@ const CoachPublicProfile = () => {
                                     </div>
                                 </div>
                             )}
-
+                            <Alert 
+                                isOpen={alert} 
+                                message={alertMsg}
+                                type={alertType}
+                                onClose={() => setShowAlert(false)}/>
 
                         </div>
                     </div>

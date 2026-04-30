@@ -5,6 +5,7 @@ import PopUp from "../../components/PopUp";
 import api from "../../axios";
 import { useAuth } from "../../AuthContext";
 import Alert from "../../components/Alert";
+import { useCoachStatus } from "../../coachStatus";
 
 function CSettings() {
     const { user } = useAuth()
@@ -26,6 +27,7 @@ function CSettings() {
         setShowAlert(true);
     };
 
+
     const [initialData, setData] = useState({
         first_name: "",
         last_name: "",
@@ -46,6 +48,8 @@ function CSettings() {
         last_name: "",
         phone_number: ""
     });
+
+    const isCoach = user?.roles?.includes(2);
 
     useEffect(() => {
         async function fetchUser() {
@@ -348,7 +352,7 @@ function CSettings() {
                             <div className="md:col-span-2 flex justify-end mt-4">
                                 <button
                                     type="submit"
-                                    className="btn bg-blue-800 btn-primary btn-m rounded-t mr-2 mb-2"
+                                    className="btn bg-blue-800 btn-primary text-white btn-m rounded-t mr-2 mb-2"
                                 >
                                     Save Changes
                                 </button>
@@ -474,7 +478,7 @@ function CSettings() {
                         </PopUp>
                     </div>
                     <div>
-                        <button className="btn bg-blue-800 btn-primary" onClick={() => navigate("/setup")}>RETAKE INITIAL SURVEY</button>
+                        <button className="btn bg-blue-800 btn-primary text-white" onClick={() => navigate("/setup")}>RETAKE INITIAL SURVEY</button>
                         {/*can i just do this instead?*/}
                         <PopUp isOpen={isPopOpen === "retake_survey"} onClose={() => setPopOpen(null)}>
                             <fieldset className="fieldset bg-base-200 border-base-500 rounded-box w-s border p-4">
@@ -594,7 +598,7 @@ function CSettings() {
                     </div>
                     <div className="flex justify-end mt-4">
                         <button
-                            className="btn bg-blue-800 btn-primary btn-m rounded-t mr-2 mb-2"
+                            className="btn bg-blue-800 btn-primary text-white btn-m rounded-t mr-2 mb-2"
                             onClick={() => setPopOpen("daily")}
                         >
                             Delete Today's Records
@@ -609,7 +613,7 @@ function CSettings() {
                                 </p>
                                 <div className="flex gap-4 mt-4">
                                     <button
-                                        className="btn bg-blue-800 btn-neutral"
+                                        className="btn bg-red-600 btn-neutral ml-auto"
                                         type="button"
                                         onClick={() => handleDeleteRecord()}
                                     >
