@@ -407,9 +407,12 @@ function MyCoach() {
                     <div key={rel.relationship_id} className="pb-3 border-b border-base-300">
                       <div className="flex justify-between items-start gap-4">
                       <div className="flex-1">
-                      <p className="font-semibold text-base-content">
+                      <Link 
+                        to={`/coach/${rel.coach_profile_id}`}
+                        className="font-semibold text-base-content hover:text-blue-800 cursor-pointer underline"
+                      >
                         {rel.coach_name}
-                      </p>
+                      </Link>
 
                       <p className="text-sm text-base-content/70">
                         Specialty: {rel.specialty}

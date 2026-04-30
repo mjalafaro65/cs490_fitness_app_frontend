@@ -103,7 +103,7 @@ function CProfile() {
   const fetchInvoices = async () => {
     setInvoiceLoading(true);
     setInvoiceError(null);
-  
+
     try {
       const res = await api.get("/client/invoices");
       setInvoices(res.data.invoices || []);
@@ -114,18 +114,18 @@ function CProfile() {
       setInvoiceLoading(false);
     }
   };
-  
+
   const handleOpenInvoices = async () => {
     setPopOpen("invoices");
     await fetchInvoices();
   };
-  
+
   const handlePayInvoice = async (invoiceId) => {
     try {
       await api.post("/client/pay-invoice", {
         invoice_id: invoiceId,
       });
-  
+
       alert("Invoice paid successfully.");
       await fetchInvoices();
     } catch (err) {
@@ -148,7 +148,7 @@ function CProfile() {
           <section className="p-10 flex flex-col md:flex-row gap-30 items-start">
             <div className="flex-shrink-0 w-35 h-35 rounded-full overflow-hidden border-2 border-gray-300 ">
               {bioData?.profile_photo ? (
-                
+
                 <img
                   src={bioData.profile_photo}
                   alt="Profile"
@@ -165,7 +165,7 @@ function CProfile() {
               <div>
                 <label className="label font-semibold">Name:</label>
                 <p className="text-xl font-bold">
-                  {`${user?.first_name} ${user?.last_name}`|| user?.first_name || user?.last_name || "—"}
+                  {`${user?.first_name} ${user?.last_name}` || user?.first_name || user?.last_name || "—"}
                 </p>
               </div>
               <div>
@@ -207,7 +207,7 @@ function CProfile() {
 
                 <button
                   onClick={handleSwitchAccount}
-                  className="btn btn-outline bg-blue-800 btn-primary btn-sm"
+                  className="btn btn-outline btn-primary btn-sm"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="size-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
@@ -225,85 +225,85 @@ function CProfile() {
       </div>
 
       {popOpen === "invoices" && (
-      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-        <div className="bg-base-100 rounded-box shadow-xl p-6 w-[700px] max-w-[90vw] max-h-[80vh] overflow-y-auto">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">My Invoices</h2>
-            <button
-              className="btn btn-sm  btn-circle btn-ghost"
-              onClick={() => setPopOpen(null)}
-            >
-              ✕
-            </button>
-          </div>
-
-          {invoiceLoading ? (
-            <p className="text-sm opacity-70">Loading invoices...</p>
-          ) : invoiceError ? (
-            <p className="text-sm text-error">{invoiceError}</p>
-          ) : invoices.length === 0 ? (
-            <p className="text-sm opacity-70">No invoices found.</p>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {invoices.map((invoice) => (
-                <div
-                  key={invoice.invoice_id}
-                  className="bg-base-200 rounded-box p-4 flex justify-between gap-4"
-                >
-                  <div>
-                    <p className="font-bold">Invoice #{invoice.invoice_id}</p>
-                    <p className="text-sm">
-                      Amount: ${Number(invoice.amount ?? invoice.subtotal ?? 0).toFixed(2)}
-                    </p>
-                    <p className="text-xs opacity-70">
-                      Created: {invoice.created_at ? new Date(invoice.created_at).toLocaleDateString() : "—"}
-                    </p>
-                  </div>
-
-                  <div className="flex flex-col items-end gap-2">
-                    <span className="badge bg-blue-800 badge-primary">
-                      {invoice.status || "unknown"}
-                    </span>
-
-                    {invoice.status?.toLowerCase() === "issued" && (
-                      <button
-                        className="btn btn-sm bg-blue-800 text-white"
-                        onClick={() => handlePayInvoice(invoice.invoice_id)}
-                      >
-                        Pay
-                      </button>
-                    )}
-
-                    {invoice.status?.toLowerCase() === "paid" && (
-                      <span className="text-xs bg-blue-800opacity-70">Paid</span>
-                    )}
-                  </div>
-                </div>
-              ))}
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-base-100 rounded-box shadow-xl p-6 w-[700px] max-w-[90vw] max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">My Invoices</h2>
+              <button
+                className="btn btn-sm  btn-circle btn-ghost"
+                onClick={() => setPopOpen(null)}
+              >
+                ✕
+              </button>
             </div>
-          )}
-        </div>
-      </div>
-    )}
 
-    {popOpen === "reports" && (
-      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-        <div className="bg-base-100 rounded-box shadow-xl p-6 w-[400px] max-w-[90vw]">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">Reports</h2>
-            <button
-              className="btn btn-sm btn-circle btn-ghost"
-              onClick={() => setPopOpen(null)}
-            >
-              ✕
-            </button>
-          </div>
-          <div className="text-center py-8">
-            <p className="text-lg opacity-70">No reports found</p>
+            {invoiceLoading ? (
+              <p className="text-sm opacity-70">Loading invoices...</p>
+            ) : invoiceError ? (
+              <p className="text-sm text-error">{invoiceError}</p>
+            ) : invoices.length === 0 ? (
+              <p className="text-sm opacity-70">No invoices found.</p>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {invoices.map((invoice) => (
+                  <div
+                    key={invoice.invoice_id}
+                    className="bg-base-200 rounded-box p-4 flex justify-between gap-4"
+                  >
+                    <div>
+                      <p className="font-bold">Invoice #{invoice.invoice_id}</p>
+                      <p className="text-sm">
+                        Amount: ${Number(invoice.amount ?? invoice.subtotal ?? 0).toFixed(2)}
+                      </p>
+                      <p className="text-xs opacity-70">
+                        Created: {invoice.created_at ? new Date(invoice.created_at).toLocaleDateString() : "—"}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col items-end gap-2">
+                      <span className="badge bg-blue-800 badge-primary">
+                        {invoice.status || "unknown"}
+                      </span>
+
+                      {invoice.status?.toLowerCase() === "issued" && (
+                        <button
+                          className="btn btn-sm bg-blue-800 text-white"
+                          onClick={() => handlePayInvoice(invoice.invoice_id)}
+                        >
+                          Pay
+                        </button>
+                      )}
+
+                      {invoice.status?.toLowerCase() === "paid" && (
+                        <span className="text-xs bg-blue-800opacity-70">Paid</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
-      </div>
-    )}
+      )}
+
+      {popOpen === "reports" && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-base-100 rounded-box shadow-xl p-6 w-[400px] max-w-[90vw]">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Reports</h2>
+              <button
+                className="btn btn-sm btn-circle btn-ghost"
+                onClick={() => setPopOpen(null)}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="text-center py-8">
+              <p className="text-lg opacity-70">No reports found</p>
+            </div>
+          </div>
+        </div>
+      )}
 
 
     </div>
