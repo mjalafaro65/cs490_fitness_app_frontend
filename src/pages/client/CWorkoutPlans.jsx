@@ -127,6 +127,13 @@ function ClientWorkoutPlans() {
     fetchWorkoutInsights();
   }, []);
 
+  // Load existing scheduled days when dates are selected
+  useEffect(() => {
+    if (assignData.start_date && assignData.end_date && selectedPlan) {
+      loadExistingScheduledDays();
+    }
+  }, [assignData.start_date, assignData.end_date, selectedPlan]);
+
   const fetchCalendarWorkouts = async (date = null, view = "week") => {
     console.log("[DEBUG] fetchCalendarWorkouts called with date:", date, "view:", view);
     setIsLoading(true);
@@ -155,12 +162,50 @@ function ClientWorkoutPlans() {
         scheduled_start: workout.scheduled_start,
         exercises: workout.plan_day?.exercises || [],
         date_str: new Date(workout.scheduled_start).toDateString(),
-        session_time: workout.plan_day?.session_time
+        session_time: workout.plan_day?.session_time,
+        is_scheduled: true
       }));
       
-      console.log("[DEBUG] Transformed workouts:", transformedWorkouts);
-      setScheduledWorkouts(transformedWorkouts);
-      return transformedWorkouts;
+      // Add unscheduled workouts to show on calendar
+      const unscheduledWorkouts = [];
+      plans.forEach(plan => {
+        plan.days?.forEach(day => {
+          if (day.exercises && day.exercises.length > 0) {
+            // Check if this day is already scheduled
+            const isAlreadyScheduled = transformedWorkouts.some(scheduled => 
+              scheduled.plan_id === plan.plan_id && scheduled.day_id === day.plan_day_id
+            );
+            
+            if (!isAlreadyScheduled) {
+              // Add as unscheduled workout for next available weekday
+              const today = new Date();
+              const currentWeekday = today.getDay();
+              const daysUntilNext = (day.weekday - currentWeekday + 7) % 7 || 7; // Next occurrence of this weekday
+              const nextDate = new Date(today);
+              nextDate.setDate(today.getDate() + daysUntilNext);
+              
+              unscheduledWorkouts.push({
+                id: `unscheduled_${plan.plan_id}_${day.plan_day_id}`,
+                assignment_id: null,
+                plan_id: plan.plan_id,
+                plan_name: plan.name,
+                day_label: day.day_label,
+                day_id: day.plan_day_id,
+                scheduled_start: nextDate.toISOString(),
+                exercises: day.exercises || [],
+                date_str: nextDate.toDateString(),
+                session_time: day.session_time,
+                is_scheduled: false
+              });
+            }
+          }
+        });
+      });
+      
+      const allWorkouts = [...transformedWorkouts, ...unscheduledWorkouts];
+      console.log("[DEBUG] All workouts (including unscheduled):", allWorkouts);
+      setScheduledWorkouts(allWorkouts);
+      return allWorkouts;
     } catch (err) {
       console.error("[ERROR] Failed to fetch calendar workouts:", err);
       console.error("[ERROR] Error details:", err.response?.data);
@@ -428,6 +473,42 @@ function ClientWorkoutPlans() {
     setShowScheduleCalendar(true);
   };
 
+  const loadExistingScheduledDays = async () => {
+    if (!selectedPlan || !assignData.start_date || !assignData.end_date) return;
+    
+    try {
+      // Get existing scheduled workouts for this plan within the date range
+      const response = await api.get("/workouts/calendar-workouts-view", {
+        params: {
+          start_date: assignData.start_date,
+          end_date: assignData.end_date,
+          plan_id: selectedPlan.plan_id
+        }
+      });
+      
+      const existingWorkouts = response.data || [];
+      console.log("[DEBUG] Existing scheduled workouts:", existingWorkouts);
+      
+      // Convert existing workouts to tempActiveDays format
+      const existingDays = existingWorkouts.map(workout => ({
+        date: new Date(workout.scheduled_start),
+        day: {
+          plan_day_id: workout.plan_day.plan_day_id,
+          day_label: workout.plan_day.day_label,
+          weekday: new Date(workout.scheduled_start).getDay(),
+          session_time: workout.plan_day.session_time,
+          exercises: workout.plan_day.exercises || []
+        }
+      }));
+      
+      setTempActiveDays(existingDays);
+      console.log("[DEBUG] Loaded existing scheduled days:", existingDays);
+      
+    } catch (err) {
+      console.error("[ERROR] Failed to load existing scheduled days:", err);
+    }
+  };
+
   const handleAssignPlan = async () => {
     console.log("[DEBUG] handleAssignPlan called with tempActiveDays:", tempActiveDays);
     if (tempActiveDays.length === 0) {
@@ -476,12 +557,12 @@ function ClientWorkoutPlans() {
       console.log("[DEBUG] Calendar response:", calendarResponse.data);
       showAlert(`Success: ${calendarResponse.data.calendar_workout_ids?.length || 0} workout(s) scheduled.`, "success");
       
-      setShowScheduleCalendar(false);
-      setTempActiveDays([]);
+      // Don't close the calendar, just refresh the data and clear temp selection
       setTempSelectedCalendarDay(null);
       
       await fetchAllData();
       await handleSelectPlan(selectedPlan.plan_id);
+      await loadExistingScheduledDays(); // Reload scheduled days
       
     } catch (err) {
       console.error("[ERROR] Schedule failed:", err.response?.data);
@@ -690,7 +771,8 @@ function ClientWorkoutPlans() {
           exercises: workout.exercises || [],
           scheduledStart: workout.scheduled_start,
           occurrenceId: workout.id,
-          time: workoutDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          time: workout.is_scheduled ? workoutDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Not scheduled',
+          isScheduled: workout.is_scheduled
         });
       }
     });
@@ -835,9 +917,18 @@ function ClientWorkoutPlans() {
                   {selectedWorkouts.map((workout, idx) => (
                     <div 
                       key={workout.occurrenceId || idx}
-                      className="p-3 border rounded bg-base-200 hover:bg-base-100 transition"
+                      className={`p-3 border rounded transition ${
+                        workout.isScheduled 
+                          ? 'bg-base-200 hover:bg-base-100 border-blue-300' 
+                          : 'bg-yellow-50 hover:bg-yellow-100 border-yellow-300'
+                      }`}
                     >
-                      <p className="font-semibold text-sm">{workout.planName} - {workout.dayLabel}</p>
+                      <div className="flex justify-between items-start mb-2">
+                        <p className="font-semibold text-sm">{workout.planName} - {workout.dayLabel}</p>
+                        {!workout.isScheduled && (
+                          <span className="text-xs badge bg-yellow-400 text-yellow-900">Unscheduled</span>
+                        )}
+                      </div>
                       <p className="text-xs opacity-60 mb-2">
                         Time: {workout.time}
                       </p>
