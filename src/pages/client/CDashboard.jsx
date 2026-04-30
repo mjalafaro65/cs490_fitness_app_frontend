@@ -122,7 +122,7 @@ function CDashboard() {
   const [hiredCoaches, setHiredCoaches] = useState([]);
 
 
-
+ 
   const fetchScheduledWorkouts = async (date = null, view = "week") => {
     setIsLoadingWorkouts(true);
 

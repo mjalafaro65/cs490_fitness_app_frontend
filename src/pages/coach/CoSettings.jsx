@@ -4,9 +4,12 @@ import "../../App.css";
 import api from "../../axios.jsx";
 import { useAuth } from "../../AuthContext.jsx";
 import Alert from "../../components/Alert.jsx";
+import { set } from "@cloudinary/url-gen/actions/variable";
 
 function CoSettings() {
   const {coachStatus, fetchUser} =useAuth()
+
+  const [isLoadingDocs, setIsLoadingDocs] = useState(false);
 
   const [alert, setShowAlert] = useState(false);
   const [alertMsg, setAlertMsg] = useState('');
@@ -91,6 +94,28 @@ function CoSettings() {
     fetchUser();
   }, []);
 
+useEffect(() => {
+  async function fetchDocuments() {
+    setIsLoadingDocs(true);
+    try {
+      const response = await api.get("/coach/coach-profile/documents");
+      console.log("Documents fetched:", response.data);
+      if (Array.isArray(response.data)) {
+        setDocuments(response.data);
+      } else if (response.data?.documents) {
+        setDocuments(response.data.documents);
+      }
+    } catch (err) {
+      console.error("Failed to fetch documents:", err);
+    }
+    finally{
+      setIsLoadingDocs(false);
+    }
+  }
+  
+  fetchDocuments();
+}, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setData((prev) => ({
@@ -120,25 +145,49 @@ function CoSettings() {
     }
   };
 
-  const handleAddDocument = async () => {
-    if (!newDocType || !newDocUrl) return alert("Enter type and URL");
-
-    try {
-      const response = await api.post("/coach/coach-documents", {
-        document_type: newDocType,
-        document_url: newDocUrl
-      }
-      );
-      setDocuments([...documents, response.data]);
-      setNewDocType("");
-      setNewDocUrl("");
-      
-      showAlert("Document successfully added", "success");
-    } catch (error) {
-      showAlert(error.response?.data?.message || "Failed to add document", "error");
-      console.error("Failed to add document:", error.response?.data);
+const handleAddDocument = async () => {
+  if (!newDocType || !newDocUrl) {
+    console.log("Validation failed: missing type or URL");
+    showAlert("Enter both document type and URL", "error");
+    return;
+  }
+  const requestBody = [
+    {
+      document_type: newDocType,
+      document_url: newDocUrl
     }
-  };
+  ];
+  
+  try {
+    const response = await api.post("/coach/coach-profile/documents", requestBody);
+
+    if (response.data && Array.isArray(response.data)) {
+      console.log("Setting documents to response array:", response.data);
+      setDocuments(response.data);
+    } else if (response.data && response.data.document) {
+      console.log("Adding new document to existing list");
+      setDocuments([...documents, response.data]);
+    } else {
+      console.log("Refreshing documents list from GET request");
+      const fetchResponse = await api.get("/coach/coach-profile/documents");
+    
+      if (Array.isArray(fetchResponse.data)) {
+        setDocuments(fetchResponse.data);
+      } else if (fetchResponse.data?.documents) {
+        setDocuments(fetchResponse.data.documents);
+      }
+    }
+    
+    setNewDocType("");
+    setNewDocUrl("");
+    showAlert("Document successfully added", "success");
+    
+  } catch (error) {
+    console.log("Error message:", error.message);
+    
+    showAlert(error.response?.data?.message || "Failed to add document", "error");
+  }
+};
 
   const handleOpenWidget = () => {
     if (!window.cloudinary) {
@@ -246,31 +295,41 @@ function CoSettings() {
                 </textarea>
                
                 <div>
-                  <button className="btn bg-blue-800 btn-primary" type="submit">Update</button>
+                  <button className="btn bg-blue-800 btn-primary text-white" type="submit">Update</button>
                 </div>
               </form>
             </fieldset>
           </section>
           <div>
             <div className="text-lg font-bold mb-2">Documents:</div>
-            <ul className="list-disc ml-6">
-              {documents.map(doc => (
-                <li key={doc.document_id}>
-                  <a href={doc.document_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-                    {doc.document_type}
-                  </a>
-                </li>
-              ))}
-            </ul>
+            {isLoadingDocs ? (
+              <p>Loading documents...</p>
+            ) : documents.length > 0 ? (
+              <ul className="list-disc ml-6">
+                {documents.map(doc => (
+                  <li key={doc.document_id || doc.id}>
+                    <a href={doc.document_url || doc.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                      {doc.document_type || doc.type}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500">No documents uploaded yet</p>
+            )}
 
             <div className="mt-4 flex flex-col md:flex-row gap-2">
-              <input
-                type="text"
-                placeholder="Document type"
-                className="input input-bordered"
+              <select
+                className="select select-bordered"
                 value={newDocType}
                 onChange={e => setNewDocType(e.target.value)}
-              />
+              >
+                <option value="">Select document type</option>
+                <option value="Certification">Certification</option>
+                <option value="Identification">Identification</option>
+                <option value="License">License</option>
+                <option value="Other">Other</option>
+              </select>
               <input
                 type="text"
                 placeholder="Document URL"
@@ -278,7 +337,7 @@ function CoSettings() {
                 value={newDocUrl}
                 onChange={e => setNewDocUrl(e.target.value)}
               />
-              <button className="btn bg-blue-800 btn-primary" onClick={handleAddDocument}>Add Document</button>
+              <button className="btn bg-blue-800 btn-primary text-white" onClick={handleAddDocument}>Add Document</button>
             </div>
           </div>
         </section>

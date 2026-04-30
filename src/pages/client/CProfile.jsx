@@ -3,6 +3,7 @@ import "../../App.css";
 import api from "../../axios";
 import { useAuth } from "../../AuthContext";
 import { useNavigate } from "react-router-dom";
+import Alert from "../../components/Alert.jsx";
 
 function CProfile() {
   const { fetchUser, coachStatus } = useAuth();
@@ -18,10 +19,25 @@ function CProfile() {
   const [invoiceLoading, setInvoiceLoading] = useState(false);
   const [invoiceError, setInvoiceError] = useState(null);
 
+  const [payments, setPayments] = useState([]);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentError, setPaymentError] = useState(null);
+
   const [reviews, setReviews] = useState([]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const [alert, setShowAlert] = useState(false);
+  const [alertMsg, setAlertMsg] = useState('');
+  const [alertType, setAlertType] = useState('success');
+
+  const showAlert = (message, type = 'success') => {
+      console.log("ALERT FUNCTION CALLED with:", message, type);
+      setAlertMsg(message);
+      setAlertType(type);
+      setShowAlert(true);
+  };
 
   useEffect(() => {
     async function fetchUser() {
@@ -126,14 +142,59 @@ function CProfile() {
         invoice_id: invoiceId,
       });
 
-      alert("Invoice paid successfully.");
+      showAlert("Invoice paid successfully.", "success");
       await fetchInvoices();
     } catch (err) {
       console.error("Failed to pay invoice:", err.response?.data || err);
-      alert(
+      showAlert(
         err.response?.data?.message ||
         err.response?.data?.description ||
-        "Failed to pay invoice."
+        "Failed to pay invoice.", "error"
+      );
+    }
+  };
+
+  const fetchPayments = async () => {
+    setPaymentLoading(true);
+    setPaymentError(null);
+
+    try {
+      const res = await api.get("/client/my-payments");
+      setPayments(res.data.payments || res.data || []);
+    } catch (err) {
+      console.error("Failed to fetch payment:", err.response?.data || err);
+      setPaymentError("Failed to load payment.");
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
+
+  const handleOpenPayments = async () => {
+    setPopOpen("payments");
+    await fetchPayments();
+  };
+
+  const handleDisputeSubmit = async (paymentId, reason) => {
+    if (!reason || reason.trim() === "") {
+      showAlert("Please provide a reason for the dispute", "error");
+      return;
+    }
+
+    try {
+      await api.post("/client/dispute-payment", {
+        payment_id: paymentId,
+        reason: reason.trim()
+      });
+
+      showAlert("Dispute submitted successfully.", "success");
+      setPopOpen(null);
+      await fetchPayments();
+    } catch (err) {
+      console.error("Failed to submit dispute:", err.response?.data || err);
+      showAlert(
+        err.response?.data?.message ||
+        err.response?.data?.description ||
+        "Failed to submit dispute.", "error"
       );
     }
   };
@@ -191,8 +252,9 @@ function CProfile() {
             </div>
           </section>
           <div className="flex gap-6">
-            <button className="btn btn-primary bg-blue-800 btn-m rounded-t" onClick={handleOpenInvoices}>Invoices</button>
-            <button className="btn btn-primary bg-blue-800 btn-m rounded-t" onClick={() => setPopOpen("reports")}>View Reports</button>
+            <button className="btn btn-primary text-white bg-blue-800 btn-m rounded-t" onClick={handleOpenInvoices}>Invoices</button>
+            <button className="btn btn-primary text-white bg-blue-800 btn-m rounded-t" onClick={() => setPopOpen("payments")}>Payments</button>
+            <button className="btn btn-primary text-white bg-blue-800 btn-m rounded-t" onClick={() => setPopOpen("reports")}>View Reports</button>
           </div>
 
           {coachStatus === "switched" &&
@@ -230,10 +292,10 @@ function CProfile() {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">My Invoices</h2>
               <button
-                className="btn btn-sm  btn-circle btn-ghost"
+                className="btn btn-sm bg-red-600 text-white"
                 onClick={() => setPopOpen(null)}
               >
-                ✕
+                X
               </button>
             </div>
 
@@ -286,16 +348,135 @@ function CProfile() {
         </div>
       )}
 
+      {popOpen === "payments" && (
+      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="bg-base-100 rounded-box shadow-xl p-6 w-[700px] max-w-[90vw] max-h-[80vh] overflow-y-auto">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">My Payments</h2>
+            <button
+              className="btn btn-sm bg-red-600 text-white"
+              onClick={() => setPopOpen(null)}
+            >
+              X
+            </button>
+          </div>
+
+          {paymentLoading ? (
+                <p className="text-sm opacity-70">Loading payments...</p>
+              ) : paymentError ? (
+                <p className="text-sm text-error">{paymentError}</p>
+              ) : payments.length === 0 ? (
+                <p className="text-sm opacity-70">No payments found.</p>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  {payments.map((payment) => (
+                    <div
+                      key={payment.payment_id}
+                      className="bg-base-200 rounded-box p-4 flex justify-between gap-4"
+                    >
+                      <div>
+                        <p className="font-bold">Payment #{payment.payment_id}</p>
+                        <p className="text-sm">
+                          Amount: ${Number(payment.amount ?? payment.subtotal ?? 0).toFixed(2)}
+                        </p>
+                        <p className="text-xs opacity-70">
+                          Date: {payment.created_at ? new Date(payment.created_at).toLocaleDateString() : "—"}
+                        </p>
+                        {payment.reason && (
+                          <p className="text-xs text-red-600 mt-1">
+                            Dispute reason: {payment.reason}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="flex flex-col items-end gap-2">
+                        <span className={`badge ${payment.status?.toLowerCase() === 'disputed' ? 'badge-warning' : 'bg-blue-800 badge-primary'}`}>
+                          {payment.status || "unknown"}
+                        </span>
+
+                        {/* Only show dispute button if payment is not already disputed */}
+                        {payment.status?.toLowerCase() !== "disputed" && payment.status?.toLowerCase() !== "refunded" && (
+                          <button
+                            className="btn btn-sm btn-outline border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
+                            onClick={() => setPopOpen(`dispute-${payment.payment_id}`)}
+                          >
+                            Dispute
+                          </button>
+                        )}
+
+                        {payment.status?.toLowerCase() === "disputed" && (
+                          <span className="text-xs text-orange-600">Disputed - Awaiting review</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        {popOpen && popOpen.startsWith("dispute-") && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div className="bg-base-100 rounded-box shadow-xl p-6 w-[400px] max-w-[90vw]">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">File a Dispute</h2>
+                <button
+                  className="btn btn-sm bg-red-600 text-white"
+                  onClick={() => setPopOpen(null)}
+                >
+                  X
+                </button>
+              </div>
+              
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const reason = formData.get("reason");
+                const paymentId = parseInt(popOpen.split("-")[1]);
+                handleDisputeSubmit(paymentId, reason);
+              }}>
+                <div className="form-control mb-4">
+                  <label className="label">
+                    <span className="label-text">Reason for dispute:</span>
+                  </label>
+                  <textarea
+                    name="reason"
+                    className="textarea textarea-bordered h-32"
+                    placeholder="Please explain why you are disputing this payment..."
+                    required
+                  />
+                </div>
+                
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    className="btn btn-ghost flex-1"
+                    onClick={() => setPopOpen(null)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn bg-red-600 text-white hover:bg-red-700 flex-1"
+                  >
+                    Submit Dispute
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
       {popOpen === "reports" && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-base-100 rounded-box shadow-xl p-6 w-[400px] max-w-[90vw]">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Reports</h2>
               <button
-                className="btn btn-sm btn-circle btn-ghost"
+                className="btn btn-sm bg-red-600 text-white"
                 onClick={() => setPopOpen(null)}
               >
-                ✕
+                X
               </button>
             </div>
             <div className="text-center py-8">
@@ -305,6 +486,11 @@ function CProfile() {
         </div>
       )}
 
+    <Alert 
+      isOpen={alert} 
+      message={alertMsg}
+      type={alertType}
+      onClose={() => setShowAlert(false)}/>
 
     </div>
   );

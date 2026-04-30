@@ -192,6 +192,7 @@ function MyCoach() {
       const response = await api.delete(`/client/hire-request/${id}`)
 
       console.log(response.data)
+      showAlert("Coach request cancelled!", "success");
       setRequestsInfo((prev) =>
         prev.filter((req) => req.request_id !== id)
       );
