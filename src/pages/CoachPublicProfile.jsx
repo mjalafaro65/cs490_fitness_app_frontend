@@ -282,7 +282,7 @@ const CoachPublicProfile = () => {
                                 </div>
                                 <p className="text-blue-900 font-medium mb-6">Certified Fitness Coach</p>
 
-                                {!isLoggedIn && <button
+                                {isLoggedIn && <button
                                     onClick={toggleFavorite}
                                     className="btn w-full border-none bg-white text-black hover:opacity-90"
                                 >
