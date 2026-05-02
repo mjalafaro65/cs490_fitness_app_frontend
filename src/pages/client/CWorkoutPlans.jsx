@@ -158,54 +158,44 @@ function ClientWorkoutPlans() {
     console.log("[DEBUG] fetchAllData called - fetching plans and calendar workouts");
     await Promise.all([
       fetchPlansWithDetails(),
+      getMyAssignments()
     ]);
     console.log("SCHEDULED WORKOUTS:", scheduledWorkouts);
     console.log("[DEBUG] fetchAllData completed");
   };
 
   const getMyAssignments = async () => {
-    const res = await api.get("/workouts/assignments/mine");
-    console.log(res.data);
+    try {
+      const res = await api.get("/workouts/assignments/mine");
+      console.log(res.data);
+      const cleaned = simplifyAssignments(res.data);
+      setScheduledPlans(cleaned);
 
-    return res.data;
+
+    } catch(err){
+      console.log("error in getting assigments ", err)
+    }
+
+
+
   };
 
-  function simplifyAssignments(data) {
+  function simplifyAssignments(data=[]) {
     return data.map((assignment) => ({
       assignment_id: assignment.assignment_id,
       plan_name: assignment.plan?.name,
 
-      days: (assignment.plan?.days || []).map((day) => {
-        const session = day.sessions?.[0] || null;
+      days: (assignment.plan?.days ?? []).map((day) => ({
+        day_label: day.day_label,
 
-        return {
-          day_label: day.day_label,
-          weekday: day.weekday,
-
-          session: session
-            ? {
-              start: session.scheduled_start,
-              end: session.scheduled_end,
-              status: session.status,
-            }
-            : null,
-        };
-      }),
+        exercises: (day.exercises ?? []).map((ex) => ({
+          exercise_id: ex.exercise_id,
+          sets: ex.sets,
+          reps: ex.reps,
+        })),
+      })),
     }));
   }
-  useEffect(() => {
-    const load = async () => {
-      const data = await getMyAssignments();
-
-      const cleaned = simplifyAssignments(data);
-      console.log("[DEBUG cleaned]", cleaned);
-
-      setScheduledPlans(cleaned);
-    };
-
-    load();
-  }, []);
-
   useEffect(() => {
     const init = async () => {
       console.log("[DEBUG] initializing");
@@ -232,11 +222,6 @@ function ClientWorkoutPlans() {
   };
 
 
-  const refreshActivePlans = async () => {
-    const data = await getMyAssignments();
-    const cleaned = simplifyAssignments(data);
-    setScheduledPlans(cleaned);
-  };
 
 
 
@@ -497,49 +482,10 @@ function ClientWorkoutPlans() {
       const assignmentId = assignmentResponse.data.assignment_id;
       console.log("[DEBUG] Assignment created:", assignmentId);
 
-      // const occurrences = tempActiveDays.map(({ date, day }) => {
-      //   const year = date.getFullYear();
-      //   const month = date.getMonth();
-      //   const dayNum = date.getDate();
-
-      //   let startHour = 9, startMin = 0;
-      //   if (day.session_time) {
-      //     const [h, m] = day.session_time.split(":").map(Number);
-      //     startHour = isNaN(h) ? 9 : h;
-      //     startMin = isNaN(m) ? 0 : m;
-      //   }
-
-      //   const start = new Date(Date.UTC(year, month, dayNum, startHour, startMin, 0));
-      //   const end = new Date(Date.UTC(year, month, dayNum, startHour + 1, startMin, 0));
-      //   const planDayId = getPlanDayId(day);
-
-      //   return {
-      //     plan_day_id: planDayId,
-      //     scheduled_start: start.toISOString(),
-      //     scheduled_end: end.toISOString(),
-      //   };
-      // });
       await getMyAssignments()
 
-      // console.log("[DEBUG] Occurrences to create:", occurrences);
-      // const calendarResponse = await api.post(`/workouts/plans/${selectedPlan.plan_id}/calendar`, {
-      //   occurrences: occurrences
-      // });
-      // await refreshAll()
-
-
-      // console.log("[DEBUG] Calendar response:", calendarResponse.data);
-      // showAlert(`Success: ${calendarResponse.data.calendar_workout_ids?.length || 0} workout(s) scheduled.`, "success");
-
-      // setShowScheduleCalendar(false);
-      // setTempActiveDays([]);
-      // setTempSelectedCalendarDay(null);
-
-      // await fetchAllData();
-      // await handleSelectPlan(selectedPlan.plan_id);
-
     } catch (err) {
-      console.error("[ERROR] Schedule failed:", err.response?.data);
+      console.error("[ERROR] Schedule failed:", err);
       showAlert(err.response?.data || "Failed to schedule plan", "error");
     }
   };
