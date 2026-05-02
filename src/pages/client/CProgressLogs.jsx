@@ -124,6 +124,7 @@ function ProgressLogs() {
         await fetchProgressPhotos();
 
         const surveyRes = await api.get("/insights/survey");
+        console.log(surveyRes.data)
         if (surveyRes.data?.history) {
           setSurveyData(surveyRes.data.history);
           setSummaryData(surveyRes.data.summary);
@@ -150,7 +151,9 @@ function ProgressLogs() {
         }
 
         const goalsRes = await api.get("/insights/goals");
+          console.log(goalsRes.data)
         if (Array.isArray(goalsRes.data)) {
+
           setGoalsData(goalsRes.data);
         } else if (goalsRes.data?.goals) {
           setGoalsData(goalsRes.data.goals);
@@ -862,6 +865,7 @@ function ProgressLogs() {
                 <div className="flex items-center justify-center h-48">
                   <p className="text-sm opacity-50">Loading...</p>
                 </div>
+        
               ) : goalsData.length > 0 ? (
                 <div className="space-y-3 overflow-y-auto max-h-64">
                   {goalsData.map((goal, idx) => (
