@@ -952,7 +952,31 @@ function ClientWorkoutPlans() {
                                   } }
                                 >
                                     Log Workout
-                                  </button></>
+                                  </button><button
+                                  className="btn btn-xs bg-red-600 text-white hover:bg-red-700"
+                                  onClick={async () => {
+                                    if (!window.confirm("Are you sure you want to delete this planned workout? This action cannot be undone.")) return;
+                                    
+                                    try {
+                                      await api.patch(`/workouts/calendar-workouts/${workout.calendar_workout_id}`, {
+                                        status: "canceled"
+                                      });
+
+                                      // Refresh both the calendar and the selected date workouts
+                                      await fetchWork(currentDate);
+                                      if (selectedDate) {
+                                        await fetchWorkoutsForDate(selectedDate);
+                                      }
+                                      
+                                      showAlert("Workout deleted successfully", "success");
+                                    } catch (err) {
+                                      console.error("Failed to delete workout:", err.response?.data);
+                                      showAlert("Failed to delete workout", "error");
+                                    }
+                                  } }
+                                >
+                                  Delete Planned Workout
+                                </button></>
 
 
 
@@ -1021,7 +1045,23 @@ function ClientWorkoutPlans() {
           <div className="flex w-full gap-4">
             <div className="card bg-base-300 rounded-box flex-1 p-4">
               <h2 className="text-lg font-bold mb-2">My Workout Plans</h2>
-              {plans.length === 0 ? (
+              {isLoading ? (
+                <div className="flex flex-col gap-2">
+                  {[1, 2, 3].map((placeholder) => (
+                    <div
+                      key={placeholder}
+                      className="p-2 bg-base-200 rounded flex justify-between items-center"
+                    >
+                      <div className="flex-1">
+                        <div className="h-4 bg-base-300 rounded w-3/4 mb-2 animate-pulse"></div>
+                        <div className="h-3 bg-base-300 rounded w-1/2 animate-pulse"></div>
+                      </div>
+                      <div className="h-3 bg-base-300 rounded w-12 animate-pulse"></div>
+                    </div>
+                  ))}
+                  <p className="text-sm opacity-70 text-center mt-2">Loading workout plans...</p>
+                </div>
+              ) : plans.length === 0 ? (
                 <span className="text-sm opacity-70">No plans yet</span>
               ) : (
                 <div className="flex flex-col gap-2 ">
@@ -1294,14 +1334,6 @@ function ClientWorkoutPlans() {
           <div>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold">{selectedPlan.name}</h2>
-              <div className="flex gap-2">
-                <button
-                  className="btn btn-sm bg-red-600 text-white"
-                  onClick={() => handleDeletePlan(selectedPlan.plan_id)}
-                >
-                  Delete Plan
-                </button>
-              </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1484,15 +1516,15 @@ function ClientWorkoutPlans() {
                 )}
               </div>
             </div>
-            <div className="flex justify-center mt-6">
-              <button
-                className="btn btn-sm btn-error"
-                onClick={() => handleDeletePlan(selectedPlan.plan_id)}
-              >
-                Delete Plan
-              </button>
-            </div>
+          <div className="flex justify-center mt-6">
+            <button
+              className="btn btn-sm bg-red-600 text-white"
+              onClick={() => handleDeletePlan(selectedPlan.plan_id)}
+            >
+              Delete Plan
+            </button>
           </div>
+        </div>
         )}
       </LargeModal>
 

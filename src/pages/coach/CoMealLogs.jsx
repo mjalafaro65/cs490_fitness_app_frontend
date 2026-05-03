@@ -394,14 +394,6 @@ function CoMealLogs() {
           <div>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold">{selectedPlan.name}</h2>
-              <div className="flex gap-2">
-                <button
-                  className="btn btn-sm btn-error"
-                  onClick={() => handleDeletePlan(selectedPlan.plan_id)}
-                >
-                  Delete Plan
-                </button>
-              </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -732,6 +724,14 @@ function CoMealLogs() {
                   </p>
                 )}
               </div>
+            </div>
+            <div className="flex justify-center mt-6">
+              <button
+                className="btn btn-sm bg-red-600 text-white"
+                onClick={() => handleDeletePlan(selectedPlan.plan_id)}
+              >
+                Delete Plan
+              </button>
             </div>
           </div>
         )}

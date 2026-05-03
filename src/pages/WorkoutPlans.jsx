@@ -52,11 +52,7 @@ function BrowsePlans() {
       
       console.log("Plan copied:", response.data);
       
-      alert(`Plan "${planName}" has been copied to your workouts!`);
-      const goToPlans = confirm("Would you like to view your workout plans?");
-      if (goToPlans) {
-        navigate("/client/workout-plans");
-      }
+      navigate("/client/workoutplans");
       
     } catch (err) {
       console.error("Error copying plan:", err.response?.data || err);
