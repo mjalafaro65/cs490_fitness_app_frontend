@@ -667,6 +667,9 @@ function ClientWorkoutPlans() {
   );
 
 
+
+
+// need to handle scheduling changes
   const handleScheduleAssignment = async (assignment, selectedDays) => {
     try {
       const payload = {
