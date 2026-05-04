@@ -51,9 +51,17 @@ function BrowsePlans() {
       });
       
       console.log("Plan copied:", response.data);
+<<<<<<< HEAD
       
       navigate("/client/workoutplans");
       
+=======
+
+     
+      navigate("/client/workout-plans");
+    
+
+>>>>>>> 1d8bb43 (fix)
     } catch (err) {
       console.error("Error copying plan:", err.response?.data || err);
       alert(`Failed to copy plan: ${err.response?.data?.message || "Unknown error"}`);

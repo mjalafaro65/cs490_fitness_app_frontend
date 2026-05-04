@@ -1,0 +1,20 @@
+[33mf9dc0a8[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfixes-clients[m[33m, [m[1;31morigin/develop3[m[33m)[m HEAD@{0}: pull origin develop3: Fast-forward
+[33mcb217d2[m[33m ([m[1;31morigin/fixes-clients[m[33m)[m HEAD@{1}: checkout: moving from develop3 to fixes-clients
+[33m9be4318[m[33m ([m[1;32mdevelop3[m[33m)[m HEAD@{2}: checkout: moving from fixes-clients to develop3
+[33mcb217d2[m[33m ([m[1;31morigin/fixes-clients[m[33m)[m HEAD@{3}: checkout: moving from fixes-clients to fixes-clients
+[33mcb217d2[m[33m ([m[1;31morigin/fixes-clients[m[33m)[m HEAD@{4}: reset: moving to cb217d2
+[33m9be4318[m[33m ([m[1;32mdevelop3[m[33m)[m HEAD@{5}: checkout: moving from fixes-clients to fixes-clients
+[33m9be4318[m[33m ([m[1;32mdevelop3[m[33m)[m HEAD@{6}: checkout: moving from develop3 to fixes-clients
+[33m9be4318[m[33m ([m[1;32mdevelop3[m[33m)[m HEAD@{7}: merge fixes-clients: Fast-forward
+[33mf9dc0a8[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfixes-clients[m[33m, [m[1;31morigin/develop3[m[33m)[m HEAD@{8}: checkout: moving from fixes-clients to develop3
+[33m9be4318[m[33m ([m[1;32mdevelop3[m[33m)[m HEAD@{9}: commit: addded missing file
+[33mf9dc0a8[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfixes-clients[m[33m, [m[1;31morigin/develop3[m[33m)[m HEAD@{10}: checkout: moving from develop3 to fixes-clients
+[33mf9dc0a8[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfixes-clients[m[33m, [m[1;31morigin/develop3[m[33m)[m HEAD@{11}: checkout: moving from fixes-clients to develop3
+[33mf9dc0a8[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfixes-clients[m[33m, [m[1;31morigin/develop3[m[33m)[m HEAD@{12}: rebase (finish): returning to refs/heads/fixes-clients
+[33mf9dc0a8[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfixes-clients[m[33m, [m[1;31morigin/develop3[m[33m)[m HEAD@{13}: rebase (start): checkout develop3
+[33mcb217d2[m[33m ([m[1;31morigin/fixes-clients[m[33m)[m HEAD@{14}: checkout: moving from develop3 to fixes-clients
+[33mf9dc0a8[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfixes-clients[m[33m, [m[1;31morigin/develop3[m[33m)[m HEAD@{15}: reset: moving to HEAD
+[33mf9dc0a8[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfixes-clients[m[33m, [m[1;31morigin/develop3[m[33m)[m HEAD@{16}: revert: Revert "Merge pull request #107 from mjalafaro65/fixes-clients"
+[33m466dce2[m HEAD@{17}: reset: moving to HEAD
+[33m466dce2[m HEAD@{18}: checkout: moving from fixes-clients to develop3
+[33mcb217d2[m[33m ([m[1;31morigin/fixes-clients[m[33m)[m HEAD@{19}: checkout: moving from develop3 to fixes-clients
