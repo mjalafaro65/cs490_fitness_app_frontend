@@ -124,7 +124,7 @@ function AvailabilitySection() {
   };
 
   return (
-    <div className="bg-base-100 border border-base-200 rounded-2xl p-6 flex flex-col gap-4">
+    <div className="card bg-base-200 shadow-lg border border-base-500 rounded-2xl p-6 flex flex-col gap-4">
 
       {/* header */}
       <div className="flex justify-between items-center">
@@ -292,7 +292,7 @@ function PaymentPlansSection({ coachId }) {
   };
 
   return (
-    <div className="bg-base-100 border border-base-200 rounded-2xl p-6 flex flex-col gap-4">
+    <div className="card bg-base-200 shadow-lg border border-base-500 rounded-2xl p-6 flex flex-col gap-4">
 
       {/* HEADER */}
       <div className="flex justify-between items-center">
@@ -455,7 +455,7 @@ function DocumentsSection() {
 
 
   return (
-    <div className="bg-base-100 border border-base-200 rounded-2xl p-6 flex flex-col gap-4">
+    <div className="card bg-base-200 shadow-lg border border-base-500 rounded-2xl p-6 flex flex-col gap-4">
 
       {/* HEADER */}
       <div className="flex justify-between items-center">
@@ -617,7 +617,7 @@ function InvoicesSection() {
   };
 
   return (
-    <div className="bg-base-100 border border-base-200 rounded-2xl p-6 flex flex-col gap-4">
+    <div className="card bg-base-200 shadow-lg border border-base-500 rounded-2xl p-6 flex flex-col gap-4">
 
       {/* header */}
       <div>
@@ -790,7 +790,7 @@ function Profile() {
             </div>
           </section>
           {coachStatus === "approved" &&
-            <div className="mt-8 p-6 bg-base-100 border border-gray-200 rounded-xl shadow-sm">
+            <div className="mt-8 p-6 bg-base-100 shadow-lg border border-base-500 rounded-xl shadow-sm">
               <h3 className="text-lg font-bold text-gray-800 mb-4">Account Type</h3>
 
               <div className="flex flex-row items-center justify-between w-full">

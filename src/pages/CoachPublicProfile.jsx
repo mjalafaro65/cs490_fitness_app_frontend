@@ -113,7 +113,7 @@ const CoachPublicProfile = () => {
 
                 setReviewStats({
                     total,
-                    average: Number(avg.toFixed(1))
+                    average: avg
                 });
 
             } catch (err) {
@@ -212,14 +212,14 @@ const CoachPublicProfile = () => {
 
             });
 
-            showAlert("Hire request sent!", "success");
+            showAlertMessage("Hire request sent!", "success");
 
 
             setShowHireModal(false);
 
         } catch (err) {
             console.error(err.response?.data || err);
-            showAlert("Failed to send hire request", "error");
+            showAlertMessage("Failed to send hire request", "error");
         } finally {
             setHiring(false);
         }
@@ -271,8 +271,20 @@ const CoachPublicProfile = () => {
                     <div className="lg:col-span-1">
                         <div className="card bg-white shadow-xl p-6 sticky top-8">
                             <div className="flex flex-col items-center text-center">
-                                <div className="w-32 h-32 rounded-full bg-blue-800 text-white flex items-center justify-center text-4xl font-bold mb-4 shadow-lg">
-                                    {coachName.first_name?.[0]}{coachName.last_name?.[0]}
+                                <div className="w-1/3 flex justify-center">
+                                    {coach?.profile_photo ? (
+                                    <img
+                                        src={coach.profile_photo}
+                                        alt={coach.name}
+                                        className="w-20 h-20 object-cover rounded-full mb-2"
+                                    />
+
+                                    ) : (
+                                    <div className="w-20 h-20 rounded-full shadow-md bg-gray-200 flex items-center justify-center text-sm font-semibold">
+                                        {coach.first_name?.[0]}{coach.last_name?.[0]}
+                                    </div>
+
+                                    )}
                                 </div>
                                 <h1 className="text-2xl font-bold">{coachName.first_name} {coachName.last_name}</h1>
                                 <div className="flex items-center gap-1 my-2">
@@ -289,7 +301,7 @@ const CoachPublicProfile = () => {
                                     {isFavorite ? "Favorited" : "Add to Favorites"}
                                 </button>}
 
-                                {/* {isLoggedIn && <button
+                                {isLoggedIn && <button
                                         onClick={() => {
                                             // Navigate to messages page with coach info to start conversation
                                             navigate("/messages", {
@@ -306,7 +318,7 @@ const CoachPublicProfile = () => {
                                         className="btn w-full bg-blue-800 text-white hover:bg-blue-700 mt-2"
                                     >
                                         Message
-                                    </button>} */}
+                                    </button>}
                             </div>
                         </div>
                     </div>
@@ -325,105 +337,105 @@ const CoachPublicProfile = () => {
 
                             {/* ABOUT SECTION */}
                             {activeTab === 'about' && <div className="animate-fadeIn">
-                                <h3 className="text-xl font-bold mb-4">Biography</h3>
-                                <p className="text-gray-600 leading-relaxed mb-6 italic">"{coach.bio}"</p>
-                                <h3 className="text-xl font-bold mb-4">Specialty</h3>
-                                <div className="flex flex-wrap gap-2 mb-6">
-                                    {coach.specialty_name?.split(',').map((s, i) => (
-                                        <span key={i} className="badge badge-lg bg-blue-50 text-blue-700 border-none px-4 py-2">{s.trim()}</span>
-                                    ))}
-                                </div>
-                                <h3 className="text-xl font-bold mb-4">Experience</h3>
-                                <p className="text-gray-600">{coach.years_experience}</p>
-                            </div>}
-                            {activeTab === 'pricing' && <div className="animate-fadeIn">
-                                <h3 className="text-xl font-bold mb-6">Choose Your Plan</h3>
-
-                                {!payments || payments.length === 0 ? (
-                                    <p className="text-gray-400 text-center">No plans available</p>
-                                ) : (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {payments.map((plan) => (
-                                            <div
-                                                key={plan.payment_plan_id}
-                                                className="border-2 border-blue-100 rounded-2xl p-6 hover:border-blue-500 transition-all"
-                                            >
-                                                <span className="badge bg-blue-800 badge-primary mb-2">
-                                                    {plan.billing_type}
-                                                </span>
-
-
-                                                <h4 className="text-lg font-bold">
-                                                    {plan.name || "Coaching Plan"}
-                                                </h4>
-
-                                                <p className="text-3xl font-black my-4">
-                                                    ${plan.amount}
-                                                    <span className="text-sm font-normal text-gray-400">
-                                                        {plan.billing_type === "monthly"
-                                                            ? "/mo"
-                                                            : plan.billing_type === "session"
-                                                                ? "/session"
-                                                                : ""}
-                                                    </span>
-                                                </p>
-
-
-                                                <button
-                                                    className="btn btn-sm btn-block bg-blue-800 btn-primary"
-                                                    onClick={() => {
-                                                        if (!isLoggedIn) {
-                                                            navigate("/login");
-                                                            return;
-                                                        }
-
-                                                        setSelectedPlan(plan);
-                                                        setShowHireModal(true);
-                                                    }}
-                                                >
-                                                    {" Hire Coach"}
-
-                                                </button>
-                                            </div>
+                                    <h3 className="text-xl font-bold mb-4">Biography</h3>
+                                    <p className="text-gray-600 leading-relaxed mb-6 italic">"{coach.bio}"</p>
+                                    <h3 className="text-xl font-bold mb-4">Specialty</h3>
+                                    <div className="flex flex-wrap gap-2 mb-6">
+                                        {coach.specialty_name?.split(',').map((s, i) => (
+                                            <span key={i} className="badge badge-lg bg-blue-50 text-blue-700 border-none px-4 py-2">{s.trim()}</span>
                                         ))}
                                     </div>
-                                )}
-                            </div>}
+                                    <h3 className="text-xl font-bold mb-4">Experience</h3>
+                                    <p className="text-gray-600">{coach.years_experience}</p>
+                                </div>}
+                            {activeTab === 'pricing' && <div className="animate-fadeIn">
+                                    <h3 className="text-xl font-bold mb-6">Choose Your Plan</h3>
+
+                                    {!payments || payments.length === 0 ? (
+                                        <p className="text-gray-400 text-center">No plans available</p>
+                                    ) : (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {payments.map((plan) => (
+                                                <div
+                                                    key={plan.payment_plan_id}
+                                                    className="border-2 border-blue-100 rounded-2xl p-6 hover:border-blue-500 transition-all"
+                                                >
+                                                    <span className="badge bg-blue-800 badge-primary mb-2">
+                                                        {plan.billing_type}
+                                                    </span>
+
+
+                                                    <h4 className="text-lg font-bold">
+                                                        {plan.name || "Coaching Plan"}
+                                                    </h4>
+
+                                                    <p className="text-3xl font-black my-4">
+                                                        ${plan.amount}
+                                                        <span className="text-sm font-normal text-gray-400">
+                                                            {plan.billing_type === "monthly"
+                                                                ? "/mo"
+                                                                : plan.billing_type === "session"
+                                                                    ? "/session"
+                                                                    : ""}
+                                                        </span>
+                                                    </p>
+
+
+                                                    <button
+                                                        className="btn btn-sm btn-block bg-blue-800 btn-primary"
+                                                        onClick={() => {
+                                                            if (!isLoggedIn) {
+                                                                navigate("/login");
+                                                                return;
+                                                            }
+
+                                                            setSelectedPlan(plan);
+                                                            setShowHireModal(true);
+                                                        }}
+                                                    >
+                                                        {" Hire Coach"}
+
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>}
                             {/* AVAILABILITY / CALENDAR SECTION */}
                             {activeTab === "availability" && <div className="animate-fadeIn">
-                                <h3 className="text-xl font-bold mb-6">Availability</h3>
+                                    <h3 className="text-xl font-bold mb-6">Availability</h3>
 
-                                {availabilityLoading ? (
-                                    <div className="text-center py-10">
-                                        <span className="loading loading-spinner"></span>
-                                    </div>
-                                ) : Object.keys(grouped).length === 0 ? (
-                                    <p className="text-gray-400 text-center">
-                                        No availability set yet
-                                    </p>
-                                ) : (
-                                    <div className="flex flex-col gap-4">
-                                        {Object.entries(grouped).map(([day, daySlots]) => (
-                                            <div key={day}>
-                                                <p className="text-xs font-bold uppercase text-base-content/40 mb-2">
-                                                    {day}
-                                                </p>
+                                    {availabilityLoading ? (
+                                        <div className="text-center py-10">
+                                            <span className="loading loading-spinner"></span>
+                                        </div>
+                                    ) : Object.keys(grouped).length === 0 ? (
+                                        <p className="text-gray-400 text-center">
+                                            No availability set yet
+                                        </p>
+                                    ) : (
+                                        <div className="flex flex-col gap-4">
+                                            {Object.entries(grouped).map(([day, daySlots]) => (
+                                                <div key={day}>
+                                                    <p className="text-xs font-bold uppercase text-base-content/40 mb-2">
+                                                        {day}
+                                                    </p>
 
-                                                <div className="flex flex-wrap gap-2">
-                                                    {daySlots.map((slot) => (
-                                                        <div
-                                                            key={slot.availability_id}
-                                                            className="p-3 bg-blue-50 border rounded-lg text-sm"
-                                                        >
-                                                            {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
-                                                        </div>
-                                                    ))}
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {daySlots.map((slot) => (
+                                                            <div
+                                                                key={slot.availability_id}
+                                                                className="p-3 bg-blue-50 border rounded-lg text-sm"
+                                                            >
+                                                                {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
+                                                            </div>
+                                                        ))}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>}
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>}
 
                             {showHireModal && (
                                 <div className="fixed inset-0 backdrop-blur-sm bg-opacity-40 flex items-center justify-center z-50">
@@ -467,59 +479,59 @@ const CoachPublicProfile = () => {
                                         </div>
                                     </div>
                                 </div>
-                            )}
+                            )}       
 
                             {/* REVIEWS SECTION */}
 
 
                             {activeTab === 'reviews' && <div>
-                                <button
-                                    className="btn btn-primary text-white bg-blue-800 btn-sm mb-4"
-                                    onClick={() => setShowReviewModal(true)}
-                                >
-                                    Write a Review
-                                </button>
+                                    {isLoggedIn && <button
+                                        className="btn btn-primary text-white bg-blue-800 btn-sm mb-4"
+                                        onClick={() => setShowReviewModal(true)}
+                                    >
+                                        Write a Review
+                                    </button>}
 
-                                {reviews.length === 0 ? (
-                                    <p className="text-gray-400 text-center py-10">
-                                        No reviews yet
-                                    </p>
-                                ) : (
-                                    reviews.map((review) => (
-                                        <div key={review.review_id} className="group">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <div>
-                                                    <div className="rating rating-xs mb-1">
-                                                        {[1, 2, 3, 4, 5].map((s) => (
-                                                            <input
-                                                                key={s}
-                                                                type="radio"
-                                                                className="mask mask-star-2 bg-blue-700"
-                                                                disabled
-                                                                checked={s <= review.rating}
-                                                            />
-                                                        ))}
+                                    {reviews.length === 0 ? (
+                                        <p className="text-gray-400 text-center py-10">
+                                            No reviews yet
+                                        </p>
+                                    ) : (
+                                        reviews.map((review) => (
+                                            <div key={review.review_id} className="group">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <div>
+                                                        <div className="rating rating-xs mb-1">
+                                                            {[1, 2, 3, 4, 5].map((s) => (
+                                                                <input
+                                                                    key={s}
+                                                                    type="radio"
+                                                                    className="mask mask-star-2 bg-blue-700"
+                                                                    disabled
+                                                                    checked={s <= review.rating}
+                                                                />
+                                                            ))}
+                                                        </div>
+
+                                                        <h4 className="font-bold text-gray-900">
+                                                            Review
+                                                        </h4>
                                                     </div>
 
-                                                    <h4 className="font-bold text-gray-900">
-                                                        Review
-                                                    </h4>
+                                                    <span className="text-xs text-gray-400 italic">
+                                                        {review.created_at
+                                                            ? new Date(review.created_at).toLocaleDateString()
+                                                            : ""}
+                                                    </span>
                                                 </div>
 
-                                                <span className="text-xs text-gray-400 italic">
-                                                    {review.created_at
-                                                        ? new Date(review.created_at).toLocaleDateString()
-                                                        : ""}
-                                                </span>
+                                                <p className="text-gray-600 leading-relaxed italic border-l-4 border-blue-100 pl-4">
+                                                    {review.comment}
+                                                </p>
                                             </div>
-
-                                            <p className="text-gray-600 leading-relaxed italic border-l-4 border-blue-100 pl-4">
-                                                {review.comment}
-                                            </p>
-                                        </div>
-                                    ))
-                                )}
-                            </div>}
+                                        ))
+                                    )}
+                                </div>}
 
                             {showReviewModal && (
                                 <div className="fixed inset-0 backdrop-blur flex items-center justify-center z-50">
@@ -596,11 +608,11 @@ const CoachPublicProfile = () => {
                                     </div>
                                 </div>
                             )}
-                            <Alert
-                                isOpen={alert}
+                            <Alert 
+                                isOpen={alert} 
                                 message={alertMsg}
                                 type={alertType}
-                                onClose={() => setShowAlert(false)} />
+                                onClose={() => setShowAlert(false)}/>
 
                         </div>
                     </div>

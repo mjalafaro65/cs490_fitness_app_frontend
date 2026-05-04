@@ -195,7 +195,7 @@ const openDenyConfirm = (coach) => {
               appli.map((app) => (
                 <div
                   key={app.coach_profile_id}
-                  className="card bg-base-300 rounded-box p-4 flex flex-col md:flex-row items-start md:items-center gap-4"
+                  className="card bg-base-200 shadow-lg border border-gray-200 rounded-box p-4 flex flex-col md:flex-row items-start md:items-center gap-4"
                 >
                   {app.profile_photo ? (
                     <img
@@ -223,7 +223,7 @@ const openDenyConfirm = (coach) => {
                   </div>
 
                   <button
-                    className="btn bg-blue-800 mt-2 text-white md:mt-0"
+                    className="btn bg-blue-800 mt-2 shadow-md text-white md:mt-0"
                     onClick={() => openModal(app)}
                   >
                     Review Application
@@ -249,7 +249,7 @@ const openDenyConfirm = (coach) => {
                 Review Application: {names[selectedCoach.user_id] || "Coach"}
               </h2>
 
-              <div className="mb-6 p-4 bg-gray-100 rounded-lg">
+              <div className="mb-6 p-4 bg-gray-100 shadow-lg rounded-lg">
                 <h3 className="font-semibold mb-2">Application Summary</h3>
                 <p><strong>Experience:</strong> {selectedCoach.years_experience} years</p>
                 <p><strong>Specialty:</strong> {selectedCoach.specialty_name || "Unknown"}</p>
