@@ -43,6 +43,7 @@ function ProgressLogs() {
   const [imageType, setImageType] = useState(null);
 
   const [timeView, setTimeView] = useState('weekly');
+  const [logs, setLogs] = useState([]);
 
   const [isPopOpen, setPopOpen] = useState(null);
   const [daily, setData] = useState({
@@ -151,7 +152,7 @@ function ProgressLogs() {
         }
 
         const goalsRes = await api.get("/insights/goals");
-          console.log(goalsRes.data)
+        console.log(goalsRes.data)
         if (Array.isArray(goalsRes.data)) {
 
           setGoalsData(goalsRes.data);
@@ -167,8 +168,30 @@ function ProgressLogs() {
       }
     }
 
+
+    async function fetchMyLogs() {
+
+      try {
+        const res = await api.get('workouts/workout-logs')
+        console.log(res.data)
+
+
+        setLogs(res.data)
+        console.log(res.data)
+
+      } catch (err) {
+        console.log(err)
+      }
+
+
+    }
+
+
     fetchAllInsights();
+    fetchMyLogs();
   }, []);
+
+
 
   const setMockData = () => {
     const mockHistory = [];
@@ -662,6 +685,8 @@ function ProgressLogs() {
 
 
 
+  const [selectedDay, setSelectedDay] = useState(null);
+  const [calendarMonth, setCalendarMonth] = useState(new Date());
 
   const handleUpload = (type) => {
     openCloudinaryWidget((url) => {
@@ -677,6 +702,50 @@ function ProgressLogs() {
       }
     });
   };
+  const toDateKey = (d) => {
+    const date = new Date(d);
+    return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+  };
+
+  const grouped = logs.reduce((acc, log) => {
+    const date = toDateKey(log.logged_at);  // ← use toDateKey here
+
+    if (!acc[date]) {
+      acc[date] = { date, sessions: {} };
+    }
+
+    const sessionKey = log.calendar_workout_id ?? `free-${log.workout_log_id}`;
+
+    if (!acc[date].sessions[sessionKey]) {
+      acc[date].sessions[sessionKey] = {
+        id: sessionKey,
+        calendar_workout_id: log.calendar_workout_id,
+        logged_at: log.logged_at,
+        entries: []
+      };
+    }
+
+    acc[date].sessions[sessionKey].entries.push(...log.entries);
+    return acc;
+  }, {});
+
+  const groupedArray = Object.values(grouped).map(day => ({
+    ...day,
+    sessions: Object.values(day.sessions)
+  }));
+
+  const logDateSet = new Set(groupedArray.map(d => d.date));
+
+
+  const getDaysInMonth = (date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    return { firstDay, daysInMonth };
+  };
+
+  const { firstDay, daysInMonth } = getDaysInMonth(calendarMonth);
 
   return (
     <div className="drawer lg:drawer-open">
@@ -853,7 +922,7 @@ function ProgressLogs() {
               </div>
             )}
           </div>
-          <div className="flex w-full h-80 gap-4">
+          <div className="flex w-full h-80 gap-4 ">
             <div className="card bg-base-300 rounded-box w-1/3 grow p-4">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-bold">Goals Progress</h2>
@@ -865,7 +934,7 @@ function ProgressLogs() {
                 <div className="flex items-center justify-center h-48">
                   <p className="text-sm opacity-50">Loading...</p>
                 </div>
-        
+
               ) : goalsData.length > 0 ? (
                 <div className="space-y-3 overflow-y-auto max-h-64">
                   {goalsData.map((goal, idx) => (
@@ -961,6 +1030,74 @@ function ProgressLogs() {
               </div>
             </div>
           </form>
+
+          <div className="flex flex-wrap gap-2 card bg-base-300 rounded-box grow p-4">
+            <h2 className="text-lg font-bold">Logs </h2>
+
+            <div className="bg-base-200 rounded-lg p-4 w-72">
+              {/* Header */}
+              <div className="flex justify-between items-center mb-3">
+                <button onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1))}>←</button>
+                <span className="font-semibold text-sm">
+                  {calendarMonth.toLocaleDateString('default', { month: 'long', year: 'numeric' })}
+                </span>
+                <button onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1))}>→</button>
+              </div>
+
+              {/* Day labels */}
+              <div className="grid grid-cols-7 text-xs text-center opacity-50 mb-1">
+                {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => <div key={d}>{d}</div>)}
+              </div>
+
+              {/* Days */}
+              <div className="grid grid-cols-7 text-xs text-center gap-1">
+                {Array(firstDay).fill(null).map((_, i) => <div key={`empty-${i}`} />)}
+                {Array(daysInMonth).fill(null).map((_, i) => {
+                  const day = i + 1;
+                  const dateStr = toDateKey(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day));
+                  const hasLog = logDateSet.has(dateStr);
+                  const dayData = groupedArray.find(d => d.date === dateStr);
+                  return (
+                    <div
+                      key={day}
+                      onClick={() => hasLog && setSelectedDay(dayData)}
+                      className={`rounded-full w-7 h-7 flex items-center justify-center mx-auto
+            ${hasLog ? 'bg-blue-800 text-white cursor-pointer hover:bg-blue-600' : 'opacity-40'}
+          `}
+                    >
+                      {day}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            
+
+
+          </div>
+
+          <PopUp isOpen={selectedDay !== null} onClose={() => setSelectedDay(null)}>
+            {selectedDay && (
+              <div className="p-4 w-80">
+                <h2 className="font-bold text-lg mb-3">🗓️ {selectedDay.date}</h2>
+                {selectedDay.sessions.map((session) => (
+                  <div key={session.id} className="mb-4">
+                    <p className="text-xs opacity-60 mb-2">{new Date(session.logged_at).toLocaleTimeString()}</p>
+                    <div className="flex flex-col gap-1">
+                      {session.entries.map((entry) => (
+                        <div key={entry.workout_log_entry_id} className="bg-base-200 rounded p-2 text-xs">
+                          <span className="font-semibold">Ex {entry.exercise_id}</span>
+                          <span className="ml-2 opacity-80">{entry.sets}x{entry.reps} @ {entry.weight}lb</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </PopUp>
+
+
         </section>
       </div>
 
@@ -1193,6 +1330,8 @@ function ProgressLogs() {
           </form>
         )}
       </PopUp>
+
+
       <Alert
         isOpen={alert}
         message={alertMsg}

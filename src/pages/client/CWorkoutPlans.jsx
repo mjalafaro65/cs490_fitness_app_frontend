@@ -38,10 +38,12 @@ function ClientWorkoutPlans() {
   const navigate = useNavigate();
 
   const [scheduledPlans, setScheduledPlans] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(null);
   const [selectedDatePlan, setSelectedDatePlan] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+
+  const [selectedDateC, setSelectedDateC] = useState(null);
+
 
   const [isBrowsePopOpen, setBrowsePopOpen] = useState(false);
   const [assigningDay, setAssigningDay] = useState(null);
@@ -101,11 +103,12 @@ function ClientWorkoutPlans() {
     start_time: "",
   });
 
+  const [selectedDateP, setSelectedDateP] = useState(null);
+
   // for scheduling dates for assigment days 
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState(null);
-  const [selectedDay, setSelectedDay] = useState(null);
-  const [selectedDateA, setSelectedDateA] = useState(null);
+  const [selectedDatesA, setSelectedDatesA] = useState({});
 
   const [alert, setShowAlert] = useState(false);
   const [alertMsg, setAlertMsg] = useState('');
@@ -172,7 +175,7 @@ function ClientWorkoutPlans() {
       setScheduledPlans(cleaned);
 
 
-    } catch(err){
+    } catch (err) {
       console.log("error in getting assigments ", err)
     }
 
@@ -180,7 +183,7 @@ function ClientWorkoutPlans() {
 
   };
 
-  function simplifyAssignments(data=[]) {
+  function simplifyAssignments(data = []) {
     return data.map((assignment) => ({
       assignment_id: assignment.assignment_id,
       plan_name: assignment.plan?.name,
@@ -460,12 +463,6 @@ function ClientWorkoutPlans() {
   };
 
   const handleAssignPlan = async (plan_id) => {
-    // console.log("[DEBUG] handleAssignPlan called with tempActiveDays:", tempActiveDays);
-    // if (tempActiveDays.length === 0) {
-    //   alert("Please assign at least one workout day to a date.");
-    //   return;
-    // }
-
     try {
 
       const payload = {
@@ -628,7 +625,7 @@ function ClientWorkoutPlans() {
   };
 
   const fetchWorkoutsForDate = async (date) => {
-    setSelectedDate(date);
+    setSelectedDateC(date);
 
     const formatted = date.toISOString().split("T")[0];
 
@@ -711,7 +708,7 @@ function ClientWorkoutPlans() {
           <div className="flex text-2xl font-bold">My Workout Plans</div>
           <div className="p-6 flex gap-4">
 
-            {!loadingInsights && workoutInsights && (
+            {/* {!loadingInsights && workoutInsights && (
               <div className="grid grid-row-6 gap-4 mb-4">
                 <div className="card bg-base-300 rounded-box p-4 text-center">
                   <p className="text-xs opacity-70">Total Workouts</p>
@@ -726,8 +723,9 @@ function ClientWorkoutPlans() {
                   <p className="text-xl font-bold text-blue-800">{workoutInsights.scheduled || 0}</p>
                 </div>
               </div>
-            )}
+            )} */}
 
+            {/* Calendar top */}
             <div className="flex w-full gap-4">
               <div className="card bg-base-300 rounded-box w-1/2 p-4">
                 <h2 className="text-lg font-bold mb-2">Calendar</h2>
@@ -773,7 +771,7 @@ function ClientWorkoutPlans() {
                       new Date().toDateString() === day.toDateString();
 
                     const isSelected =
-                      selectedDate?.toDateString() === day.toDateString();
+                      selectedDateC?.toDateString() === day.toDateString();
 
                     return (
                       <div
@@ -823,14 +821,17 @@ function ClientWorkoutPlans() {
 
               <div className="card bg-base-300 rounded-box flex-1 p-4">
                 <h2 className="text-lg font-bold mb-2">
-                  {selectedDate
-                    ? `Workouts for ${selectedDate.toLocaleDateString(undefined, {
+                  {selectedDateC
+                    ? `Workouts for ${selectedDateC.toLocaleDateString(undefined, {
                       weekday: "long",
                       month: "long",
                       day: "numeric",
                     })}`
                     : "Select a day to view workouts"}
                 </h2>
+
+
+                {/* Daily workouts after selecting plan */}
                 {isLoading ? (
                   <p className="text-sm opacity-70">Loading workouts...</p>
                 ) : selectedWorkouts.length === 0 ? (
@@ -899,8 +900,8 @@ function ClientWorkoutPlans() {
                                         status: "completed"
                                       });
 
-                                      if (selectedDate) {
-                                        await fetchWorkoutsForDate(selectedDate);
+                                      if (selectedDateC) {
+                                        await fetchWorkoutsForDate(selectedDateC);
                                       }
 
 
@@ -976,10 +977,15 @@ function ClientWorkoutPlans() {
                     ))}
                   </div>
                 )}
+                {/* Daily workouts after selecting plan end */}
+
+
               </div>
             </div>
           </div>
 
+
+          {/* Active Plans  */}
           <div className="card bg-base-300 rounded-box p-4">
             <h2 className="text-lg font-bold mb-4">Active Plans</h2>
             {console.log("Active Plans:" + scheduledPlans)}
@@ -1026,7 +1032,6 @@ function ClientWorkoutPlans() {
                       onClick={() => {
                         setSelectedAssignment(plan);
                         setTempActiveDays([]);
-                        setSelectedDay(null);
                         setScheduleOpen(true);
                       }}
                     >
@@ -1040,6 +1045,8 @@ function ClientWorkoutPlans() {
 
 
           </div>
+
+          {/* Pop up to schedule labeled days */}
 
           {scheduleOpen && selectedAssignment && (
             <div className="modal modal-open">
@@ -1056,17 +1063,9 @@ function ClientWorkoutPlans() {
                   {selectedAssignment?.days?.map((d, i) => (
                     <div
                       key={i}
-                      className={`p-2 rounded cursor-pointer transition
-        ${selectedDay?.day_label === d.day_label
-                          ? "bg-blue-800 text-white"
-                          : "bg-base-200 hover:bg-base-300"
-                        }`}
-                      onClick={() => setSelectedDay(d)}
+                      className={`p-2 rounded cursor-pointer transition  text-black "bg-base-200 hover:bg-blue-100 bg-base-200"`}
                     >
                       {d.day_label}{" "}
-                      <span className="text-xs opacity-60">
-                        ({d.weekday ?? "No weekday"})
-                      </span>
 
                       <div className="mb-3">
                         <label className="text-xs opacity-70">Select Date</label>
@@ -1074,8 +1073,13 @@ function ClientWorkoutPlans() {
                         <input
                           type="date"
                           className="input input-sm input-bordered w-full"
-                          value={selectedDate || ""}
-                          onChange={(e) => setSelectedDate(e.target.value)}
+                          value={selectedDatesA[i] || ""}
+                          onChange={(e) =>
+                            setSelectedDatesA((prev) => ({
+                              ...prev,
+                              [i]: e.target.value,
+                            }))
+                          }
                         />
                       </div>
 
@@ -1091,7 +1095,6 @@ function ClientWorkoutPlans() {
                     onClick={() => {
                       setScheduleOpen(false);
                       setSelectedAssignment(null);
-                      setSelectedDay(null);
                     }}
                   >
                     Cancel
@@ -1099,13 +1102,13 @@ function ClientWorkoutPlans() {
 
                   <button
                     className="btn btn-primary"
-                    disabled={!selectedDay}
+                    disabled={!selectedDatesA}
                     onClick={() => {
-                      handleScheduleAssignment(selectedAssignment, selectedDay);
+                      console.log(selectedAssignment,selectedDatesA)
+                      handleScheduleAssignment(selectedAssignment, selectedDatesA);
 
                       setScheduleOpen(false);
                       setSelectedAssignment(null);
-                      setSelectedDay(null);
                     }}
                   >
                     Schedule
@@ -1234,7 +1237,7 @@ function ClientWorkoutPlans() {
                 <button
                   className="btn btn-primary"
                   onClick={() => {
-                    handleAssignPlan(assignPlan.plan_id, selectedDate);
+                    handleAssignPlan(assignPlan.plan_id, selectedDateP);
                     setShowAssignModal(false);
                     setAssignPlan(null);
                     setSelectedDatePlan("");
