@@ -131,7 +131,7 @@ function BrowsePlans() {
 
   return (
     <div className="p-6 flex flex-col gap-6">
-      <div className="p-2 border-b border-base-300 flex items-center">
+      <div className="flex items-center">
           <button
             onClick={() => navigate(-1)}
             className="btn btn-ghost btn-sm normal-case"
@@ -203,7 +203,7 @@ function BrowsePlans() {
           <option value="all">All</option>
         </select>
 
-        <button className="btn btn-primary">Search</button>
+        <button className="btn btn-primary bg-blue-800 text-white">Search</button>
       </form>
 
       {loading ? (
@@ -236,13 +236,13 @@ function BrowsePlans() {
                                 setPopOpen(plan.plan_id);
                                 setSelectedPlan(null);
                                 await fetchPlanDetails(plan.plan_id);
-          }} className="btn btn-sm btn-primary mt-3">
+          }} className="btn btn-sm bg-blue-800 text-white mt-3">
                   View Plan
                 </button>
 
                 <button 
                   onClick={() => handleCopyPlan(plan.plan_id, plan.name)} 
-                  className="btn btn-sm btn-secondary mt-3 ml-2"
+                  className="btn btn-sm border text-black mt-3"
                   disabled={copyingPlanId === plan.plan_id}
                 >
                   {copyingPlanId === plan.plan_id ? (

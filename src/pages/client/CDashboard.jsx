@@ -458,7 +458,6 @@ function CDashboard() {
     const weekStart = weekDays[0];
     const weekEnd = weekDays[6];
 
-    // Create date strings for comparison (YYYY-MM-DD format)
     const weekStartStr = `${weekStart.getFullYear()}-${String(weekStart.getMonth() + 1).padStart(2, '0')}-${String(weekStart.getDate()).padStart(2, '0')}`;
     const weekEndStr = `${weekEnd.getFullYear()}-${String(weekEnd.getMonth() + 1).padStart(2, '0')}-${String(weekEnd.getDate()).padStart(2, '0')}`;
 
@@ -495,14 +494,10 @@ function CDashboard() {
           .filter(entry => entry.date)
           .sort((a, b) => new Date(a.date) - new Date(b.date))
           .map(entry => {
-            // const dateObj = new Date(entry.date);
             const [year, month, day] = entry.date.split("-");
             const dateObj = new Date(year, month - 1, day);
             dateObj.setHours(0, 0, 0, 0);
 
-            // const year = dateObj.getFullYear();
-            // const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-            // const day = String(dateObj.getDate()).padStart(2, '0');
             const dateStr = `${year}-${month}-${day}`;
 
             return {
@@ -583,30 +578,10 @@ function CDashboard() {
 
       console.log("Survey submitted successfully");
       showAlert("Daily wellness logged successfully!", "success");
-      await fetchInsights();
 
       const insightsResponse = await api.get("/insights/survey");
       console.log(insightsResponse)
-      const historyArray = insightsResponse.data?.history || [];
-      const transformedData = historyArray
-        .filter(entry => entry.date)
-        .sort((a, b) => new Date(a.date) - new Date(b.date))
-        .map(entry => {
-          const dateObj = new Date(entry.date);
-          dateObj.setHours(0, 0, 0, 0);
-          return {
-            date: dateObj,
-            dateStr: dateObj.toISOString().split('T')[0],
-            displayDate: dateObj.toLocaleDateString('default', { month: 'short', day: 'numeric' }),
-            sleep: entry.sleep_hours || 0,
-            mood: entry.mood_score || 0,
-            energy: entry.energy_level || 0,
-            water: entry.water_oz || 0,
-            weight: entry.weight_lbs || 0
-          };
-        });
-      setInsightsData(transformedData);
-
+      await fetchInsights();
 
     } catch (error) {
 
@@ -683,7 +658,7 @@ function CDashboard() {
 
           <div className="text-2xl font-bold mb-4">Dashboard</div>
 
-          <div className="card bg-base-300 rounded-box p-4">
+          <div className="card bg-base-200 shadow-lg border border-base-500 p-6 flex flex-col">
 
             <div className="flex items-center justify-between mb-4">
 
@@ -858,10 +833,10 @@ function CDashboard() {
           </div>
 
 
-
+        <div className="flex flex-col">
           <div className="flex gap-4 items-start">
 
-            <div className="card bg-base-300 rounded-box flex-1 p-4 h-72">
+            <div className="card bg-base-200 shadow-lg border border-base-400 rounded-box flex-1 p-4 h-72">
               <h2 className="text-base font-bold mb-3">
 
                 {selectedDay.toLocaleDateString("default", {
@@ -968,9 +943,9 @@ function CDashboard() {
             </div>
 
 
-            <div className="card bg-base-300 rounded-box w-64 p-4 shrink-0">
+            <div className="card bg-base-200 shadow-lg border border-base-300 rounded-box w-40 p-4 shrink-0">
 
-              <h2 className="text-base font-bold mb-3">Wellness Log</h2>
+              <h2 className="text-base font-bold mb-3">Daily Log</h2>
 
               {isSameDay(selectedDay, today) && dayLog ? (
 
@@ -978,11 +953,7 @@ function CDashboard() {
 
                   {[
 
-                    { label: "Sleep", value: dayLog.sleep_hours ? `${dayLog.sleep_hours} hrs` : null },
-
                     { label: "Mood", value: dayLog.mood_score ? `${dayLog.mood_score} / 5` : null },
-
-                    { label: "Water", value: dayLog.water_oz ? `${dayLog.water_oz} oz` : null },
 
                     { label: "Weight", value: dayLog.weight_lbs ? `${dayLog.weight_lbs} lbs` : null },
 
@@ -1040,7 +1011,7 @@ function CDashboard() {
 
                 >
 
-                  Update Today's Log
+                  Update
 
                 </button>
 
@@ -1048,6 +1019,78 @@ function CDashboard() {
 
             </div>
 
+            <div className="card bg-base-300 rounded-box w-40 p-4 shrink-0">
+
+              <h2 className="text-base font-bold mb-3">Wellness Log</h2>
+
+              {isSameDay(selectedDay, today) && dayLog ? (
+
+                <div className="flex flex-col gap-2 text-sm">
+
+                  {[
+
+                    { label: "Sleep", value: dayLog.sleep_hours ? `${dayLog.sleep_hours} hrs` : null },
+
+                    { label: "Mood", value: dayLog.mood_score ? `${dayLog.mood_score} / 5` : null },
+
+                    { label: "Water", value: dayLog.water_oz ? `${dayLog.water_oz} oz` : null },
+
+                  ].map(({ label, value }) =>
+
+                    value ? (
+
+                      <div key={label} className="flex justify-between border-b border-base-content/10 pb-1">
+
+                        <span className="opacity-60">{label}</span>
+
+                        <span className="font-semibold">{value}</span>
+
+                      </div>
+
+                    ) : null
+
+                  )}
+
+                  {Object.values(dayLog).every((v) => !v) && (
+
+                    <p className="text-xs opacity-40">Nothing logged yet today.</p>
+
+                  )}
+
+                </div>
+
+              ) : (
+
+                <p className="text-xs opacity-40">
+
+                  {isSameDay(selectedDay, today)
+
+                    ? "Nothing logged yet today."
+
+                    : "Log history not available for past days."}
+
+                </p>
+
+              )}
+
+              {isSameDay(selectedDay, today) && (
+
+                <button
+
+                  className="btn bg-blue-800 text-white btn-xs p-3 mt-4 w-full"
+
+                  onClick={() => setPopOpen("update")}
+
+                >
+
+                  Update
+
+                </button>
+
+              )}
+
+            </div>
+          </div>
           </div>
           <div className="w-full">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
