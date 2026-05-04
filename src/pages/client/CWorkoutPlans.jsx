@@ -172,6 +172,7 @@ function ClientWorkoutPlans() {
       const res = await api.get("/workouts/assignments/mine");
       console.log(res.data);
       const cleaned = simplifyAssignments(res.data);
+      console.log(cleaned)
       setScheduledPlans(cleaned);
 
 
@@ -190,6 +191,7 @@ function ClientWorkoutPlans() {
 
       days: (assignment.plan?.days ?? []).map((day) => ({
         day_label: day.day_label,
+        plan_day_id: day.plan_day_id,
 
         exercises: (day.exercises ?? []).map((ex) => ({
           exercise_id: ex.exercise_id,
@@ -669,10 +671,9 @@ function ClientWorkoutPlans() {
     try {
       const payload = {
         assignment_id: assignment.assignment_id,
-        scheduled_days: selectedDays.map((d) => ({
-          date: d.date,
-          weekday: d.date.getDay(),
-          day_id: d.day?.day_id,
+        scheduled_days: Object.entries(selectedDays).map(([day_id, date]) => ({
+          plan_day_id: Number(day_id),
+          date,
         })),
       };
 
@@ -891,7 +892,7 @@ function ClientWorkoutPlans() {
                             workout.status != "completed" ?
                               (
 
-                                <><button
+                                <><><button
                                   className="btn btn-xs bg-blue-700 text-white" V
                                   onClick={async () => {
                                     try {
@@ -960,6 +961,30 @@ function ClientWorkoutPlans() {
                                   }}
                                 >
                                     Log Workout
+                                  </button></><button
+                                    className="btn btn-xs bg-red-600 text-white hover:bg-red-700"
+                                    onClick={async () => {
+                                      if (!window.confirm("Are you sure you want to delete this planned workout? This action cannot be undone.")) return;
+
+                                      try {
+                                        await api.patch(`/workouts/calendar-workouts/${workout.calendar_workout_id}`, {
+                                          status: "canceled"
+                                        });
+
+                                        // Refresh both the calendar and the selected date workouts
+                                        await fetchWork(currentDate);
+                                        if (selectedDate) {
+                                          await fetchWorkoutsForDate(selectedDate);
+                                        }
+
+                                        showAlert("Workout deleted successfully", "success");
+                                      } catch (err) {
+                                        console.error("Failed to delete workout:", err.response?.data);
+                                        showAlert("Failed to delete workout", "error");
+                                      }
+                                    }}
+                                  >
+                                    Delete Planned Workout
                                   </button></>
 
 
@@ -988,7 +1013,6 @@ function ClientWorkoutPlans() {
           {/* Active Plans  */}
           <div className="card bg-base-300 rounded-box p-4">
             <h2 className="text-lg font-bold mb-4">Active Plans</h2>
-            {console.log("Active Plans:" + scheduledPlans)}
             {scheduledPlans.map((plan) => {
               if (plan?.status == "completed" || plan?.status == "canceled") return null;
 
@@ -1073,11 +1097,12 @@ function ClientWorkoutPlans() {
                         <input
                           type="date"
                           className="input input-sm input-bordered w-full"
-                          value={selectedDatesA[i] || ""}
+                          value={selectedDatesA[d.plan_day_id] || ""}
+
                           onChange={(e) =>
-                            setSelectedDatesA((prev) => ({
+                            setSelectedDatesA(prev => ({
                               ...prev,
-                              [i]: e.target.value,
+                              [d.plan_day_id]: e.target.value
                             }))
                           }
                         />
@@ -1088,7 +1113,7 @@ function ClientWorkoutPlans() {
                   ))}
                 </div>
 
-                {/* Actions */}
+                {/* Action buttons */}
                 <div className="modal-action flex justify-between">
                   <button
                     className="btn btn-ghost"
@@ -1101,10 +1126,10 @@ function ClientWorkoutPlans() {
                   </button>
 
                   <button
-                    className="btn btn-primary"
+                    className="btn bg-blue-800 btn-primary"
                     disabled={!selectedDatesA}
                     onClick={() => {
-                      console.log(selectedAssignment,selectedDatesA)
+                      console.log(selectedAssignment, selectedDatesA)
                       handleScheduleAssignment(selectedAssignment, selectedDatesA);
 
                       setScheduleOpen(false);
@@ -1121,7 +1146,23 @@ function ClientWorkoutPlans() {
           <div className="flex w-full gap-4">
             <div className="card bg-base-300 rounded-box flex-1 p-4">
               <h2 className="text-lg font-bold mb-2">My Workout Plans</h2>
-              {plans.length === 0 ? (
+              {isLoading ? (
+                <div className="flex flex-col gap-2">
+                  {[1, 2, 3].map((placeholder) => (
+                    <div
+                      key={placeholder}
+                      className="p-2 bg-base-200 rounded flex justify-between items-center"
+                    >
+                      <div className="flex-1">
+                        <div className="h-4 bg-base-300 rounded w-3/4 mb-2 animate-pulse"></div>
+                        <div className="h-3 bg-base-300 rounded w-1/2 animate-pulse"></div>
+                      </div>
+                      <div className="h-3 bg-base-300 rounded w-12 animate-pulse"></div>
+                    </div>
+                  ))}
+                  <p className="text-sm opacity-70 text-center mt-2">Loading workout plans...</p>
+                </div>
+              ) : plans.length === 0 ? (
                 <span className="text-sm opacity-70">No plans yet</span>
               ) : (
                 <div className="flex flex-col gap-2 ">
