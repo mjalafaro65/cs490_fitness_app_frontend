@@ -315,8 +315,8 @@ function CoWorkoutPlans() {
       </div>
 
       <div className="flex w-full gap-4">
-        <div className="card bg-base-300 rounded-box flex-1 p-4">
-          <h2 className="text-lg font-bold mb-2">Workout Plans</h2>
+        <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box flex-1 p-4">
+          <h2 className="text-lg font-bold mb-2">Plans</h2>
           {plans.length === 0 ? (
             <span className="text-sm opacity-70">No plans yet</span>
           ) : (
@@ -324,7 +324,7 @@ function CoWorkoutPlans() {
               {plans.map((plan) => (
                 <div
                   key={plan.plan_id}
-                  className="p-2 bg-base-200 rounded flex justify-between items-center cursor-pointer hover:bg-base-100 transition"
+                  className="p-2 bg-gray-200 rounded flex justify-between items-center cursor-pointer hover:bg-base-100 transition"
                 >
                   <div onClick={() => handleSelectPlan(plan.plan_id)}>
                     <p className="font-bold">{plan.name}</p>
@@ -358,7 +358,7 @@ function CoWorkoutPlans() {
           )}
         </div>
 
-        <div className="card bg-base-300 p-4 rounded-box w-64 flex flex-col items-center justify-center gap-2">
+        <div className="card bg-base-200 shadow-lg border border-base-500 p-4 rounded-box w-64 flex flex-col items-center justify-center gap-2">
           <h2 className="text-lg font-bold">Create New Plan</h2>
           <button
             className="btn btn-primary bg-blue-800 text-white btn-sm w-full"

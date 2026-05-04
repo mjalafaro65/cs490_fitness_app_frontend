@@ -684,19 +684,19 @@ function ProgressLogs() {
 
           <div className="tabs tabs-boxed rounded-box bg-base-300 p-1 self-start">
             <button
-              className={`tab ${timeView === 'weekly' ? 'tab-active bg-blue-800 text-white rounded-box' : ''}`}
+              className={`tab ${timeView === 'weekly' ? 'tab-active bg-blue-800 shadow-lg text-white rounded-box' : ''}`}
               onClick={() => setTimeView('weekly')}
             >
               Weekly
             </button>
             <button
-              className={`tab ${timeView === 'monthly' ? 'tab-active bg-blue-800 text-white rounded-box' : ''}`}
+              className={`tab ${timeView === 'monthly' ? 'tab-active bg-blue-800 shadow-lg text-white rounded-box' : ''}`}
               onClick={() => setTimeView('monthly')}
             >
               Monthly
             </button>
             <button
-              className={`tab ${timeView === 'yearly' ? 'tab-active bg-blue-800 text-white rounded-box' : ''}`}
+              className={`tab ${timeView === 'yearly' ? 'tab-active bg-blue-800 shadow-lg text-white rounded-box' : ''}`}
               onClick={() => setTimeView('yearly')}
             >
               Yearly
@@ -707,23 +707,23 @@ function ProgressLogs() {
 
           {filteredWellnessSummary && filteredWellnessSummary.total_entries > 0 && (
             <div className="grid grid-cols-5 gap-4 mb-4">
-              <div className="card bg-base-300 rounded-box p-3 text-center">
+              <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-3 text-center">
                 <p className="text-xs opacity-70">Total Entries</p>
                 <p className="text-2xl font-bold text-black">{filteredWellnessSummary.total_entries || 0}</p>
               </div>
-              <div className="card bg-base-300 rounded-box p-3 text-center">
+              <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-3 text-center">
                 <p className="text-xs opacity-70">Avg Sleep</p>
                 <p className="text-2xl font-bold text-black">{filteredWellnessSummary.avg_sleep_hours || 0}h</p>
               </div>
-              <div className="card bg-base-300 rounded-box p-3 text-center">
+              <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-3 text-center">
                 <p className="text-xs opacity-70">Avg Mood</p>
                 <p className="text-2xl font-bold text-black">{filteredWellnessSummary.avg_mood || 0}/5</p>
               </div>
-              <div className="card bg-base-300 rounded-box p-3 text-center">
+              <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-3 text-center">
                 <p className="text-xs opacity-70">Avg Energy</p>
                 <p className="text-2xl font-bold text-black">{filteredWellnessSummary.avg_energy || 0}/5</p>
               </div>
-              <div className="card bg-base-300 rounded-box p-3 text-center">
+              <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-3 text-center">
                 <p className="text-xs opacity-70">Weight Change</p>
                 <p className={`text-2xl font-bold ${filteredWellnessSummary.weight_change_lbs < 0 ? 'text-black' : filteredWellnessSummary.weight_change_lbs > 0 ? 'text-black' : 'text-gray-400'}`}>
                   {filteredWellnessSummary.weight_change_lbs > 0 ? '+' : ''}{filteredWellnessSummary.weight_change_lbs || 0} lbs
@@ -732,7 +732,7 @@ function ProgressLogs() {
             </div>
           )}
 
-          <div className="card bg-base-300 rounded-box p-4">
+          <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-4">
             <h2 className="text-lg font-bold mb-4">Wellness Trends ({timeView === 'weekly' ? 'Last 7 Days' : timeView === 'monthly' ? 'This Month' : 'By Month'})</h2>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -826,7 +826,7 @@ function ProgressLogs() {
             </div>
           </div>
 
-          <div className="card bg-base-300 rounded-box p-4">
+          <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-4">
             <h2 className="text-lg font-bold mb-4">Workout Schedule Overview ({timeView === 'weekly' ? 'Last 7 Days' : timeView === 'monthly' ? 'This Month' : 'By Month'})</h2>
             {loadingInsights ? (
               <div className="flex items-center justify-center h-64">
@@ -851,7 +851,7 @@ function ProgressLogs() {
             )}
           </div>
           <div className="flex w-full h-80 gap-4">
-            <div className="card bg-base-300 rounded-box w-1/3 grow p-4">
+            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box w-1/3 grow p-4">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-bold">Goals Progress</h2>
                 <button className="btn btn-primary text-white bg-blue-800 btn-sm" onClick={() => setPopOpen("create")}>
@@ -905,7 +905,7 @@ function ProgressLogs() {
               )}
             </div>
           </div>
-          <form className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full p-6 bg-white rounded-xl shadow-lg border border-gray-100 dark:bg-gray-800">
+          <form className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full p-6 bg-white rounded-xl shadow-lg border border-base-500 dark:bg-gray-800">
             <div className="form-control flex flex-col items-center">
               <label className="label font-semibold text-gray-600 dark:text-gray-300">Before Photo:</label>
               <div className="flex items-center gap-4">
