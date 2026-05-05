@@ -687,7 +687,10 @@ function ProgressLogs() {
   const [calendarMonth, setCalendarMonth] = useState(new Date());
 
   const handleUpload = (type) => {
-    openCloudinaryWidget((url) => {
+    openCloudinaryWidget(async (url) => {
+      let newBeforeImage = beforeImage;
+      let newAfterImage = afterImage;
+      
       // Update the profileData object specifically
       if (type === 'before') {
         console.log("Setting before image");
@@ -697,6 +700,15 @@ function ProgressLogs() {
         console.log("Setting after image");
         setAfterImage(url);
         newAfterImage = url;
+      }
+      
+      // Save to backend
+      try {
+        await saveProgressPhotos(newBeforeImage, newAfterImage);
+        showAlert("Image uploaded and saved successfully!", "success");
+      } catch (error) {
+        showAlert("Failed to save image to backend", "error");
+        console.error("Backend save error:", error);
       }
     });
   };
