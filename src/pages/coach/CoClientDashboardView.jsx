@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../../axios";
 import { useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 
 function CoClientDashboardView() {
   const { id } = useParams();
   const [dashboard, setDashboard] = useState(null);
   const [selectedGoal, setSelectedGoal] = useState(null);
+  const navigate = useNavigate();
 
   const fetchClientDashboard = async () => {
     try {
@@ -60,8 +62,8 @@ function CoClientDashboardView() {
       console.error("Failed to update goal:", err.response?.data || err);
       alert(
         err.response?.data?.message ||
-          err.response?.data?.description ||
-          "Failed to update goal."
+        err.response?.data?.description ||
+        "Failed to update goal."
       );
     }
   };
@@ -80,7 +82,12 @@ function CoClientDashboardView() {
     <div className="p-6 flex flex-col gap-6">
       <div>
         <div className="flex items-center gap-4">
-            <button className="cursor-pointer border flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200" onClick={() => navigate(-1)} > Back</button>
+          <button
+            className="btn btn-sm bg-white text-black border border-black hover:bg-black hover:text-white transition duration-200"
+            onClick={() => navigate(-1)}
+          >
+            Back
+          </button>
           <div className="text-2xl font-bold">
             {client.first_name || "Client"} {client.last_name || ""}
           </div>
@@ -110,7 +117,7 @@ function CoClientDashboardView() {
           <h2 className="text-sm font-semibold">Sleep</h2>
           <p className="text-2xl font-bold">
             {progress.avg_sleep_hours !== null &&
-            progress.avg_sleep_hours !== undefined
+              progress.avg_sleep_hours !== undefined
               ? `${progress.avg_sleep_hours} hrs`
               : "--"}
           </p>

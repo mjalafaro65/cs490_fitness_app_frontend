@@ -352,9 +352,9 @@ function CoDashboard() {
                           className="btn btn-sm btn-outline"
                           onClick={() => setSelectedClient(client)}
                         >
-                            Manage
-                          </button>
-                        </div>
+                          Manage
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -455,7 +455,7 @@ function CoDashboard() {
                 Message Client
               </button>
 
-              <button className="btn btn-sm btn-error">
+              <button className="btn btn-sm bg-black text-white hover:bg-red-600 hover:text-white transition">
                 Drop Client
               </button>
             </div>

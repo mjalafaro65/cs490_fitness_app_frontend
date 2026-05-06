@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../App.css";
 import api from "../../axios";
+import Alert from "../../components/Alert";
+import Confirm from "../../components/confirm";
+
 
 function CReviews() {
   const navigate = useNavigate();
@@ -10,28 +13,59 @@ function CReviews() {
   const [editingReview, setEditingReview] = useState(null);
   const [error, setError] = useState("");
 
+  const [alert, setShowAlert] = useState(false);
+  const [alertMsg, setAlertMsg] = useState('');
+  const [alertType, setAlertType] = useState('success');
+
+  const showAlert = (message, type = 'success') => {
+    console.log("ALERT FUNCTION CALLED with:", message, type);
+    setAlertMsg(message);
+    setAlertType(type);
+    setShowAlert(true);
+  };
+
+  const [confirmState, setConfirmState] = useState({
+    open: false,
+    message: "",
+    type: "default",
+    resolve: null,
+  });
+
+  const confirm = ({ message, type = "default" }) => {
+    return new Promise((resolve) => {
+      setConfirmState({
+        open: true,
+        message,
+        type,
+        onResolve: resolve,
+      });
+    });
+  };
+
+
   useEffect(() => {
-    const fetchReviews = async () => {
-      try {
-        const response = await api.get("/client/my-reviews");
-        setReviews(response.data || []);
-      } catch (err) {
-        console.error("Failed to fetch reviews:", err);
-        setError("Failed to load reviews");
-      } finally {
-        setLoading(false);
-      }
-    };
 
     fetchReviews();
   }, []);
 
+  const fetchReviews = async () => {
+    try {
+      const response = await api.get("/client/my-reviews");
+      console.log(response.data)
+      setReviews(response.data || []);
+    } catch (err) {
+      console.error("Failed to fetch reviews:", err);
+      setError("Failed to load reviews");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDeleteReview = async (reviewId) => {
-    if (!window.confirm("Are you sure you want to delete this review?")) return;
-    
+
     try {
       await api.delete(`/client/my-reviews/${reviewId}`);
-      setReviews(reviews.filter(review => review.review_id !== reviewId));
+      await fetchReviews();
     } catch (err) {
       console.error("Failed to delete review:", err);
       setError("Failed to delete review");
@@ -39,21 +73,26 @@ function CReviews() {
   };
 
   const handleEditReview = (review) => {
+    console.log(review)
     setEditingReview(review);
   };
 
   const handleUpdateReview = async (e) => {
     e.preventDefault();
-    
+
+    console.log(editingReview)
+
     try {
-      await api.put(`/client/my-reviews/${editingReview.review_id}`, {
-        rating: editingReview.rating,
-        comment: editingReview.comment
-      });
-      
-      setReviews(reviews.map(review => 
-        review.review_id === editingReview.review_id ? editingReview : review
-      ));
+      const res = await api.patch(
+        `/client/my-reviews/${editingReview.review_id}`,
+        {
+          rating: editingReview.rating,
+          comment: editingReview.comment
+        }
+      );
+
+      await fetchReviews();
+
       setEditingReview(null);
     } catch (err) {
       console.error("Failed to update review:", err);
@@ -68,6 +107,35 @@ function CReviews() {
       </span>
     ));
   };
+  const renderEditableStars = (rating) => {
+    return [...Array(5)].map((_, i) => {
+      const value = i + 1;
+
+      return (
+        <span
+          key={value}
+          onClick={() => setRating(Number(value))}
+          className={`cursor-pointer text-2xl ${value <= rating ? "text-blue-800" : "text-gray-300"
+            }`}
+        >
+          ★
+        </span>
+      );
+    });
+  };
+
+  const setRating = (value) => {
+    setEditingReview((prev) => ({
+      ...prev,
+      rating: Number(value)
+    }));
+  };
+
+  useEffect(() => {
+    if (error) {
+      showAlert("Failed to edit review", "error");
+    }
+  }, [error]);
 
   if (loading) {
     return (
@@ -92,28 +160,24 @@ function CReviews() {
         <section className="p-6">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-4">
-              <button 
+              <button
                 className="btn btn-ghost btn-sm gap-2 normal-case"
-                onClick={() => navigate("/client/mycoach")}
+                onClick={() => navigate(-1)}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
-                Back to My Coach
+                Back
               </button>
               <h1 className="text-3xl font-bold">My Reviews</h1>
             </div>
-            {error && (
-              <div className="alert alert-error">
-                <span>{error}</span>
-              </div>
-            )}
+
           </div>
 
           {reviews.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-gray-500 mb-4">You haven't written any reviews yet.</p>
-              <button 
+              <button
                 className="btn bg-blue-800 btn-primary bg-blue-800"
                 onClick={() => navigate("/client/coaches")}
               >
@@ -127,51 +191,73 @@ function CReviews() {
                   <div className="card-body">
                     <div className="flex justify-between items-start mb-2">
                       <div>
-                        <h3 className="text-lg font-semibold">{review.coach_name}</h3>
+                        <h3 className="text-lg font-semibold">{review.coach_first_name} {review.coach_last_name}</h3>
                         <div className="flex items-center">
                           {renderStars(review.rating)}
                           <span className="ml-2 text-sm text-gray-600">({review.rating}/5)</span>
                         </div>
+                        <div>
+                          <p className="text-gray-700 mb-2">{review.comment}</p>
+                          <div className="flex items-center gap-4 text-sm text-gray-500">
+
+                            <span>
+                              Updated: {new Date(review.updated_at).toLocaleDateString()}
+                            </span>
+
+                            <span className="text-gray-300">•</span>
+                            <span>
+                              Reviewed: {new Date(review.created_at).toLocaleDateString()}
+                            </span>
+
+
+                          </div>
+
+                        </div>
                       </div>
                       <div className="flex gap-2">
-                        <button 
+                        <button
                           className="btn btn-ghost btn-sm"
                           onClick={() => handleEditReview(review)}
                         >
                           Edit
                         </button>
-                        <button 
+                        <button
                           className="btn btn-ghost btn-sm text-red-500"
-                          onClick={() => handleDeleteReview(review.review_id)}
+                          onClick={async () => {
+                            const ok = await confirm({
+                              message: "Are you sure you want to delete this review?",
+                              type: "cancel",
+                            });
+
+                            if (!ok) return;
+
+                            await handleDeleteReview(review.review_id);
+                          }}
                         >
                           Delete
                         </button>
                       </div>
                     </div>
-                    
-                    {editingReview?.review_id === review.review_id ? (
+
+                    {editingReview?.review_id === review.review_id && (
+
                       <form onSubmit={handleUpdateReview} className="space-y-3">
+                        <h3 className="text-lg font-semibold">Editing review :</h3>
                         <div>
-                          <label className="label">Rating (1-5):</label>
-                          <select 
-                            className="select select-bordered w-full"
-                            value={editingReview.rating}
-                            onChange={(e) => setEditingReview({...editingReview, rating: parseInt(e.target.value)})}
-                          >
-                            <option value="1">1 - Poor</option>
-                            <option value="2">2 - Fair</option>
-                            <option value="3">3 - Good</option>
-                            <option value="4">4 - Very Good</option>
-                            <option value="5">5 - Excellent</option>
-                          </select>
+                          <div className="mb-3">
+                            <p className="text-sm text-gray-600 mb-1">Rating</p>
+                            <div className="flex gap-1">
+                              {renderEditableStars(editingReview.rating)}
+                            </div>
+                          </div>
                         </div>
                         <div>
                           <label className="label">Review:</label>
-                          <textarea 
+                          <textarea
                             className="textarea textarea-bordered w-full"
                             rows="3"
                             value={editingReview.comment}
-                            onChange={(e) => setEditingReview({...editingReview, comment: e.target.value})}
+                            onChange={(e) => setEditingReview({ ...editingReview, comment: e.target.value })}
                             required
                           />
                         </div>
@@ -179,8 +265,8 @@ function CReviews() {
                           <button type="submit" className="btn btn-primary bg-blue-800">
                             Save Changes
                           </button>
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             className="btn btn-ghost"
                             onClick={() => setEditingReview(null)}
                           >
@@ -188,21 +274,58 @@ function CReviews() {
                           </button>
                         </div>
                       </form>
-                    ) : (
-                      <div>
-                        <p className="text-gray-700 mb-2">{review.comment}</p>
-                        <p className="text-sm text-gray-500">
-                          Reviewed on {new Date(review.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
                     )}
                   </div>
                 </div>
               ))}
+
+              {confirmState.open && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+                  <div className="bg-white p-4 rounded w-80">
+
+                    <p className="text-sm mb-4">
+                      {confirmState.message}
+                    </p>
+
+                    <div className="flex justify-end gap-2">
+                      <button
+                        className="btn btn-xs"
+                        onClick={() => {
+                          confirmState.onResolve(false);
+                          setConfirmState({ ...confirmState, open: false });
+                        }}
+                      >
+                        No
+                      </button>
+
+                      <button
+                        className={`btn btn-xs text-white ${confirmState.type === "cancel"
+                          ? "bg-red-600"
+                          : "bg-blue-700"
+                          }`}
+                        onClick={() => {
+                          confirmState.onResolve(true);
+                          setConfirmState({ ...confirmState, open: false });
+                        }}
+                      >
+                        Yes
+                      </button>
+                    </div>
+
+                  </div>
+                </div>
+              )}
             </div>
           )}
+          <Alert
+            isOpen={alert}
+            message={alertMsg}
+            type={alertType}
+            onClose={() => setShowAlert(false)} />
         </section>
       </div>
+
+
     </div>
   );
 }
