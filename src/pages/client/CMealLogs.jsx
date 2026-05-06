@@ -52,6 +52,7 @@ function ClientMealLogs(){
   const [isLargeOpen, setLargeOpen] = useState(null);
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [mealLogToDelete, setMealLogToDelete] = useState(null);
 
   const [alert, setShowAlert] = useState(false);
   const [alertMsg, setAlertMsg] = useState('');
@@ -196,7 +197,10 @@ function ClientMealLogs(){
   };
 
   const deleteMealLog = async (logId) => {
-    if (!window.confirm("Are you sure you want to delete this meal log?")) return false;
+    if (!logId) {
+    showAlert("No meal log selected to delete", "error");
+    return false;
+  }
     
     try {
       await api.delete(`/nutrition/meal-logs/${logId}`);
@@ -204,6 +208,8 @@ function ClientMealLogs(){
       showAlert("Meal log deleted successfully!", "success");
       await fetchMealHistory();
       await fetchNutritionInsights(); 
+      setPopOpen(null);
+      setMealLogToDelete(null);
       return true;
     } catch (err) {
       console.error("Failed to delete meal log:", err.response?.data || err);
@@ -221,6 +227,11 @@ function ClientMealLogs(){
       servings: editLogData.servings,
       notes: editLogData.notes
     });
+  };
+
+  const openDeleteConfirm = (mealLog) => {
+    setMealLogToDelete(mealLog);
+    setPopOpen("delete");
   };
 
   const handleDeleteFromEdit = async () => {
@@ -337,7 +348,6 @@ function ClientMealLogs(){
       
       showAlert("Meal plan created successfully!", "success");
       
-      // Refresh meal plans after creation
       await fetchMealPlans();
       
     } catch (error) {
@@ -393,7 +403,7 @@ function ClientMealLogs(){
 
     const dailyData = prepareDailyData();
     const weeklyData = prepareWeeklyData();
-
+    //I have to fix this
     const pieData = dailyData.map(day => ({
       name: day.date,
       value: day.calories
@@ -537,10 +547,9 @@ function ClientMealLogs(){
                       </button>
                       <button 
                         className="btn btn-sm bg-red-600 text-white"
-                        onClick={async (e) => {
+                        onClick={(e) => {
                           e.stopPropagation();
-                          if (await deleteMealLog(meal.meal_log_id)) {
-                          }
+                          openDeleteConfirm(meal); 
                         }}
                       >
                         Delete
@@ -706,6 +715,40 @@ function ClientMealLogs(){
           </fieldset>
         </form>
       )}
+      </PopUp>
+      <PopUp isOpen={isPopOpen === "delete"} onClose={() => {setPopOpen(null); setMealLogToDelete(null);}}>
+          <fieldset className="fieldset bg-base-200 border-gray-500 rounded-box w-s border p-4">
+              <legend className="fieldset-legend px-2 text-xl bg-base-200 rounded-box">
+                  Delete This Log
+              </legend>
+              <p className="text-gray-700 font-semibold my-2">
+                  Are you sure you want delete this log?
+              </p>
+              {mealLogToDelete && (
+                <div className="bg-base-100 p-3 rounded mt-2 mb-2">
+                  <p><strong>Meal ID:</strong> {mealLogToDelete.meal_id}</p>
+                  <p><strong>Servings:</strong> {mealLogToDelete.servings}</p>
+                  {mealLogToDelete.notes && <p><strong>Notes:</strong> {mealLogToDelete.notes}</p>}
+                </div>
+              )}
+              <div className="flex gap-4 mt-4">
+                  <button
+                      className="btn bg-red-600 btn-neutral ml-auto"
+                      type="button"
+                      onClick={() => deleteMealLog(mealLogToDelete?.meal_log_id)}
+                  >
+                      Delete
+                  </button>
+                  <button
+                      className="btn bg-blue-800 btn-neutral"
+                      type="button"
+                      onClick={() => {setPopOpen(null);
+                                      setMealLogToDelete(null);}}
+                  >
+                      Cancel
+                  </button>
+              </div>
+          </fieldset>
       </PopUp>
       <LargeModal open={isLargeOpen !== null} onClose={() => setLargeOpen(null)}>
       {isLargeOpen === "browse" && ( 

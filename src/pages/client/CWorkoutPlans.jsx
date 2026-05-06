@@ -43,6 +43,8 @@ function ClientWorkoutPlans() {
   const [isBrowsePopOpen, setBrowsePopOpen] = useState(false);
   const [assigningDay, setAssigningDay] = useState(null);
 
+  const [planToDelete, setPlanToDelete] = useState(null);
+
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [editData, setEditData] = useState({
     name: "",
@@ -140,7 +142,10 @@ function ClientWorkoutPlans() {
     }
   };
 
-
+  const openDeleteConfirm = (plan) => {
+    setPlanToDelete(plan);
+    setPopOpen("deletePlan");
+  };
 
   const fetchAllData = async () => {
     console.log("[DEBUG] fetchAllData called - fetching plans and calendar workouts");
@@ -269,15 +274,14 @@ function ClientWorkoutPlans() {
   }, [currentDate]);
 
   const handleDeletePlan = async (plan_id) => {
-    console.log("[DEBUG] handleDeletePlan called for plan_id:", plan_id);
-    if (!window.confirm("Are you sure you want to delete this entire workout plan? This action cannot be undone.")) return;
     try {
       await api.delete(`/workouts/plans/${plan_id}`);
-      console.log("[DEBUG] Plan deleted successfully:", plan_id);
+      console.log("Plan deleted successfully:", plan_id);
       await fetchAllData();
 
       if (selectedPlan?.plan_id === plan_id) {
         setPopOpen(null);
+        setPlanToDelete(null);
         setSelectedPlan(null);
       }
       showAlert("Plan deleted successfully.", "success");
@@ -1519,7 +1523,10 @@ function ClientWorkoutPlans() {
           <div className="flex justify-center mt-6">
             <button
               className="btn btn-sm bg-red-600 text-white"
-              onClick={() => handleDeletePlan(selectedPlan.plan_id)}
+              onClick={(e) => {
+                          e.stopPropagation();
+                          openDeleteConfirm(meal); 
+                        }}
             >
               Delete Plan
             </button>
@@ -1603,6 +1610,40 @@ function ClientWorkoutPlans() {
           </LargeModal>
         )
       }
+
+      <PopUp isOpen={isPopOpen === "deletePlan"} onClose={() => {setPopOpen(null); setPlanToDelete(null);}}>
+          <fieldset className="fieldset bg-base-200 border-gray-500 rounded-box w-s border p-4">
+              <legend className="fieldset-legend px-2 text-xl bg-base-200 rounded-box">
+                  Delete This Plan
+              </legend>
+              <p className="text-gray-700 font-semibold my-2">
+                  Are you sure you want to delete this entire workout plan? This action cannot be undone.
+              </p>
+              {planToDelete && (
+                <div className="bg-base-100 p-3 rounded mt-2 mb-2">
+                  <p><strong>Plan ID:</strong> {planToDelete.plan_id}</p>
+                  {planToDelete.notes && <p><strong>Notes:</strong> {planToDelete.notes}</p>}
+                </div>
+              )}
+              <div className="flex gap-4 mt-4">
+                  <button
+                      className="btn bg-red-600 btn-neutral ml-auto"
+                      type="button"
+                      onClick={() => handleDeletePlan(planToDelete?.plan_id)}
+                  >
+                      Delete
+                  </button>
+                  <button
+                      className="btn bg-blue-800 btn-neutral"
+                      type="button"
+                      onClick={() => {setPopOpen(null);
+                                      setPlanToDelete(null);}}
+                  >
+                      Cancel
+                  </button>
+              </div>
+          </fieldset>
+      </PopUp>
 
       <Alert
         isOpen={alert}
