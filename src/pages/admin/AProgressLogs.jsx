@@ -76,6 +76,8 @@ function AProgressLogs() {
         setReportError(null);
         
         console.log(`Fetching active report for period: ${selectedPeriod}`);
+
+        // GET /admin/users/active-report?period=daily|weekly|monthly
         
         const response = await api.get("/admin/users/active-report", {
           params: {
@@ -124,6 +126,7 @@ function AProgressLogs() {
 
     fetchActiveReport();
   }, [selectedPeriod]);
+  selectedPeriod
 
   const closePopUp = () => {
     setPopOpen(null);
