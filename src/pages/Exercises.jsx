@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import api from "../axios";
+import PopUp from "../components/PopUp";
+import Alert from "../components/Alert.jsx";
 
 function BrowseExercises({ planId, dayId, weekday, onExerciseAdded, onClose }) {
   const [exercises, setExercises] = useState([]);
@@ -9,6 +11,18 @@ function BrowseExercises({ planId, dayId, weekday, onExerciseAdded, onClose }) {
   const [addingExercise, setAddingExercise] = useState(false);
   const [view, setView] = useState("browse");
   const [showAddForm, setShowAddForm] = useState(false);
+  const [popOpen, setPopOpen] = useState(null);
+
+  const [alert, setShowAlert] = useState(false);
+  const [alertMsg, setAlertMsg] = useState('');
+  const [alertType, setAlertType] = useState('success');
+
+  const showAlert = (message, type = 'success') => {
+      console.log("ALERT FUNCTION CALLED with:", message, type);
+      setAlertMsg(message);
+      setAlertType(type);
+      setShowAlert(true);
+  };
 
   const [filters, setFilters] = useState({
     q: "",
@@ -125,12 +139,12 @@ function BrowseExercises({ planId, dayId, weekday, onExerciseAdded, onClose }) {
 
   const handleDeleteExercise = async () => {
     if (!selectedEx) return;
-    if (!window.confirm("Deactivate this exercise?")) return;
     try {
       await api.delete(`/workouts/exercises/${selectedEx.exercise_id}`);
       setView("browse");
       setSelectedEx(null);
       fetchExercises();
+      setPopOpen(null);
     } catch (err) {
       console.error("Delete exercise failed:", err.response?.data || err);
     }
@@ -596,7 +610,7 @@ function BrowseExercises({ planId, dayId, weekday, onExerciseAdded, onClose }) {
                       </button>
                       <button
                         className="btn btn-sm btn-error btn-outline"
-                        onClick={handleDeleteExercise}
+                        onClick={setPopOpen("deactivate")}
                       >
                         Deactivate
                       </button>
@@ -624,6 +638,37 @@ function BrowseExercises({ planId, dayId, weekday, onExerciseAdded, onClose }) {
           )}
         </div>
       )}
+      <PopUp isOpen={popOpen === "deactivate"} onClose={() => setPopOpen(null)}>
+          <fieldset className="fieldset bg-base-200 border-gray-500 rounded-box w-s border p-4">
+              <legend className="fieldset-legend px-2 text-xl bg-base-200 rounded-box">
+                  Confirm Deactivation
+              </legend>
+              <p className="text-gray-700 font-semibold my-2">
+                  Are you sure you want to deactivate this workout?
+              </p>
+              <div className="flex gap-4 mt-4">
+                  <button
+                      className="btn bg-red-600 btn-neutral ml-auto"
+                      type="button"
+                      onClick={() => handleDeleteExercise()}
+                  >
+                      Yes, confirm
+                  </button>
+                  <button
+                      className="btn bg-blue-800 btn-neutral"
+                      type="button"
+                      onClick={() => setPopOpen(null)}
+                  >
+                      Cancel
+                  </button>
+              </div>
+          </fieldset>
+      </PopUp>
+      <Alert 
+        isOpen={alert} 
+        message={alertMsg}
+        type={alertType}
+        onClose={() => setShowAlert(false)}/>
     </div>
   );
 }

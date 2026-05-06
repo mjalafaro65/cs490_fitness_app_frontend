@@ -216,27 +216,32 @@ function Navbar() {
                 ))}
             </ul>
             <PopUp isOpen={isPopOpen === "confirm"} onClose={() => setPopOpen(null)}>
-                <div className="fieldset">
-                    <div className="p-2">
-                    <h3 className="text-xl font-bold text-black mb-2">Confirm Logout</h3>
-                    <p className="text-gray-700 font-medium my-2 mb-4">Are you sure you want to log out?</p>
-                    <div className="flex gap-3 justify-end mt-8">
+                <fieldset className="fieldset bg-base-200 border-gray-500 rounded-box w-s border p-4">
+                    <legend className="fieldset-legend px-2 text-xl bg-base-200 rounded-box">
+                        Confirm Logout
+                    </legend>
+                    <p className="text-gray-700 font-semibold my-2">
+                        Are you sure you want to log out?
+                    </p>
+                    <div className="flex gap-4 mt-4">
                         <button
-                            onClick={handleCancelLogout}
-                            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={handleConfirmLogout}
-                            className="px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors cursor-pointer"
+                            className="btn bg-red-600 btn-neutral ml-auto"
+                            type="button"
+                            onClick={() => handleConfirmLogout()}
                         >
                             Logout
                         </button>
+                        <button
+                            className="btn bg-blue-800 btn-neutral"
+                            type="button"
+                            onClick={() => handleCancelLogout(null)}
+                        >
+                            Cancel
+                        </button>
                     </div>
-                    </div>
-                </div>
+                </fieldset>
             </PopUp>
+
         </div>
     );
 }
