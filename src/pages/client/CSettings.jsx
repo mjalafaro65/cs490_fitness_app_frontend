@@ -137,8 +137,8 @@ function CSettings() {
 
             showAlert("Profile updated successfully!", "success");
         } catch (error) {
-        console.error("ERROR occurred:", error);
-        showAlert(error.response?.data?.message || "Failed to update profile", "error");
+            console.error("ERROR occurred:", error);
+            showAlert(error.response?.data?.message || "Failed to update profile", "error");
             if (error.response || error.response2) {
                 console.error("Backend errors:", error.response.data);
                 //console.error("Backend errors:", error.response2.data);
@@ -154,7 +154,7 @@ function CSettings() {
 
             const response = await api.delete("/user/me", {
                 data: {
-                    reason:reason,
+                    reason: reason,
                     detailed_reason: detailedReason
                 }
 
@@ -202,13 +202,18 @@ function CSettings() {
                 clientAllowedFormats: ["jpg", "png", "jpeg", "pdf"],
                 zIndex: 2000
             },
-            (error, result) => {
+            async (error, result) => {
                 if (!error && result && result.event === "success") {
                     setData(prev => ({
                         ...prev,
                         profile_photo: result.info.secure_url
                     }));
-                    showAlert("Photo uploaded successfully! Don't forget to save your changes.", "success");
+                    const formattedData = {
+                        profile_photo: result.info.secure_url
+                    }
+                    const response = await api.put("/client/profile", formattedData);
+                    console.log("SUCCESS:", response.data);
+                    showAlert("Photo uploaded successfully!", "success");
                 }
                 if (error) {
                     console.error("Cloudinary Widget Error:", error);
@@ -216,7 +221,7 @@ function CSettings() {
                 }
             }
         );
- 
+
         widget.open();
     };
 
@@ -226,33 +231,33 @@ function CSettings() {
             <div className="drawer-content">
                 <section className="p-6 flex flex-col gap-6">
                     <div className="text-2xl font-bold mb-2">Settings</div>
-                    <section className="p-10 flex flex-col md:flex-row gap-30 items-start">
+                    <section className="p-10 flex flex-col md:flex-row gap-30 items-start card bg-base-100 shadow-lg border border-base-500">
                         <div className="flex-shrink-0 flex flex-col items-center">
                             <div className="flex-shrink-0 w-35 h-35 rounded-full overflow-hidden border-2 border-gray-300 ">
-                                 {initialData?.profile_photo ? (
-                                <img
-                                    src={initialData.profile_photo}
-                                    alt="Profile"
-                                    className="w-full h-full  object-cover  object-cover scale-160   "
-                                />
-                            ) : (
-                                <div className="w-50 h-50 bg-blue-800  rounded-full  text-primary-content flex items-center justify-center text-4xl font-bold uppercase border-4 border-base-100 shadow-lg">
-                                    {users?.first_name?.[0]?.toUpperCase() || "?"}
-                                </div>
-                            )}
+                                {initialData?.profile_photo ? (
+                                    <img
+                                        src={initialData.profile_photo}
+                                        alt="Profile"
+                                        className="w-full h-full  object-cover  object-cover scale-160   "
+                                    />
+                                ) : (
+                                    <div className="w-50 h-50 bg-blue-800  rounded-full  text-primary-content flex items-center justify-center text-4xl font-bold uppercase border-4 border-base-100 shadow-lg">
+                                        {users?.first_name?.[0]?.toUpperCase() || "?"}
+                                    </div>
+                                )}
                             </div>
-                           
+
                             <div className="mt-6">
                                 <button
                                     type="button"
                                     onClick={handleOpenWidget}
                                     className="btn btn-outline border-blue-800 text-blue-800 hover:bg-blue-800 hover:text-white bg-white"
                                 >
-                                Edit Image
+                                    Edit Image
                                 </button>
                             </div>
                         </div>
-                        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full p-6 bg-white rounded-xl shadow-lg border border-gray-100">
+                        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full p-6 bg-white rounded-xl shadow-lg border border-gray-300">
 
                             <div className="flex flex-col gap-1">
                                 <span className="font-semibold text-gray-600">First Name</span>
@@ -289,19 +294,6 @@ function CSettings() {
                                     placeholder="XXX-XXX-XXXX"
                                 />
                             </div>
-                            {/*
-                            <div className="flex flex-col md:col-span-2 gap-1">
-                                <span className="font-semibold text-gray-600">Email</span>
-                                <input
-                                className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                type="email"
-                                name="email"
-                                value={initialData.email}
-                                onChange={handleChange}
-                                placeholder="Email"
-                                />
-                            </div>
-                            */}
 
                             <div className="flex flex-col gap-1">
                                 <span className="font-semibold text-gray-600">Date of Birth</span>
@@ -312,6 +304,19 @@ function CSettings() {
                                     value={initialData.date_of_birth}
                                     onChange={handleChange}
                                 />
+                            </div>
+
+                            <div className="flex flex-col gap-1">
+
+                                <label className="label font-semibold">Gender: </label>
+                                <select className="select" id="gender" name="gender" value={initialData.gender} onChange={handleChange}>
+                                    <option value="">Select</option>
+                                    <option value="female">Female</option>
+                                    <option value="male">Male</option>
+                                    <option value="prefer_not_to_say">Prefer not to say</option>
+                                    <option value="other">Other</option>
+                                    <option value="null">None</option>
+                                </select>
                             </div>
 
                             <div className="flex flex-col md:col-span-2 gap-1">
@@ -584,7 +589,7 @@ function CSettings() {
                             </fieldset>
                         </PopUp>
                     </div>
-                   
+
                     <div>
                         {!user?.roles?.includes(2) && (
                             <button
@@ -595,7 +600,7 @@ function CSettings() {
                             </button>
                         )}
 
-                    </div>
+                    </div> 
                     <div className="flex justify-end mt-4">
                         <button
                             className="btn bg-blue-800 btn-primary text-white btn-m rounded-t mr-2 mb-2"
@@ -632,11 +637,11 @@ function CSettings() {
                     </div>
                 </section>
             </div>
-                <Alert 
-                    isOpen={alert} 
-                    message={alertMsg}
-                    type={alertType}
-                    onClose={() => setShowAlert(false)}/>
+            <Alert
+                isOpen={alert}
+                message={alertMsg}
+                type={alertType}
+                onClose={() => setShowAlert(false)} />
         </div>
     );
 
@@ -644,8 +649,8 @@ function CSettings() {
 
 
 
-    
- 
-} 
+
+
+}
 
 export default CSettings;

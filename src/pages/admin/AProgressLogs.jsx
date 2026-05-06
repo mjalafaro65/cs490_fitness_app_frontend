@@ -268,7 +268,7 @@ function AProgressLogs() {
           ) : (
             <>
               <div className="grid grid-cols-4 lg:grid-cols-4 gap-3">
-                <div className="card bg-base-300 rounded-box p-5">
+                <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-5">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs font-semibold opacity-60 uppercase tracking-wide">Total Users</p>
@@ -282,7 +282,7 @@ function AProgressLogs() {
                   </div>
                 </div>
 
-                <div className="card bg-base-300 rounded-box p-5">
+                <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-5">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs font-semibold opacity-60 uppercase tracking-wide">Active Users</p>
@@ -296,7 +296,7 @@ function AProgressLogs() {
                   </div>
                 </div>
 
-                <div className="card bg-base-300 rounded-box p-5">
+                <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-5">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs font-semibold opacity-60 uppercase tracking-wide">Inactive Users</p>
@@ -310,7 +310,7 @@ function AProgressLogs() {
                   </div>
                 </div>
 
-                <div className="card bg-base-300 rounded-box p-5">
+                <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-5">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs font-semibold opacity-60 uppercase tracking-wide">New Users (7 days)</p>
@@ -355,7 +355,7 @@ function AProgressLogs() {
               </div>
 */}
               {stats.total_users > 0 && (
-  <div className="mt-8 card bg-base-300 rounded-box p-6">
+  <div className="mt-8 card bg-base-200 shadow-lg border border-base-500 rounded-box p-6">
     <div className="text-base font-bold mb-6">Activity Overview</div>
     
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

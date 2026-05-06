@@ -126,7 +126,7 @@ function CoDashboard() {
         <section className="p-6 flex flex-col gap-6">
           <div className="text-2xl font-bold mb-4">Dashboard</div>
 
-          <div className="card bg-base-300 rounded-box p-4">
+          <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-4">
             <div className="flex items-center justify-between mb-4">
               <button
                 className="btn btn-sm btn-ghost"
@@ -221,7 +221,7 @@ function CoDashboard() {
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            <div className="card bg-base-300 rounded-box p-4">
+            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-4">
               <h2 className="text-base font-bold mb-3">
                 {selectedDay.toLocaleDateString("default", {
                   weekday: "long",
@@ -264,7 +264,7 @@ function CoDashboard() {
               )}
             </div>
 
-            <div className="card bg-base-300 rounded-box p-4">
+            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-4">
               <h2 className="text-base font-bold mb-3">
                 Unread Messages ({messages.length})
               </h2>
@@ -277,7 +277,7 @@ function CoDashboard() {
                 messages.map((conversation) => (
                   <div
                     key={conversation.conversation_id}
-                    className="p-3 bg-base-200 rounded-lg flex justify-between items-center mb-3"
+                    className="p-3 bg-base-100 rounded-lg flex justify-between items-center mb-3"
                   >
                     <div>
                       <p className="font-semibold text-sm">
@@ -309,7 +309,7 @@ function CoDashboard() {
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            <div className="card bg-base-300 rounded-box p-4">
+            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-4">
               <h2 className="text-lg font-bold mb-2">Clients</h2>
 
               {isLoadingDashboard ? (
@@ -361,7 +361,7 @@ function CoDashboard() {
               )}
             </div>
 
-            <div className="card bg-base-300 rounded-box p-4">
+            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-4">
               <h2 className="text-lg font-bold mb-2">Requests</h2>
 
               {isLoadingDashboard ? (
