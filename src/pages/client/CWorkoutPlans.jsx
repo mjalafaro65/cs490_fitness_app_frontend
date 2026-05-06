@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import Alert from "../../components/Alert";
 import Confirm from "../../components/confirm";
 
-function LargeModal({ open, onClose, children, width = "80vw", height = "85vh" }) {
+function LargeModal({ open, onClose, children, width = "50vw", height = "70vh" }) {
   if (!open) return null;
   return (
     <div
@@ -55,8 +55,6 @@ function ClientWorkoutPlans() {
 
   const [isBrowsePopOpen, setBrowsePopOpen] = useState(false);
   const [assigningDay, setAssigningDay] = useState(null);
-
-  const [planToDelete, setPlanToDelete] = useState(null);
 
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [editData, setEditData] = useState({
@@ -126,6 +124,9 @@ function ClientWorkoutPlans() {
   const [plans, setPlans] = useState([]);
   const [workoutMap, setWorkoutMap] = useState({});
 
+  const [assignPlan, setAssignPlan] = useState(null);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+
   const showAlert = (message, type = 'success') => {
     console.log("ALERT FUNCTION CALLED with:", message, type);
     setAlertMsg(message);
@@ -162,15 +163,13 @@ function ClientWorkoutPlans() {
     }
   };
 
-  const openDeleteConfirm = (plan) => {
-    setPlanToDelete(plan);
-    setPopOpen("deletePlan");
-  };
+
 
   const fetchAllData = async () => {
     console.log("[DEBUG] fetchAllData called - fetching plans and calendar workouts");
     await Promise.all([
       fetchPlansWithDetails(),
+      getMyAssignments()
     ]);
     console.log("SCHEDULED WORKOUTS:", scheduledWorkouts);
     console.log("[DEBUG] fetchAllData completed");
@@ -213,16 +212,15 @@ function ClientWorkoutPlans() {
     }));
   }
   useEffect(() => {
-    const load = async () => {
-      const data = await getMyAssignments();
+    const init = async () => {
+      console.log("[DEBUG] initializing");
 
-      const cleaned = simplifyAssignments(data);
-      console.log("[DEBUG cleaned]", cleaned);
-
-      setScheduledPlans(cleaned);
+      await Promise.all([
+        fetchAllData(),
+      ]);
     };
 
-    load();
+    init();
   }, []);
 
   const getWorkoutsForDay = async (date) => {
@@ -239,23 +237,8 @@ function ClientWorkoutPlans() {
   };
 
 
-  const refreshActivePlans = async () => {
-    const data = await getMyAssignments();
-    const cleaned = simplifyAssignments(data);
-    setScheduledPlans(cleaned);
-  };
 
-  useEffect(() => {
-    const init = async () => {
-      console.log("[DEBUG] initializing");
 
-      await Promise.all([
-        fetchAllData(),
-      ]);
-    };
-
-    init();
-  }, []);
 
   const fetchWork = async (date = currentDate) => {
     setWorkoutMap({});
@@ -294,14 +277,15 @@ function ClientWorkoutPlans() {
   }, [currentDate]);
 
   const handleDeletePlan = async (plan_id) => {
+    console.log("[DEBUG] handleDeletePlan called for plan_id:", plan_id);
+    if (!window.confirm("Are you sure you want to delete this entire workout plan? This action cannot be undone.")) return;
     try {
       await api.delete(`/workouts/plans/${plan_id}`);
-      console.log("Plan deleted successfully:", plan_id);
+      console.log("[DEBUG] Plan deleted successfully:", plan_id);
       await fetchAllData();
 
       if (selectedPlan?.plan_id === plan_id) {
         setPopOpen(null);
-        setPlanToDelete(null);
         setSelectedPlan(null);
       }
       showAlert("Plan deleted successfully.", "success");
@@ -311,15 +295,16 @@ function ClientWorkoutPlans() {
     }
   };
 
+  // create new plan=> just name and description after submit
   const handleCreate = async (e) => {
-    console.log("[DEBUG] handleCreate called");
+    // console.log("[DEBUG] handleCreate called");
     e.preventDefault();
     try {
       const response = await api.post("/workouts/plans", newPlan);
       console.log("[DEBUG] Plan created successfully:", response.data);
       setPopOpen(null);
-      setNewPlan({ name: "", description: "", is_public: false });
-      await fetchAllData();
+      // setNewPlan({ name: "", description: "", is_public: false });
+      await fetchPlansWithDetails(); //not all data,just plans
       showAlert("New plan successfully created!", "success");
     } catch (err) {
       console.error("[ERROR] Create plan failed:", err.response?.data || err);
@@ -491,57 +476,25 @@ function ClientWorkoutPlans() {
 
   const handleAssignPlan = async (plan_id) => {
     try {
-      const assignmentResponse = await api.post(`/workouts/plans/${selectedPlan.plan_id}/assignments`, {
-        start_date: assignData.start_date,
-        end_date: assignData.end_date,
-        repeat_rule: "weekly",
-      });
+
+      const payload = {
+        ...(startDate && { start_date: startDate }),
+        ...(endDate && { end_date: endDate }),
+      };
+
+      const assignmentResponse = await api.post(
+        `/workouts/plans/${plan_id}/assignments`,
+        payload
+      );
+
 
       const assignmentId = assignmentResponse.data.assignment_id;
       console.log("[DEBUG] Assignment created:", assignmentId);
 
-      const occurrences = tempActiveDays.map(({ date, day }) => {
-        const year = date.getFullYear();
-        const month = date.getMonth();
-        const dayNum = date.getDate();
-
-        let startHour = 9, startMin = 0;
-        if (day.session_time) {
-          const [h, m] = day.session_time.split(":").map(Number);
-          startHour = isNaN(h) ? 9 : h;
-          startMin = isNaN(m) ? 0 : m;
-        }
-
-        const start = new Date(Date.UTC(year, month, dayNum, startHour, startMin, 0));
-        const end = new Date(Date.UTC(year, month, dayNum, startHour + 1, startMin, 0));
-        const planDayId = getPlanDayId(day);
-
-        return {
-          plan_day_id: planDayId,
-          scheduled_start: start.toISOString(),
-          scheduled_end: end.toISOString(),
-        };
-      });
-
-      console.log("[DEBUG] Occurrences to create:", occurrences);
-      const calendarResponse = await api.post(`/workouts/plans/${selectedPlan.plan_id}/calendar`, {
-        occurrences: occurrences
-      });
-      await refreshAll()
-
-
-      console.log("[DEBUG] Calendar response:", calendarResponse.data);
-      showAlert(`Success: ${calendarResponse.data.calendar_workout_ids?.length || 0} workout(s) scheduled.`, "success");
-
-      setShowScheduleCalendar(false);
-      setTempActiveDays([]);
-      setTempSelectedCalendarDay(null);
-
-      await fetchAllData();
-      await handleSelectPlan(selectedPlan.plan_id);
+      await getMyAssignments()
 
     } catch (err) {
-      console.error("[ERROR] Schedule failed:", err.response?.data);
+      console.error("[ERROR] Schedule failed:", err);
       showAlert(err.response?.data || "Failed to schedule plan", "error");
     }
   };
@@ -1025,7 +978,7 @@ function ClientWorkoutPlans() {
 
                                       setPopOpen("selectExercise");
                                     }
-                                  } }
+                                  }}
                                 >
                                   Log Workout
                                 </button>
@@ -1106,7 +1059,7 @@ function ClientWorkoutPlans() {
           <div className="card bg-base-300 rounded-box p-4">
             <h2 className="text-lg font-bold mb-4">Active Plans</h2>
             {scheduledPlans.map((plan) => {
-              if (plan?.status == "completed" || plan?.status == "canceled" ) return null;
+              if (plan?.status == "completed" || plan?.status == "canceled") return null;
 
               return (
                 <div key={plan.assignment_id} className="border rounded p-4 mb-4">
@@ -1131,7 +1084,7 @@ function ClientWorkoutPlans() {
                           className="flex items-center gap-2 px-3 py-1 rounded-full bg-base-200 text-sm"
                         >
                           <span className="font-semibold">
-                            {d.weekday || "(Schedule)"} - {d.day_label}
+                            {d.day_label}
                           </span>
 
                           {time && (
@@ -1140,7 +1093,9 @@ function ClientWorkoutPlans() {
                               <span className="font-mono">{time}</span>
                             </>
                           )}
+
                         </div>
+
                       );
                     })}
                     <button
@@ -1215,10 +1170,10 @@ function ClientWorkoutPlans() {
                           }
                         />
                       </div>
-                      <div className="h-3 bg-base-300 rounded w-12 animate-pulse"></div>
+
                     </div>
+
                   ))}
-                  <p className="text-sm opacity-70 text-center mt-2">Loading workout plans...</p>
                 </div>
 
                 {/* Action buttons */}
@@ -1284,7 +1239,22 @@ function ClientWorkoutPlans() {
                         <p className="font-bold">{plan.name}</p>
                         <p className="text-xs opacity-70">{plan.description || "No description"}</p>
                       </div>
-                      <span className="text-xs">{plan.is_public ? "Public" : "Private"}</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs">
+                          {plan.is_public ? "Public" : "Private"}
+                        </span>
+                        <button
+                          className="btn btn-xs bg-blue-800 btn-primary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setAssignPlan(plan);
+                            setShowAssignModal(true);
+                          }}
+                        >
+                          Assign
+                        </button>
+                      </div>
+
                     </div>
                   ))}
                 </div>
@@ -1613,12 +1583,10 @@ function ClientWorkoutPlans() {
       <LargeModal open={isPopOpen === "details"} onClose={() => setPopOpen(null)}>
         {selectedPlan && (
           <div>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold">{selectedPlan.name}</h2>
-            </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="space-y-4">
+
+            <div className="grid grid-cols-1 gap-6">
+              <div className="space-y-5">
                 <div className="bg-base-300 p-4 rounded-box">
                   <h3 className="font-bold mb-3">Plan Settings</h3>
                   <div className="space-y-3">
@@ -1643,7 +1611,7 @@ function ClientWorkoutPlans() {
                           <div className="flex justify-between items-start mb-2">
                             <div>
                               <span className="font-bold text-md">{day.day_label}</span>
-                              <span className="text-xs opacity-60 ml-2">({WEEKDAY_NAMES[day.weekday]})</span>
+                              {/* <span className="text-xs opacity-60 ml-2">({WEEKDAY_NAMES[day.weekday]})</span> */}
                               {day.session_time && <span className="text-xs opacity-60 ml-2">{day.session_time}</span>}
                             </div>
                             <div className="flex gap-1">
@@ -1705,10 +1673,10 @@ function ClientWorkoutPlans() {
                     <p className="text-sm font-semibold mb-2">Add New Day</p>
                     <div className="flex gap-2 flex-wrap">
                       <input className="input input-xs flex-1" placeholder="Day name" value={newDayByPlan[selectedPlan.plan_id]?.day_label || ""} onChange={(e) => handleDayChange(selectedPlan.plan_id, "day_label", e.target.value)} />
-                      <select className="select select-xs w-28" value={newDayByPlan[selectedPlan.plan_id]?.weekday ?? ""} onChange={(e) => handleDayChange(selectedPlan.plan_id, "weekday", e.target.value)}>
+                      {/* <select className="select select-xs w-28" value={newDayByPlan[selectedPlan.plan_id]?.weekday ?? ""} onChange={(e) => handleDayChange(selectedPlan.plan_id, "weekday", e.target.value)}>
                         <option value="">Weekday</option>
                         {WEEKDAY_NAMES.map((name, i) => <option key={i} value={i}>{name}</option>)}
-                      </select>
+                      </select> */}
                       {/* <input className="input input-xs w-28" type="time" placeholder="Time" value={newDayByPlan[selectedPlan.plan_id]?.session_time || ""} onChange={(e) => handleDayChange(selectedPlan.plan_id, "session_time", e.target.value)} /> */}
                       <button className="btn btn-xs btn-primary bg-blue-800" onClick={() => handleAddDay(selectedPlan.plan_id)}>Add Day</button>
                     </div>
@@ -1718,18 +1686,18 @@ function ClientWorkoutPlans() {
 
 
             </div>
-          <div className="flex justify-center mt-6">
-            <button
-              className="btn btn-sm bg-red-600 text-white"
-              onClick={(e) => {
-                          e.stopPropagation();
-                          openDeleteConfirm(meal); 
-                        }}
-            >
-              Delete Plan
-            </button>
+            <div className="flex justify-center mt-6">
+              <button
+
+                className="btn btn-sm  bg-red-600 text-white"
+                onClick={() => handleDeletePlan(selectedPlan.plan_id)}
+              >
+                Delete Plan
+              </button>
+            </div>
           </div>
-        </div>
+
+     
         )}
       </LargeModal>
 
@@ -1809,40 +1777,6 @@ function ClientWorkoutPlans() {
         )
       }
 
-
-      <PopUp isOpen={isPopOpen === "deletePlan"} onClose={() => {setPopOpen(null); setPlanToDelete(null);}}>
-          <fieldset className="fieldset bg-base-200 border-gray-500 rounded-box w-s border p-4">
-              <legend className="fieldset-legend px-2 text-xl bg-base-200 rounded-box">
-                  Delete This Plan
-              </legend>
-              <p className="text-gray-700 font-semibold my-2">
-                  Are you sure you want to delete this entire workout plan? This action cannot be undone.
-              </p>
-              {planToDelete && (
-                <div className="bg-base-100 p-3 rounded mt-2 mb-2">
-                  <p><strong>Plan ID:</strong> {planToDelete.plan_id}</p>
-                  {planToDelete.notes && <p><strong>Notes:</strong> {planToDelete.notes}</p>}
-                </div>
-              )}
-              <div className="flex gap-4 mt-4">
-                  <button
-                      className="btn bg-red-600 btn-neutral ml-auto"
-                      type="button"
-                      onClick={() => handleDeletePlan(planToDelete?.plan_id)}
-                  >
-                      Delete
-                  </button>
-                  <button
-                      className="btn bg-blue-800 btn-neutral"
-                      type="button"
-                      onClick={() => {setPopOpen(null);
-                                      setPlanToDelete(null);}}
-                  >
-                      Cancel
-                  </button>
-              </div>
-          </fieldset>
-      </PopUp>
 
       <Alert
         isOpen={alert}
