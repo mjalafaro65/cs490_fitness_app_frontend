@@ -1696,6 +1696,7 @@ function ClientWorkoutPlans() {
               </button>
             </div>
           </div>
+        </div>
         )}
       </LargeModal>
 
