@@ -122,110 +122,14 @@ function CDashboard() {
   const [hiredCoaches, setHiredCoaches] = useState([]);
 
 
- 
+
   const fetchScheduledWorkouts = async (date = null, view = "week") => {
     setIsLoadingWorkouts(true);
 
     try {
       const params = {};
 
-      //     try {
 
-      //       const stored = localStorage.getItem('scheduledWorkouts');
-
-      //       if (stored) {
-
-      //         const parsed = JSON.parse(stored);
-
-      //         setScheduledWorkouts(parsed);
-
-      //         console.log(`Loaded ${parsed.length} workouts from localStorage`);
-
-      //       }
-
-
-
-      //       const plansRes = await api.get("/workouts/plans/mine");
-
-      //       const userPlans = plansRes.data.plans || [];
-
-      //       const allWorkouts = [];
-
-
-
-      //       for (const plan of userPlans) {
-
-      //         try {
-
-      //           const planRes = await api.get(`/workouts/plans/${plan.plan_id}`);
-
-      //           const planData = planRes.data;
-
-
-
-      //           if (planData.days) {
-
-      //             planData.days.forEach(day => {
-
-      //               if (day.occurrences && day.occurrences.length > 0) {
-
-      //                 day.occurrences.forEach(occ => {
-
-      //                   allWorkouts.push({
-
-      //                     id: occ.id,
-
-      //                     plan_id: plan.plan_id,
-
-      //                     plan_name: plan.name,
-
-      //                     day_label: day.day_label,
-
-      //                     day_id: day.plan_day_id,
-
-      //                     scheduled_start: occ.scheduled_start,
-
-      //                     exercises: day.exercises || [],
-
-      //                     date_str: new Date(occ.scheduled_start).toDateString()
-
-      //                   });
-
-      //                 });
-
-      //               }
-
-      //             });
-
-      //           }
-
-      //         } catch (err) {
-
-      //           console.error(`Failed to fetch plan ${plan.plan_id}:`, err);
-
-      //         }
-
-      //       }
-
-
-
-      //       if (allWorkouts.length > 0) {
-
-      //         setScheduledWorkouts(allWorkouts);
-
-      //         localStorage.setItem('scheduledWorkouts', JSON.stringify(allWorkouts));
-
-      //         console.log(`Loaded ${allWorkouts.length} workouts from backend`);
-
-      //       }
-
-      //     } catch (err) {
-
-      //       console.error("Failed to fetch scheduled workouts:", err);
-
-      //     } finally {
-
-      //       setIsLoadingWorkouts(false);
       if (date) {
         params.date =
           date instanceof Date
@@ -481,45 +385,45 @@ function CDashboard() {
   useEffect(() => {
     fetchInsights();
   }, []);
- 
-  const  fetchInsights=async()=> {
-      setInsightsLoading(true);
-      try {
-        const response = await api.get("/insights/survey");
-        console.log("Insights response:", response.data);
 
-        const historyArray = response.data?.history || [];
+  const fetchInsights = async () => {
+    setInsightsLoading(true);
+    try {
+      const response = await api.get("/insights/survey");
+      console.log("Insights response:", response.data);
 
-        const transformedData = historyArray
-          .filter(entry => entry.date)
-          .sort((a, b) => new Date(a.date) - new Date(b.date))
-          .map(entry => {
-            const [year, month, day] = entry.date.split("-");
-            const dateObj = new Date(year, month - 1, day);
-            dateObj.setHours(0, 0, 0, 0);
+      const historyArray = response.data?.history || [];
 
-            const dateStr = `${year}-${month}-${day}`;
+      const transformedData = historyArray
+        .filter(entry => entry.date)
+        .sort((a, b) => new Date(a.date) - new Date(b.date))
+        .map(entry => {
+          const [year, month, day] = entry.date.split("-");
+          const dateObj = new Date(year, month - 1, day);
+          dateObj.setHours(0, 0, 0, 0);
 
-            return {
-              date: dateStr,
-              dateStr: dateStr,
-              displayDate: `${month}/${day}`,
-              sleep: entry.sleep_hours || 0,
-              mood: entry.mood_score || 0,
-              energy: entry.energy_level || 0,
-              water: entry.water_oz || 0,
-              weight: entry.weight_lbs || 0
-            };
-          });
+          const dateStr = `${year}-${month}-${day}`;
 
-        setInsightsData(transformedData);
-        console.log("Transformed chart data:", transformedData);
-      } catch (err) {
-        console.error("Failed to fetch insights:", err);
-      } finally {
-        setInsightsLoading(false);
-      }
+          return {
+            date: dateStr,
+            dateStr: dateStr,
+            displayDate: `${month}/${day}`,
+            sleep: entry.sleep_hours || 0,
+            mood: entry.mood_score || 0,
+            energy: entry.energy_level || 0,
+            water: entry.water_oz || 0,
+            weight: entry.weight_lbs || 0
+          };
+        });
+
+      setInsightsData(transformedData);
+      console.log("Transformed chart data:", transformedData);
+    } catch (err) {
+      console.error("Failed to fetch insights:", err);
+    } finally {
+      setInsightsLoading(false);
     }
+  }
 
 
 
@@ -833,264 +737,210 @@ function CDashboard() {
           </div>
 
 
-        <div className="flex flex-col">
-          <div className="flex gap-4 items-start">
+          <div className="flex flex-col">
+            <div className="flex gap-4 items-stretch">
 
-            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box flex-1 p-4 h-72">
-              <h2 className="text-base font-bold mb-3">
+              <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box flex-1 p-4 items-stretch">
+                <h2 className="text-base font-bold mb-3">
 
-                {selectedDay.toLocaleDateString("default", {
+                  {selectedDay.toLocaleDateString("default", {
 
-                  weekday: "long", month: "long", day: "numeric",
+                    weekday: "long", month: "long", day: "numeric",
 
-                })}
+                  })}
 
-              </h2>
+                </h2>
 
 
 
-              {isLoadingWorkouts ? (
+                {isLoadingWorkouts ? (
 
-                <p className="text-sm opacity-50">Loading workouts...</p>
+                  <p className="text-sm opacity-50">Loading workouts...</p>
 
-              ) : selectedWorkouts.length === 0 ? (
+                ) : selectedWorkouts.length === 0 ? (
 
-                <p className="text-sm opacity-50">No workouts scheduled for this day.</p>
+                  <p className="text-sm opacity-50">No workouts scheduled for this day.</p>
 
-              ) : (
+                ) : (
 
-                selectedWorkouts.map((s, si) => (
+                  selectedWorkouts.map((s, si) => (
 
-                  <div key={`det-${si}`} className="mb-3 p-3 bg-base-200 rounded-lg">
+                    <div key={`det-${si}`} className="mb-3 p-3 bg-base-200 rounded-lg">
 
-                    <div className="flex justify-between items-start mb-1">
+                      <div className="flex justify-between items-start mb-1">
 
-                      <p className="font-semibold text-sm">{s.planName} — {s.dayLabel}</p>
+                        <p className="font-semibold text-sm">{s.planName} — {s.dayLabel}</p>
 
-                      <span className="text-xs opacity-50">{s.time}</span>
+                        <span className="text-xs opacity-50">{s.time}</span>
+
+                      </div>
+
+                      {s.exercises.length > 0 ? (
+
+                        <ul className="text-xs flex flex-col gap-0.5 ml-2">
+
+                          {s.exercises.map((ex) => (
+
+                            <li key={`ex-${ex.day_exercise_id ?? ex.de_id ?? ex.exercise_id}`} className="opacity-70">
+
+                              • {ex.exercise?.name || ex.name}
+
+                              {ex.sets && ex.reps ? ` — ${ex.sets}×${ex.reps}` : ""}
+
+                              {ex.weight ? ` @ ${ex.weight} lbs` : ""}
+
+                            </li>
+
+                          ))}
+
+                        </ul>
+
+                      ) : (
+
+                        <p className="text-xs opacity-40 ml-2">No exercises listed</p>
+
+                      )}
 
                     </div>
 
-                    {s.exercises.length > 0 ? (
+                  ))
 
-                      <ul className="text-xs flex flex-col gap-0.5 ml-2">
+                )}
+              </div>
 
-                        {s.exercises.map((ex) => (
+              <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box w-70 p-4 flex flex-col ">
+                <h2 className="text-lg font-bold mb-2">My Coach</h2>
+                <div className="flex-1 ">
+                  {hiredCoaches && hiredCoaches.length > 0 ? (
+                    hiredCoaches.map((rel) => (
+                      <div key={rel.relationship_id} >
+                        <p className="font-semibold">{rel.coach_name}</p>
+                        <p className="text-xs opacity-70">
+                          Specialty: {rel.specialty}
+                        </p>
+                        <p className="text-xs opacity-60">
+                          Since: {rel.started_at
+                            ? new Date(rel.started_at).toLocaleDateString(undefined, {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            })
+                            : "—"}
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <span className="text-sm opacity-70">No coach assigned</span>
 
-                          <li key={`ex-${ex.day_exercise_id ?? ex.de_id ?? ex.exercise_id}`} className="opacity-70">
 
-                            • {ex.exercise?.name || ex.name}
 
-                            {ex.sets && ex.reps ? ` — ${ex.sets}×${ex.reps}` : ""}
+                  )}
+                </div>
 
-                            {ex.weight ? ` @ ${ex.weight} lbs` : ""}
+                <div className="mt-auto flex justify-center">
 
-                          </li>
+                  <button className="btn bg-blue-800 text-white btn-sm" onClick={() => navigate("/client/reviews")}>
 
-                        ))}
+                    Go to my Reviews
 
-                      </ul>
+                  </button>
 
-                    ) : (
+                </div>
+              </div>
 
-                      <p className="text-xs opacity-40 ml-2">No exercises listed</p>
+              <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box w-60 p-4 shrink-0">
+
+                <h2 className="text-base font-bold mb-3">Daily Log</h2>
+
+                {isSameDay(selectedDay, today) && dayLog ? (
+
+                  <div className="flex flex-col gap-2 text-sm">
+
+                    {[
+
+                      { label: "Goal", value: dayLog.daily_goal || null },
+
+                      { label: "Focus", value: dayLog.target_focus || null },
+
+                      { label: "Mood", value: dayLog.mood_score ? `${dayLog.mood_score} / 5` : null },
+
+                      { label: "Weight", value: dayLog.weight_lbs ? `${dayLog.weight_lbs} lbs` : null },
+
+
+                      { label: "Energy", value: dayLog.energy_level ? `${dayLog.energy_level} / 5` : null },
+
+
+                      { label: "Sleep", value: dayLog.sleep_hours ? `${dayLog.sleep_hours} hrs` : null },
+
+                      { label: "Water", value: dayLog.water_oz ? `${dayLog.water_oz} oz` : null },
+
+                    ].map(({ label, value }) =>
+
+                      value ? (
+
+                        <div key={label} className="flex justify-between border-b border-base-content/10 pb-1">
+
+                          <span className="opacity-60">{label}</span>
+
+                          <span className="font-semibold">{value}</span>
+
+                        </div>
+
+                      ) : (
+                        <div key={label} className="flex justify-between border-b border-base-content/10 pb-1">
+
+                          <span className="opacity-60">{label}</span>
+
+                          <span className="font-semibold">---</span>
+
+                        </div>
+                      )
+
+                    )}
+
+                    {Object.values(dayLog).every((v) => !v) && (
+
+                      <p className="text-xs opacity-40">Nothing logged yet today.</p>
 
                     )}
 
                   </div>
 
-                ))
-
-              )}
-            </div>
-
-            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box w-64 p-4 flex flex-col h-72">
-              <h2 className="text-lg font-bold mb-2">My Coach</h2>
-              <div className="flex-1 ">
-                {hiredCoaches ? (
-                  hiredCoaches.map((rel) => (
-                    <div key={rel.relationship_id} >
-                      <p className="font-semibold">{rel.coach_name}</p>
-                      <p className="text-xs opacity-70">
-                        Specialty: {rel.specialty}
-                      </p>
-                      <p className="text-xs opacity-60">
-                        Since: {rel.started_at
-                          ? new Date(rel.started_at).toLocaleDateString(undefined, {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                          })
-                          : "—"}
-                      </p>
-                    </div>
-                  ))
                 ) : (
-                  <span className="text-sm opacity-70">No coach assigned</span>
+
+                  <p className="text-xs opacity-40">
+
+                    {isSameDay(selectedDay, today)
+
+                      ? "Nothing logged yet today."
+
+                      : "Log history not available for past days."}
+
+                  </p>
+
                 )}
+
+                {isSameDay(selectedDay, today) && (
+
+                  <button
+
+                    className="btn bg-blue-800 text-white btn-xs p-3 mt-4 w-full"
+
+                    onClick={() => setPopOpen("update")}
+
+                  >
+
+                    Update
+
+                  </button>
+
+                )}
+
               </div>
 
 
-              <div className="mt-auto flex justify-center">
-
-                <button className="btn bg-blue-800 text-white btn-sm" onClick={() => navigate("/client/reviews")}>
-
-                  My Reviews
-
-                </button>
-
-              </div>
-            </div>
-
-
-            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box w-40 p-4 shrink-0">
-
-              <h2 className="text-base font-bold mb-3">Daily Log</h2>
-
-              {isSameDay(selectedDay, today) && dayLog ? (
-
-                <div className="flex flex-col gap-2 text-sm">
-
-                  {[
-
-                    { label: "Mood", value: dayLog.mood_score ? `${dayLog.mood_score} / 5` : null },
-
-                    { label: "Weight", value: dayLog.weight_lbs ? `${dayLog.weight_lbs} lbs` : null },
-
-                    { label: "Goal", value: dayLog.daily_goal || null },
-
-                    { label: "Energy", value: dayLog.energy_level ? `${dayLog.energy_level} / 5` : null },
-
-                    { label: "Focus", value: dayLog.target_focus || null },
-
-                  ].map(({ label, value }) =>
-
-                    value ? (
-
-                      <div key={label} className="flex justify-between border-b border-base-content/10 pb-1">
-
-                        <span className="opacity-60">{label}</span>
-
-                        <span className="font-semibold">{value}</span>
-
-                      </div>
-
-                    ) : null
-
-                  )}
-
-                  {Object.values(dayLog).every((v) => !v) && (
-
-                    <p className="text-xs opacity-40">Nothing logged yet today.</p>
-
-                  )}
-
-                </div>
-
-              ) : (
-
-                <p className="text-xs opacity-40">
-
-                  {isSameDay(selectedDay, today)
-
-                    ? "Nothing logged yet today."
-
-                    : "Log history not available for past days."}
-
-                </p>
-
-              )}
-
-              {isSameDay(selectedDay, today) && (
-
-                <button
-
-                  className="btn bg-blue-800 text-white btn-xs p-3 mt-4 w-full"
-
-                  onClick={() => setPopOpen("update")}
-
-                >
-
-                  Update
-
-                </button>
-
-              )}
 
             </div>
-
-            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box w-40 p-4 shrink-0">
-
-              <h2 className="text-base font-bold mb-3">Wellness Log</h2>
-
-              {isSameDay(selectedDay, today) && dayLog ? (
-
-                <div className="flex flex-col gap-2 text-sm">
-
-                  {[
-
-                    { label: "Sleep", value: dayLog.sleep_hours ? `${dayLog.sleep_hours} hrs` : null },
-
-                    { label: "Mood", value: dayLog.mood_score ? `${dayLog.mood_score} / 5` : null },
-
-                    { label: "Water", value: dayLog.water_oz ? `${dayLog.water_oz} oz` : null },
-
-                  ].map(({ label, value }) =>
-
-                    value ? (
-
-                      <div key={label} className="flex justify-between border-b border-base-content/10 pb-1">
-
-                        <span className="opacity-60">{label}</span>
-
-                        <span className="font-semibold">{value}</span>
-
-                      </div>
-
-                    ) : null
-
-                  )}
-
-                  {Object.values(dayLog).every((v) => !v) && (
-
-                    <p className="text-xs opacity-40">Nothing logged yet today.</p>
-
-                  )}
-
-                </div>
-
-              ) : (
-
-                <p className="text-xs opacity-40">
-
-                  {isSameDay(selectedDay, today)
-
-                    ? "Nothing logged yet today."
-
-                    : "Log history not available for past days."}
-
-                </p>
-
-              )}
-
-              {isSameDay(selectedDay, today) && (
-
-                <button
-
-                  className="btn bg-blue-800 text-white btn-xs p-3 mt-4 w-full"
-
-                  onClick={() => setPopOpen("update")}
-
-                >
-
-                  Update
-
-                </button>
-
-              )}
-
-            </div>
-          </div>
           </div>
           <div className="w-full">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
