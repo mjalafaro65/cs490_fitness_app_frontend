@@ -46,6 +46,7 @@ function Alert({ isOpen, onClose, message, type = 'success' }) {
                     ? 'bg-green-50 border border-green-200'
                     : 'bg-red-50 border border-red-200'
                 }`}>
+
                 <div className="flex items-center gap-3">
                     {type === 'success' ? (
                         <svg className="h-5 w-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
