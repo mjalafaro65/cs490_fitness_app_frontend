@@ -250,6 +250,7 @@ function CSettings() {
                                 >
                                 Edit Image
                                 </button>
+                               
                             </div>
                         </div>
                         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full p-6 bg-white rounded-xl shadow-lg border border-gray-100">

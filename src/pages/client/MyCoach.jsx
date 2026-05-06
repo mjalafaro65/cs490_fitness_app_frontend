@@ -33,6 +33,15 @@ function MyCoach() {
     setShowAlert(true);
   };
 
+
+  const [confirmState, setConfirmState] = useState({
+    open: false,
+    message: "",
+    type: "default",
+    onResolve: null,
+  });
+
+
   const [firedCoaches, setFiredCoaches] = useState([]);
   const [isFiring, setIsFiring] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -40,6 +49,17 @@ function MyCoach() {
   const [warningData, setWarningData] = useState(null);
   const [firingReason, setFiringReason] = useState("");
   const [pendingFireData, setPendingFireData] = useState(null);
+
+  const confirm = ({ message, type = "default" }) => {
+    return new Promise((resolve) => {
+      setConfirmState({
+        open: true,
+        message,
+        type,
+        onResolve: resolve,
+      });
+    });
+  };
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -157,7 +177,9 @@ function MyCoach() {
     const fetchCoach = async () => {
       try {
         const res = await api.get("client/my-coaches");
+        console.log(res.data)
         setHiredCoaches(res.data.active_relationships)
+
 
       } catch (err) {
         console.log(err);
@@ -305,8 +327,10 @@ function MyCoach() {
   };
 
 
+
   const updateReview = async (reviewId, updatedData) => {
     try {
+      console.log(reviewId, updatedData)
       const response = await api.patch(
         `/client/my-reviews/${reviewId}`,
         updatedData
@@ -351,22 +375,22 @@ function MyCoach() {
     return stars;
   };
 
-      const renderEditableStars = (rating) => {
-      return [...Array(5)].map((_, i) => {
-        const value = i + 1;
+  const renderEditableStars = (rating) => {
+    return [...Array(5)].map((_, i) => {
+      const value = i + 1;
 
-        return (
-          <span
-            key={value}
-            onClick={() => setRating(value)}
-            className={`cursor-pointer text-2xl ${value <= rating ? "text-blue-800" : "text-gray-300"
-              }`}
-          >
-            ★
-          </span>
-        );
-      });
-    };
+      return (
+        <span
+          key={value}
+          onClick={() => setRating(value)}
+          className={`cursor-pointer text-2xl ${value <= rating ? "text-blue-800" : "text-gray-300"
+            }`}
+        >
+          ★
+        </span>
+      );
+    });
+  };
   const setRating = (value) => {
     setEditData((prev) => ({
       ...prev,
@@ -396,6 +420,8 @@ function MyCoach() {
     }
   };
 
+  const activeCoachId = hiredCoaches?.[0]?.coach_id;
+
 
 
   return (
@@ -415,6 +441,7 @@ function MyCoach() {
               <h2 className="text-lg font-semibold mb-4">My Coach</h2>
 
               <div className="flex-1 space-y-4">
+
                 {hiredCoaches?.length ? (
                   hiredCoaches.map((rel) => (
                     <div key={rel.relationship_id} className="pb-3 border-b border-base-300">
@@ -603,8 +630,53 @@ function MyCoach() {
             {/* REVIEWS */}
             <div className="card bg-base-200 shadow-lg border border-base-300 p-6 flex flex-col">
               <h2 className="text-lg font-semibold mb-4">My Reviews</h2>
+              <div className="space-y-4">
+                {userReviews
+                  .filter(review => review.coach_id === activeCoachId)
+                  .map(review => (
+                    <div key={review.review_id} className="p-4 bg-base-100 rounded-xl border border-base-300">
+                      <p className="font-semibold">
+                        {review.coach?.user?.first_name}{" "}
+                        {review.coach?.user?.last_name}
+                      </p>
 
-              <div className="flex-1 overflow-y-auto max-h-72 space-y-4">
+                      <div className="rating rating-xs mt-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <input
+                            key={star}
+                            type="radio"
+                            className="mask mask-star-2 bg-blue-800"
+                            checked={star <= review.rating}
+                            readOnly
+                          />
+                        ))}
+                      </div>
+
+                      <p className="text-sm text-base-content/70 mt-2">
+                        {review.comment}
+                      </p>
+
+                      <button
+                        className="btn btn-xs mt-3 btn-outline"
+                        onClick={() => openEditModal(review)}
+                      >
+                        Edit
+                      </button>
+                    </div>
+                  ))}
+
+                <div className="mt-auto flex justify-center">
+
+                  <button className="btn bg-blue-800 text-white btn-sm" onClick={() => navigate("/client/reviews")}>
+
+                    Go to my Reviews
+
+                  </button>
+
+                </div>
+              </div>
+
+              {/* <div className="flex-1 overflow-y-auto max-h-72 space-y-4">
                 {reviewsLoading ? (
                   <div className="flex justify-center">
                     <span className="loading loading-spinner"></span>
@@ -646,7 +718,7 @@ function MyCoach() {
                     No reviews
                   </span>
                 )}
-              </div>
+              </div> */}
 
             </div>
           </div>
@@ -723,7 +795,7 @@ function MyCoach() {
       )}
 
 
-      {editingReview && ( 
+      {editingReview && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50">
           <div className="bg-white text-black p-6 rounded-lg w-80 shadow-lg border border-gray-200">
 

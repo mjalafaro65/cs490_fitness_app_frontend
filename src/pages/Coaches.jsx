@@ -5,11 +5,13 @@ import api from "../axios.jsx";
 import { Link } from "react-router-dom";
 import VisitorNavbar from "../components/VisitorNavbar.jsx";
 import { useAuth } from "../AuthContext.jsx";
+import { Navigate } from "react-router-dom";
 
 
 const Coaches = ({ isPublic }) => {
 
   const [coaches, setCoaches] = useState([]);
+  const navigate= useNavigate()
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true)
   const [favoritedCoaches, setFavoritedCoaches] = useState([]);
@@ -140,15 +142,16 @@ const Coaches = ({ isPublic }) => {
           <VisitorNavbar />
         ) : (
           <div className="p-4 border-b border-base-300 flex items-center">
-            <Link
+              <button onClick={() => navigate(-1)} className="btn btn-ghost btn-sm gap-2">Back</button>
+            {/* <Link
               to="/client/mycoach"
               className="btn btn-ghost btn-sm gap-2 normal-case"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-              Back to My Coach
-            </Link>
+              Back 
+            </Link> */}
           </div>
         )}
 

@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import api from "../../axios";
+import { useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import "../../App.css";
 
 function getWeekDays(anchorDate) {
@@ -30,6 +32,8 @@ function CoClientDashboardView() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [dashboard, setDashboard] = useState(null);
+  const [selectedGoal, setSelectedGoal] = useState(null);
+  const navigate = useNavigate();
   const [weekAnchor, setWeekAnchor] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(new Date());
   const [selectedWorkouts, setSelectedWorkouts] = useState([]);
@@ -173,6 +177,17 @@ function CoClientDashboardView() {
   const client = dashboard.client_info || {};
 
   return (
+//     <div className="p-6 flex flex-col gap-6">
+//       <div>
+//         <div className="flex items-center gap-4">
+//           <button
+//             className="btn btn-sm bg-white text-black border border-black hover:bg-black hover:text-white transition duration-200"
+//             onClick={() => navigate(-1)}
+//           >
+//             Back
+//           </button>
+//           <div className="text-2xl font-bold">
+//             {client.first_name || "Client"} {client.last_name || ""}
     <div className="drawer lg:drawer-open">
       <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
       <div className="drawer-content">
@@ -223,6 +238,15 @@ function CoClientDashboardView() {
               </button>
             </div>
 
+//         <div className="card bg-base-300 rounded-box p-4">
+//           <h2 className="text-sm font-semibold">Sleep</h2>
+//           <p className="text-2xl font-bold">
+//             {progress.avg_sleep_hours !== null &&
+//               progress.avg_sleep_hours !== undefined
+//               ? `${progress.avg_sleep_hours} hrs`
+//               : "--"}
+//           </p>
+//         </div>
             {isLoadingWorkouts ? (
               <div className="text-center py-8">
                 <p className="text-sm opacity-70">Loading workouts...</p>
