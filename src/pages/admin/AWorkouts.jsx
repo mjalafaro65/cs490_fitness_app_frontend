@@ -440,7 +440,7 @@ const handleViewPlan = async (plan) => {
                     {plans.map((plan) => (
                       <div 
                         key={plan.plan_id} 
-                        className="card bg-base-200 shadow-lg border border-gray-200 rounded-box p-4 hover:shadow-lg transition cursor-pointer"
+                        className="card bg-base-300 rounded-box p-4 hover:shadow-lg transition cursor-pointer"
                         onClick={() => handleViewPlan(plan)}
                       >
                         <h3 className="font-bold text-lg mb-2">{plan.name}</h3>
@@ -535,7 +535,7 @@ const handleViewPlan = async (plan) => {
                     {exercises.map((exercise) => (
                       <div 
                         key={exercise.id || exercise.exercise_id} 
-                        className="card bg-base-200 shadow-lg border border-gray-200 rounded-box p-4 hover:shadow-lg transition cursor-pointer"
+                        className="card bg-base-300 rounded-box p-4 hover:shadow-lg transition cursor-pointer"
                         onClick={() => handleViewExercise(exercise)}
                       >
                         <h3 className="font-bold text-lg mb-2">{exercise.name}</h3>

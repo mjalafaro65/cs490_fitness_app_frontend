@@ -362,6 +362,7 @@ function CDashboard() {
     const weekStart = weekDays[0];
     const weekEnd = weekDays[6];
 
+    // Create date strings for comparison (YYYY-MM-DD format)
     const weekStartStr = `${weekStart.getFullYear()}-${String(weekStart.getMonth() + 1).padStart(2, '0')}-${String(weekStart.getDate()).padStart(2, '0')}`;
     const weekEndStr = `${weekEnd.getFullYear()}-${String(weekEnd.getMonth() + 1).padStart(2, '0')}-${String(weekEnd.getDate()).padStart(2, '0')}`;
 
@@ -386,42 +387,84 @@ function CDashboard() {
     fetchInsights();
   }, []);
 
-  const fetchInsights = async () => {
-    setInsightsLoading(true);
-    try {
-      const response = await api.get("/insights/survey");
-      console.log("Insights response:", response.data);
+//   const fetchInsights = async () => {
+//     setInsightsLoading(true);
+//     try {
+//       const response = await api.get("/insights/survey");
+//       console.log("Insights response:", response.data);
 
-      const historyArray = response.data?.history || [];
+//       const historyArray = response.data?.history || [];
 
-      const transformedData = historyArray
-        .filter(entry => entry.date)
-        .sort((a, b) => new Date(a.date) - new Date(b.date))
-        .map(entry => {
-          const [year, month, day] = entry.date.split("-");
-          const dateObj = new Date(year, month - 1, day);
-          dateObj.setHours(0, 0, 0, 0);
+//       const transformedData = historyArray
+//         .filter(entry => entry.date)
+//         .sort((a, b) => new Date(a.date) - new Date(b.date))
+//         .map(entry => {
+//           const [year, month, day] = entry.date.split("-");
+//           const dateObj = new Date(year, month - 1, day);
+//           dateObj.setHours(0, 0, 0, 0);
 
-          const dateStr = `${year}-${month}-${day}`;
+//           const dateStr = `${year}-${month}-${day}`;
 
-          return {
-            date: dateStr,
-            dateStr: dateStr,
-            displayDate: `${month}/${day}`,
-            sleep: entry.sleep_hours || 0,
-            mood: entry.mood_score || 0,
-            energy: entry.energy_level || 0,
-            water: entry.water_oz || 0,
-            weight: entry.weight_lbs || 0
-          };
-        });
+//           return {
+//             date: dateStr,
+//             dateStr: dateStr,
+//             displayDate: `${month}/${day}`,
+//             sleep: entry.sleep_hours || 0,
+//             mood: entry.mood_score || 0,
+//             energy: entry.energy_level || 0,
+//             water: entry.water_oz || 0,
+//             weight: entry.weight_lbs || 0
+//           };
+//         });
 
-      setInsightsData(transformedData);
-      console.log("Transformed chart data:", transformedData);
-    } catch (err) {
-      console.error("Failed to fetch insights:", err);
-    } finally {
-      setInsightsLoading(false);
+//       setInsightsData(transformedData);
+//       console.log("Transformed chart data:", transformedData);
+//     } catch (err) {
+//       console.error("Failed to fetch insights:", err);
+//     } finally {
+//       setInsightsLoading(false);
+ 
+  const  fetchInsights=async()=> {
+      setInsightsLoading(true);
+      try {
+        const response = await api.get("/insights/survey");
+        console.log("Insights response:", response.data);
+
+        const historyArray = response.data?.history || [];
+
+        const transformedData = historyArray
+          .filter(entry => entry.date)
+          .sort((a, b) => new Date(a.date) - new Date(b.date))
+          .map(entry => {
+            // const dateObj = new Date(entry.date);
+            const [year, month, day] = entry.date.split("-");
+            const dateObj = new Date(year, month - 1, day);
+            dateObj.setHours(0, 0, 0, 0);
+
+            // const year = dateObj.getFullYear();
+            // const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            // const day = String(dateObj.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
+
+            return {
+              date: dateStr,
+              dateStr: dateStr,
+              displayDate: `${month}/${day}`,
+              sleep: entry.sleep_hours || 0,
+              mood: entry.mood_score || 0,
+              energy: entry.energy_level || 0,
+              water: entry.water_oz || 0,
+              weight: entry.weight_lbs || 0
+            };
+          });
+
+        setInsightsData(transformedData);
+        console.log("Transformed chart data:", transformedData);
+      } catch (err) {
+        console.error("Failed to fetch insights:", err);
+      } finally {
+        setInsightsLoading(false);
+      }
     }
   }
 
@@ -482,10 +525,30 @@ function CDashboard() {
 
       console.log("Survey submitted successfully");
       showAlert("Daily wellness logged successfully!", "success");
+      await fetchInsights();
 
       const insightsResponse = await api.get("/insights/survey");
       console.log(insightsResponse)
-      await fetchInsights();
+      const historyArray = insightsResponse.data?.history || [];
+      const transformedData = historyArray
+        .filter(entry => entry.date)
+        .sort((a, b) => new Date(a.date) - new Date(b.date))
+        .map(entry => {
+          const dateObj = new Date(entry.date);
+          dateObj.setHours(0, 0, 0, 0);
+          return {
+            date: dateObj,
+            dateStr: dateObj.toISOString().split('T')[0],
+            displayDate: dateObj.toLocaleDateString('default', { month: 'short', day: 'numeric' }),
+            sleep: entry.sleep_hours || 0,
+            mood: entry.mood_score || 0,
+            energy: entry.energy_level || 0,
+            water: entry.water_oz || 0,
+            weight: entry.weight_lbs || 0
+          };
+        });
+      setInsightsData(transformedData);
+
 
     } catch (error) {
 
@@ -562,7 +625,7 @@ function CDashboard() {
 
           <div className="text-2xl font-bold mb-4">Dashboard</div>
 
-          <div className="card bg-base-200 shadow-lg border border-base-500 p-6 flex flex-col">
+          <div className="card bg-base-300 rounded-box p-4">
 
             <div className="flex items-center justify-between mb-4">
 
@@ -801,6 +864,25 @@ function CDashboard() {
 
                       )}
 
+            <div className="card bg-base-300 rounded-box w-64 p-4 flex flex-col h-72">
+              <h2 className="text-lg font-bold mb-2">My Coach</h2>
+              <div className="flex-1 ">
+                {hiredCoaches ? (
+                  hiredCoaches.map((rel) => (
+                    <div key={rel.relationship_id} >
+                      <p className="font-semibold">{rel.coach_name}</p>
+                      <p className="text-xs opacity-70">
+                        Specialty: {rel.specialty}
+                      </p>
+                      <p className="text-xs opacity-60">
+                        Since: {rel.started_at
+                          ? new Date(rel.started_at).toLocaleDateString(undefined, {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })
+                          : "—"}
+                      </p>
                     </div>
 
                   ))
@@ -944,7 +1026,7 @@ function CDashboard() {
           </div>
           <div className="w-full">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-4 flex">
+              <div className="card bg-base-300 rounded-box p-4 flex">
                 <h2 className="text-lg font-bold mb-2">Sleep Hours</h2>
                 <p className="text-xs opacity-60 mb-4">This week's sleep pattern</p>
                 {insightsLoading ? (
@@ -977,7 +1059,7 @@ function CDashboard() {
                 )}
               </div>
 
-              <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-4 flex">
+              <div className="card bg-base-300 rounded-box p-4 flex">
                 <h2 className="text-lg font-bold mb-2">Weight</h2>
                 <p className="text-xs opacity-60 mb-4">This week's weight (lbs)</p>
                 {insightsLoading ? (
@@ -1010,7 +1092,7 @@ function CDashboard() {
                 )}
               </div>
 
-              <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-4 flex">
+              <div className="card bg-base-300 rounded-box p-4 flex">
                 <h2 className="text-lg font-bold mb-2">Water Intake</h2>
                 <p className="text-xs opacity-60 mb-4">This week's water (oz)</p>
                 {insightsLoading ? (

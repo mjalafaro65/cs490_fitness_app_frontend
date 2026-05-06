@@ -5,6 +5,7 @@ import api from "../../axios";
 import Alert from "../../components/Alert";
 import Confirm from "../../components/confirm";
 
+import PopUp from "../../components/PopUp";
 
 function CReviews() {
   const navigate = useNavigate();
@@ -12,6 +13,8 @@ function CReviews() {
   const [loading, setLoading] = useState(true);
   const [editingReview, setEditingReview] = useState(null);
   const [error, setError] = useState("");
+  const [popOpen, setPopOpen] = useState(null);
+  const [reviewToDelete, setReviewToDelete] = useState(null);
 
   const [alert, setShowAlert] = useState(false);
   const [alertMsg, setAlertMsg] = useState('');
@@ -66,10 +69,20 @@ function CReviews() {
     try {
       await api.delete(`/client/my-reviews/${reviewId}`);
       await fetchReviews();
+//     try {
+//       await api.delete(`/client/my-reviews/${reviewId}`);
+//       setReviews(reviews.filter(review => review.review_id !== reviewId));
+//       setPopOpen(null);
+//       setReviewToDelete(null);
     } catch (err) {
       console.error("Failed to delete review:", err);
       setError("Failed to delete review");
     }
+  };
+
+  const openDeleteConfirm = (review) => {
+    setReviewToDelete(review);
+    setPopOpen("delete");
   };
 
   const handleEditReview = (review) => {
@@ -179,7 +192,7 @@ function CReviews() {
               <p className="text-gray-500 mb-4">You haven't written any reviews yet.</p>
               <button
                 className="btn bg-blue-800 btn-primary bg-blue-800"
-                onClick={() => navigate("/client/coaches")}
+                onClick={() => navigate("/coaches")}
               >
                 Browse Coaches
               </button>
@@ -233,6 +246,7 @@ function CReviews() {
 
                             await handleDeleteReview(review.review_id);
                           }}
+//                           onClick={() => openDeleteConfirm(review)}
                         >
                           Delete
                         </button>
@@ -326,6 +340,38 @@ function CReviews() {
       </div>
 
 
+      <PopUp isOpen={popOpen === "delete"} onClose={() => {
+        setPopOpen(null);
+        setReviewToDelete(null);
+      }}>
+          <fieldset className="fieldset bg-base-200 border-gray-500 rounded-box w-s border p-4">
+              <legend className="fieldset-legend px-2 text-xl bg-base-200 rounded-box">
+                  Delete review
+              </legend>
+              <p className="text-gray-700 font-semibold my-2">
+                  Are you sure you want to delete this review?
+              </p>
+              <div className="flex gap-4 mt-4">
+                  <button
+                      className="btn bg-red-600 btn-neutral ml-auto"
+                      type="button"
+                      onClick={() => handleDeleteReview(reviewToDelete?.review_id)}
+                  >
+                      Yes
+                  </button>
+                  <button
+                      className="btn bg-blue-800 btn-neutral"
+                      type="button"
+                      onClick={() => {
+                        setPopOpen(null);
+                        setReviewToDelete(null);
+                      }}
+                  >
+                      Cancel
+                  </button>
+              </div>
+          </fieldset>
+      </PopUp>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import api from "../../axios";
 import "../../App.css";
 import Alert from "../../components/Alert.jsx";
+import PopUp from "../../components/PopUp.jsx";
 
 function ACoach() {
   const [appli, setAppli] = useState([]);
@@ -14,6 +15,7 @@ function ACoach() {
 
   const [selectedCoach, setSelectedCoach] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [popOpen, setPopOpen] = useState(null);
 
   const [alert, setShowAlert] = useState(false);
   const [alertMsg, setAlertMsg] = useState('');
@@ -104,7 +106,6 @@ function ACoach() {
   };
 
 const acceptCoach = async (coach) => {
-  if (!window.confirm(`Are you sure you want to accept ${names[coach.user_id] || "this coach"}?`)) return;
 
   const previousAppli = [...appli];
   setAppli(prev => prev.filter(a => a.coach_profile_id !== coach.coach_profile_id));
@@ -127,11 +128,11 @@ const acceptCoach = async (coach) => {
     showAlert(`Failed to accept coach: ${err.response?.data?.message || err.message}`, "error");
   } finally {
     setProcessingAction(prev => ({ ...prev, [coach.coach_profile_id]: false }));
+    setPopOpen(null);
   }
 };
 
   const denyCoach = async (coach) => {
-    if (!window.confirm(`Are you sure you want to deny ${names[coach.user_id] || "this coach"}?`)) return;
 
     setProcessingAction(prev => ({ ...prev, [coach.coach_profile_id]: true }));
 
@@ -152,8 +153,19 @@ const acceptCoach = async (coach) => {
         showAlert(`Failed to deny coach: ${JSON.stringify(err.response?.data?.errors)}`, "error");
     } finally {
       setProcessingAction(prev => ({ ...prev, [coach.coach_profile_id]: false }));
+      setPopOpen(null);
     }
   };
+
+  const openAcceptConfirm = (coach) => {
+  setSelectedCoach(coach);
+  setPopOpen("accept");
+};
+
+const openDenyConfirm = (coach) => {
+  setSelectedCoach(coach);
+  setPopOpen("deny");
+};
 
   const openModal = async (coach) => {
     setSelectedCoach(coach);
@@ -183,7 +195,7 @@ const acceptCoach = async (coach) => {
               appli.map((app) => (
                 <div
                   key={app.coach_profile_id}
-                  className="card bg-base-200 shadow-lg border border-gray-200 rounded-box p-4 flex flex-col md:flex-row items-start md:items-center gap-4"
+                  className="card bg-base-300 rounded-box p-4 flex flex-col md:flex-row items-start md:items-center gap-4"
                 >
                   {app.profile_photo ? (
                     <img
@@ -211,7 +223,7 @@ const acceptCoach = async (coach) => {
                   </div>
 
                   <button
-                    className="btn bg-blue-800 mt-2 shadow-md text-white md:mt-0"
+                    className="btn bg-blue-800 mt-2 text-white md:mt-0"
                     onClick={() => openModal(app)}
                   >
                     Review Application
@@ -237,7 +249,7 @@ const acceptCoach = async (coach) => {
                 Review Application: {names[selectedCoach.user_id] || "Coach"}
               </h2>
 
-              <div className="mb-6 p-4 bg-gray-100 shadow-lg rounded-lg">
+              <div className="mb-6 p-4 bg-gray-100 rounded-lg">
                 <h3 className="font-semibold mb-2">Application Summary</h3>
                 <p><strong>Experience:</strong> {selectedCoach.years_experience} years</p>
                 <p><strong>Specialty:</strong> {selectedCoach.specialty_name || "Unknown"}</p>
@@ -270,14 +282,14 @@ const acceptCoach = async (coach) => {
               <div className="flex gap-3 pt-4 border-t">
                 <button
                   className="flex-1 btn btn bg-blue-800 text-white"
-                  onClick={() => acceptCoach(selectedCoach)}
+                  onClick={() => openAcceptConfirm(selectedCoach)}
                   disabled={processingAction[selectedCoach.coach_profile_id]}
                 >
                   {processingAction[selectedCoach.coach_profile_id] ? "Processing..." : "Accept Coach"}
                 </button>
                 <button
                   className="flex-1 btn bg-red-700 text-white"
-                  onClick={() => denyCoach(selectedCoach)}
+                  onClick={() => openDenyConfirm(selectedCoach)}
                   disabled={processingAction[selectedCoach.coach_profile_id]}
                 >
                   {processingAction[selectedCoach.coach_profile_id] ? "Processing..." : "Deny Coach"}
@@ -288,6 +300,58 @@ const acceptCoach = async (coach) => {
           </div>
         )}
       </div>
+      <PopUp isOpen={popOpen === "accept"} onClose={() => setPopOpen(null)}>
+          <fieldset className="fieldset bg-base-200 border-gray-500 rounded-box w-s border p-4">
+              <legend className="fieldset-legend px-2 text-xl bg-base-200 rounded-box">
+                  Accept Coach
+              </legend>
+              <p className="text-gray-700 font-semibold my-2">
+                  Are you sure you want to accept {selectedCoach && names[selectedCoach.user_id]}?
+              </p>
+              <div className="flex gap-4 mt-4">
+                  <button
+                      className="btn bg-blue-800 btn-neutral ml-auto"
+                      type="button"
+                      onClick={() => acceptCoach(selectedCoach)}
+                  >
+                      Yes, confirm
+                  </button>
+                  <button
+                      className="btn bg-red-600 btn-neutral"
+                      type="button"
+                      onClick={() => setPopOpen(null)}
+                  >
+                      Cancel
+                  </button>
+              </div>
+          </fieldset>
+      </PopUp>
+            <PopUp isOpen={popOpen === "deny"} onClose={() => setPopOpen(null)}>
+          <fieldset className="fieldset bg-base-200 border-gray-500 rounded-box w-s border p-4">
+              <legend className="fieldset-legend px-2 text-xl bg-base-200 rounded-box">
+                  Deny Coach
+              </legend>
+              <p className="text-gray-700 font-semibold my-2">
+                  Are you sure you want to deny {selectedCoach && names[selectedCoach.user_id]}?
+              </p>
+              <div className="flex gap-4 mt-4">
+                  <button
+                      className="btn bg-red-600 btn-neutral ml-auto"
+                      type="button"
+                      onClick={() => denyCoach(selectedCoach)}
+                  >
+                      Yes, confirm
+                  </button>
+                  <button
+                      className="btn bg-blue-800 btn-neutral"
+                      type="button"
+                      onClick={() => setPopOpen(null)}
+                  >
+                      Cancel
+                  </button>
+              </div>
+          </fieldset>
+      </PopUp>
         <Alert 
           isOpen={alert} 
           message={alertMsg}

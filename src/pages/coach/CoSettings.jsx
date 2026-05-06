@@ -208,19 +208,14 @@ const handleAddDocument = async () => {
             clientAllowedFormats: ["jpg", "png", "jpeg", "pdf"],
             zIndex: 2000
         },
-        async (error, result) => {
-                if (!error && result && result.event === "success") {
-                    setData(prev => ({
-                        ...prev,
-                        profile_photo: result.info.secure_url
-                    }));
-                    const updateData = {
-                        profile_photo: result.info.secure_url
-                    }
-                    const response = await api.patch("/coach/coach-profile", updateData);
-                    console.log("SUCCESS:", response.data);
-                    showAlert("Photo uploaded successfully!", "success");
-                }
+        (error, result) => {
+            if (!error && result && result.event === "success") {
+                setData(prev => ({
+                    ...prev,
+                    profile_photo: result.info.secure_url
+                }));
+              showAlert("Photo uploaded successfully! Don't forget to save your changes.", "success");
+            }
             if (error) {
                 console.error("Cloudinary Widget Error:", error);
                 showAlert("Failed to upload photo", "error");
@@ -238,7 +233,7 @@ const handleAddDocument = async () => {
       <div className="drawer-content">
         <section className="p-6 flex flex-col gap-6">
           <div className="text-2xl font-bold mb-2">Settings</div>
-          <section className="p-10 flex flex-col md:flex-row gap-30 items-start card bg-base-100 shadow-lg border border-base-500">
+          <section className="p-10 flex flex-col md:flex-row gap-30 items-start">
             <div className="flex-shrink-0 flex flex-col items-center">
               {fetchData.profile_photo ? (
                 <img
@@ -261,8 +256,8 @@ const handleAddDocument = async () => {
                   </button>
               </div>
             </div>
-            <fieldset className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full p-6 bg-white rounded-xl shadow-lg border border-gray-300">
-              <form onSubmit={handleSubmit} className="flex flex-col gap-4 md:col-span-2">
+            <fieldset className="fieldset rounded-box w-full flex-1">
+              <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                 <label className="label font-semibold">Speciality: </label>
                 <select className="select" id="speciality" name="specialty_id" value={fetchData.specialty_id} onChange={handleChange}>
                   <option value="">Select</option>
@@ -292,7 +287,7 @@ const handleAddDocument = async () => {
                   onChange={handleChange}
                 />
                 <label className="label font-semibold">Bio: </label>
-                <textarea className="textarea h-32 w-full"
+                <textarea className="textarea h-24"
                   name="bio"
                   placeholder="Tell us about yourself!"
                   value={fetchData.bio}
@@ -305,7 +300,6 @@ const handleAddDocument = async () => {
               </form>
             </fieldset>
           </section>
-          {/*
           <div>
             <div className="text-lg font-bold mb-2">Documents:</div>
             {isLoadingDocs ? (
@@ -346,7 +340,6 @@ const handleAddDocument = async () => {
               <button className="btn bg-blue-800 btn-primary text-white" onClick={handleAddDocument}>Add Document</button>
             </div>
           </div>
-          */}
         </section>
       </div>
        <Alert 

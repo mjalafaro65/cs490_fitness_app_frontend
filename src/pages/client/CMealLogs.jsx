@@ -52,6 +52,7 @@ function ClientMealLogs(){
   const [isLargeOpen, setLargeOpen] = useState(null);
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [mealLogToDelete, setMealLogToDelete] = useState(null);
 
   const [alert, setShowAlert] = useState(false);
   const [alertMsg, setAlertMsg] = useState('');
@@ -196,7 +197,10 @@ function ClientMealLogs(){
   };
 
   const deleteMealLog = async (logId) => {
-    if (!window.confirm("Are you sure you want to delete this meal log?")) return false;
+    if (!logId) {
+    showAlert("No meal log selected to delete", "error");
+    return false;
+  }
     
     try {
       await api.delete(`/nutrition/meal-logs/${logId}`);
@@ -204,6 +208,8 @@ function ClientMealLogs(){
       showAlert("Meal log deleted successfully!", "success");
       await fetchMealHistory();
       await fetchNutritionInsights(); 
+      setPopOpen(null);
+      setMealLogToDelete(null);
       return true;
     } catch (err) {
       console.error("Failed to delete meal log:", err.response?.data || err);
@@ -221,6 +227,11 @@ function ClientMealLogs(){
       servings: editLogData.servings,
       notes: editLogData.notes
     });
+  };
+
+  const openDeleteConfirm = (mealLog) => {
+    setMealLogToDelete(mealLog);
+    setPopOpen("delete");
   };
 
   const handleDeleteFromEdit = async () => {
@@ -337,7 +348,6 @@ function ClientMealLogs(){
       
       showAlert("Meal plan created successfully!", "success");
       
-      // Refresh meal plans after creation
       await fetchMealPlans();
       
     } catch (error) {
@@ -393,7 +403,7 @@ function ClientMealLogs(){
 
     const dailyData = prepareDailyData();
     const weeklyData = prepareWeeklyData();
-
+    //I have to fix this
     const pieData = dailyData.map(day => ({
       name: day.date,
       value: day.calories
@@ -404,13 +414,13 @@ function ClientMealLogs(){
         {/* Chart Type Selector */}
         <div className="flex gap-2 mb-4">
           <button
-            className={`btn btn-sm text-black ${selectedChartType === 'daily' ? 'btn-primary bg-blue-800 text-white' : 'btn-ghost'}`}
+            className={`btn btn-sm text-white ${selectedChartType === 'daily' ? 'btn-primary bg-blue-800' : 'btn-ghost'}`}
             onClick={() => setSelectedChartType('daily')}
           >
             Daily Trend
           </button>
           <button
-            className={`btn btn-sm text-black ${selectedChartType === 'weekly' ? 'btn-primary bg-blue-800 text-white' : 'btn-ghost'}`}
+            className={`btn btn-sm text-white ${selectedChartType === 'weekly' ? 'btn-primary bg-blue-800' : 'btn-ghost'}`}
             onClick={() => setSelectedChartType('weekly')}
           >
             Weekly Trend
@@ -419,7 +429,7 @@ function ClientMealLogs(){
 
         {/* Daily Trend Chart */}
         {selectedChartType === 'daily' && dailyData.length > 0 && (
-          <div className="card bg-base-200 shadow-lg border border-base-500 rounded-lg p-4">
+          <div className="bg-base-100 rounded-lg p-4">
             <h3 className="text-lg font-semibold mb-4">Daily Calorie Intake</h3>
             <ResponsiveContainer width="100%" height={400}>
               <PieChart>
@@ -442,7 +452,7 @@ function ClientMealLogs(){
 
         {/* Weekly Trend Chart */}
         {selectedChartType === 'weekly' && weeklyData.length > 0 && (
-          <div className="card bg-base-200 shadow-lg border border-base-500 rounded-lg p-4">
+          <div className="bg-base-100 rounded-lg p-4">
             <h3 className="text-lg font-semibold mb-4">Weekly Average Calories</h3>
             <ResponsiveContainer width="100%" height={400}>
               <BarChart data={weeklyData}>
@@ -460,11 +470,11 @@ function ClientMealLogs(){
 
         {/* Summary Statistics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-          <div className="card bg-base-200 shadow-lg border border-base-500 rounded-lg p-4 text-center">
+          <div className="bg-base-100 rounded-lg p-4 text-center">
             <p className="text-sm opacity-70">Total Meals Logged</p>
             <p className="text-2xl font-bold">{nutritionInsights.summary?.days_logged || 0}</p>
           </div>
-          <div className="card bg-base-200 shadow-lg border border-base-500 rounded-lg p-4 text-center">
+          <div className="bg-base-100 rounded-lg p-4 text-center">
             <p className="text-sm opacity-70">Average Daily Calories</p>
             <p className="text-2xl font-bold">{Math.round(nutritionInsights.summary?.avg_daily_calories|| 0)}</p>
           </div>
@@ -489,7 +499,7 @@ function ClientMealLogs(){
           </div>
 
           <div className="flex w-full gap-4 items-start">
-            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box flex-1 p-4 min-w-0">
+            <div className="card bg-base-300 rounded-box flex-1 p-4 min-w-0">
               <h2 className="text-lg font-bold mb-2">Previously Logged Meals</h2>
               <div className="bg-base-200 rounded-box w-full">
           
@@ -537,10 +547,9 @@ function ClientMealLogs(){
                       </button>
                       <button 
                         className="btn btn-sm bg-red-600 text-white"
-                        onClick={async (e) => {
+                        onClick={(e) => {
                           e.stopPropagation();
-                          if (await deleteMealLog(meal.meal_log_id)) {
-                          }
+                          openDeleteConfirm(meal); 
                         }}
                       >
                         Delete
@@ -553,7 +562,7 @@ function ClientMealLogs(){
           )}
             </div>
             </div>
-            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box flex-1 p-4 min-w-0">
+            <div className="card bg-base-300 rounded-box flex-1 p-4 min-w-0">
               <h2 className="text-lg font-bold mb-2">Meal Plans Listing</h2>
               <div className="bg-base-200 rounded-box w-full">
                 {isLoadingPlans ? (
@@ -609,7 +618,7 @@ function ClientMealLogs(){
                 )}
               </div>
             </div>
-            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box w-64 p-4 shrink-0">
+            <div className="card bg-base-300 rounded-box w-64 p-4 shrink-0">
               <h2 className="text-lg font-bold mb-2">Quick Actions</h2>
                 <div className="mt-auto flex flex-col gap-2 justify-center">
                   <button className="btn btn-primary text-white bg-blue-800 btn-sm" type="button" onClick={() => setPopOpen("create")}>Create New</button>
@@ -706,6 +715,40 @@ function ClientMealLogs(){
           </fieldset>
         </form>
       )}
+      </PopUp>
+      <PopUp isOpen={isPopOpen === "delete"} onClose={() => {setPopOpen(null); setMealLogToDelete(null);}}>
+          <fieldset className="fieldset bg-base-200 border-gray-500 rounded-box w-s border p-4">
+              <legend className="fieldset-legend px-2 text-xl bg-base-200 rounded-box">
+                  Delete This Log
+              </legend>
+              <p className="text-gray-700 font-semibold my-2">
+                  Are you sure you want delete this log?
+              </p>
+              {mealLogToDelete && (
+                <div className="bg-base-100 p-3 rounded mt-2 mb-2">
+                  <p><strong>Meal ID:</strong> {mealLogToDelete.meal_id}</p>
+                  <p><strong>Servings:</strong> {mealLogToDelete.servings}</p>
+                  {mealLogToDelete.notes && <p><strong>Notes:</strong> {mealLogToDelete.notes}</p>}
+                </div>
+              )}
+              <div className="flex gap-4 mt-4">
+                  <button
+                      className="btn bg-red-600 btn-neutral ml-auto"
+                      type="button"
+                      onClick={() => deleteMealLog(mealLogToDelete?.meal_log_id)}
+                  >
+                      Delete
+                  </button>
+                  <button
+                      className="btn bg-blue-800 btn-neutral"
+                      type="button"
+                      onClick={() => {setPopOpen(null);
+                                      setMealLogToDelete(null);}}
+                  >
+                      Cancel
+                  </button>
+              </div>
+          </fieldset>
       </PopUp>
       <LargeModal open={isLargeOpen !== null} onClose={() => setLargeOpen(null)}>
       {isLargeOpen === "browse" && ( 
