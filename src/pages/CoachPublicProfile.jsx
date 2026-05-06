@@ -113,7 +113,7 @@ const CoachPublicProfile = () => {
 
                 setReviewStats({
                     total,
-                    average:  Number(avg.toFixed(2))
+                    average: Number(avg.toFixed(1))
                 });
 
             } catch (err) {
@@ -192,7 +192,6 @@ const CoachPublicProfile = () => {
                 await api.delete(`/client/favorites/coaches/${coach.coach_profile_id}`);
                 setIsFavorite(false);
                 showAlert("Coach unfavorited", "success");
-                
             } else {
                 await api.post(`/client/favorites/coaches/${coach.coach_profile_id}`);
                 setIsFavorite(true);
@@ -272,20 +271,8 @@ const CoachPublicProfile = () => {
                     <div className="lg:col-span-1">
                         <div className="card bg-white shadow-xl p-6 sticky top-8">
                             <div className="flex flex-col items-center text-center">
-                                <div className="w-1/3 flex justify-center">
-                                    {coach?.profile_photo ? (
-                                        <img
-                                            src={coach.profile_photo}
-                                            alt={coach.name}
-                                            className="w-20 h-20 object-cover rounded-full mb-2"
-                                        />
-
-                                    ) : (
-                                        <div className="w-20 h-20 rounded-full shadow-md bg-gray-200 flex items-center justify-center text-sm font-semibold">
-                                            {coach.first_name?.[0]}{coach.last_name?.[0]}
-                                        </div>
-
-                                    )}
+                                <div className="w-32 h-32 rounded-full bg-blue-800 text-white flex items-center justify-center text-4xl font-bold mb-4 shadow-lg">
+                                    {coachName.first_name?.[0]}{coachName.last_name?.[0]}
                                 </div>
                                 <h1 className="text-2xl font-bold">{coachName.first_name} {coachName.last_name}</h1>
                                 <div className="flex items-center gap-1 my-2">
@@ -295,36 +282,31 @@ const CoachPublicProfile = () => {
                                 </div>
                                 <p className="text-blue-900 font-medium mb-6">Certified Fitness Coach</p>
 
-                                {isLoggedIn && (
-                                    <button
-                                        onClick={toggleFavorite}
-                                        className={`btn w-full transition-all hover:opacity-90 ${isFavorite
-                                                ? "bg-white text-black border border-black"
-                                                : "bg-white text-black border border-gray-300"
-                                            }`}
-                                    >
-                                        {isFavorite ? "★ Favorited" : "☆ Add to Favorites"}
-                                    </button>
-                                )}
-
                                 {isLoggedIn && <button
-                                    onClick={() => {
-                                        // Navigate to messages page with coach info to start conversation
-                                        navigate("/messages", {
-                                            state: {
-                                                coachUser: {
-                                                    user_id: coach.user.user_id,
-                                                    first_name: coach.user.first_name,
-                                                    last_name: coach.user.last_name,
-                                                    coach_profile_id: coach.coach_profile_id
-                                                }
-                                            }
-                                        });
-                                    }}
-                                    className="btn w-full bg-blue-800 text-white hover:bg-blue-700 mt-2"
+                                    onClick={toggleFavorite}
+                                    className="btn w-full border-none bg-white text-black hover:opacity-90"
                                 >
-                                    Message
+                                    {isFavorite ? "Favorited" : "Add to Favorites"}
                                 </button>}
+
+                                {/* {isLoggedIn && <button
+                                        onClick={() => {
+                                            // Navigate to messages page with coach info to start conversation
+                                            navigate("/messages", {
+                                                state: {
+                                                    coachUser: {
+                                                        user_id: coach.user.user_id,
+                                                        first_name: coach.user.first_name,
+                                                        last_name: coach.user.last_name,
+                                                        coach_profile_id: coach.coach_profile_id
+                                                    }
+                                                }
+                                            });
+                                        }}
+                                        className="btn w-full bg-blue-800 text-white hover:bg-blue-700 mt-2"
+                                    >
+                                        Message
+                                    </button>} */}
                             </div>
                         </div>
                     </div>
@@ -491,12 +473,12 @@ const CoachPublicProfile = () => {
 
 
                             {activeTab === 'reviews' && <div>
-                                {isLoggedIn && <button
+                                <button
                                     className="btn btn-primary text-white bg-blue-800 btn-sm mb-4"
                                     onClick={() => setShowReviewModal(true)}
                                 >
                                     Write a Review
-                                </button>}
+                                </button>
 
                                 {reviews.length === 0 ? (
                                     <p className="text-gray-400 text-center py-10">

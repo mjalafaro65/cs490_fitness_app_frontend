@@ -12,11 +12,8 @@ function Initial_Survey() {
     const [initialData, setData] = useState({
         "daily_goal": "",
         "target_focus": "",
-        "energy_level": 0,
-        "mood_score": 0,
-        "water_oz": 0,
-        "weight_lbs": 0,
-        "sleep_hours": 0,
+        "energy_level": 3,
+        "mood_score": 3
     });
     useEffect(() => {
         const checkStatus = async () => {
@@ -51,7 +48,7 @@ function Initial_Survey() {
     const handleChange = (e) => {
         const { name, value } = e.target;
 
-        const numericFields = ["energy_level", "mood_score", "weight_lbs", "water_oz"];
+        const numericFields = ["energy_level", "mood_score"];
         const finalValue = numericFields.includes(name)
             ? (value === "" ? 0 : Number(value))
             : value;
@@ -62,40 +59,11 @@ function Initial_Survey() {
         });
     };
 
-
-    const handleSleepChange = (e) => {
-        const { name, value } = e.target;
-
-        const updated = {
-            ...initialData,
-            [name]: value === "" ? 0 : Number(value),
-        };
-
-        const hours = Number(updated.sleep_hour || 0);
-        const minutes = Number(updated.sleep_minutes || 0);
-
-        setData({
-            ...updated,
-            sleep_hours: Number((hours + minutes / 60).toFixed(2))
-        });
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        console.log(initialData)
-
-        const payload = {
-            sleep_hours: Number(initialData.sleep_hours || 0),
-            water_oz: Number(initialData.water_oz || 0),
-            weight_lbs: Number(initialData.weight_lbs || 0),
-            mood_score: Number(initialData.mood_score || 0),
-            energy_level: Number(initialData.energy_level || 0),
-            daily_goal: initialData.daily_goal || "",
-            target_focus: initialData.target_focus || ""
-        };
         try {
-            const response = await api.post("/client/daily-survey", payload);
+            const response = await api.post("/client/daily-survey", initialData);
             console.log("Form submitted:", response.data);
             console.log("STATUS:", response.status);
 
@@ -142,9 +110,8 @@ function Initial_Survey() {
                                 className="input input-bordered focus:input-primary w-full"
                                 type="text"
                                 name="daily_goal"
-                                placeholder="e.g., Build muscle"
+                                placeholder="e.g., Hit a new PR on squats"
                                 value={initialData.daily_goal}
-                                maxLength={30}
                                 onChange={handleChange}
 
                             />
@@ -153,14 +120,13 @@ function Initial_Survey() {
                         {/* Focus Area Input */}
                         <div className="form-control">
                             <label className="label">
-                                <span className="label-text font-bold">Primary Focus Area (Optional)</span>
+                                <span className="label-text font-bold">Primary Focus Area</span>
                             </label>
                             <input
                                 className="input input-bordered focus:input-primary w-full"
                                 type="text"
                                 name="target_focus"
-                                placeholder="e.g., legs"
-                                maxLength={30}
+                                placeholder="e.g., Leg Day / Cardio"
                                 value={initialData.target_focus}
                                 onChange={handleChange}
 
@@ -184,7 +150,6 @@ function Initial_Survey() {
                                 className="range  border-blue-800  w-full  range-sm"
                                 step="1"
                                 onChange={handleChange}
-                                
                             />
                             <div className="flex w-full  justify-between px-2 text-[10px] font-bold opacity-50 mt-1">
                                 <span>LOW</span>
@@ -214,73 +179,6 @@ function Initial_Survey() {
                                 <span>NEUTRAL</span>
                                 <span>AMAZING</span>
                             </div>
-                        </div>
-
-
-                        <div className="form-control w-full">
-                            <label className="label">
-                                <span className="label-text font-bold">Weight (lbs)</span>
-                            </label>
-
-                            <input
-                                type="number"
-                                name="weight_lbs"
-                                value={initialData.weight_lbs || ""}
-                                min="0"
-                                step="0.1"
-                                onChange={handleChange}
-                                className="input input-sm input-bordered w-full"
-                                placeholder="Enter weight"
-                            />
-                        </div>
-
-                        <div className="form-control w-full">
-                            <label className="label">
-                                <span className="label-text font-bold">Sleep</span>
-                            </label>
-
-                            <div className="flex gap-2">
-                                {/* Hours */}
-                                <input
-                                    type="number"
-                                    name="sleep_hour"
-                                    value={initialData.sleep_hour || ""}
-                                    onChange={handleSleepChange}
-                                    className="input input-sm input-bordered w-full"
-                                    placeholder="hrs"
-                                    min="0"
-                                    max="24"
-                                />
-
-                                {/* Minutes */}
-                                <input
-                                    type="number"
-                                    name="sleep_minutes"
-                                    value={initialData.sleep_minutes || ""}
-                                    onChange={handleSleepChange}
-                                    className="input input-sm input-bordered w-full"
-                                    placeholder="min"
-                                    min="0"
-                                    max="59"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="form-control w-full">
-                            <label className="label">
-                                <span className="label-text font-bold">Water (oz)</span>
-                            </label>
-
-                            <input
-                                type="number"
-                                name="water_oz"
-                                value={initialData.water_oz || ""}
-                                min="0"
-                                step="1"
-                                onChange={handleChange}
-                                className="input input-sm input-bordered w-full"
-                                placeholder="Until now (Can be updated later)"
-                            />
                         </div>
 
                         {/* Submit Button */}

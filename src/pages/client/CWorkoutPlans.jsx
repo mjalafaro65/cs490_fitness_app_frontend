@@ -1531,8 +1531,7 @@ function ClientWorkoutPlans() {
               Delete Plan
             </button>
           </div>
-
-     
+        </div>
         )}
       </LargeModal>
 
