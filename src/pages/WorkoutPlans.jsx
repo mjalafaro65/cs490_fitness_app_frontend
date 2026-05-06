@@ -53,7 +53,7 @@ function BrowsePlans() {
       console.log("Plan copied:", response.data);
 
      
-      navigate("/client/workout-plans");
+      navigate("/client/workoutplans");
     
 
     } catch (err) {
