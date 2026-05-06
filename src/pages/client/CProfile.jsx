@@ -258,7 +258,7 @@ function CProfile() {
           </div>
 
           {coachStatus === "switched" &&
-            <div className="mt-8 p-6 bg-base-200 shadow-lg border border-base-500 rounded-xl shadow-lg">
+            <div className="mt-8 p-6 bg-base-100 border border-gray-200 rounded-xl shadow-sm">
               <h3 className="text-lg font-bold text-gray-800 mb-4">Account Type</h3>
 
               <div className="flex flex-row items-center justify-between w-full">

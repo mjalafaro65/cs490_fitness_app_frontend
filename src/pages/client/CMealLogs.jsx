@@ -404,13 +404,13 @@ function ClientMealLogs(){
         {/* Chart Type Selector */}
         <div className="flex gap-2 mb-4">
           <button
-            className={`btn btn-sm text-black ${selectedChartType === 'daily' ? 'btn-primary bg-blue-800 text-white' : 'btn-ghost'}`}
+            className={`btn btn-sm text-white ${selectedChartType === 'daily' ? 'btn-primary bg-blue-800' : 'btn-ghost'}`}
             onClick={() => setSelectedChartType('daily')}
           >
             Daily Trend
           </button>
           <button
-            className={`btn btn-sm text-black ${selectedChartType === 'weekly' ? 'btn-primary bg-blue-800 text-white' : 'btn-ghost'}`}
+            className={`btn btn-sm text-white ${selectedChartType === 'weekly' ? 'btn-primary bg-blue-800' : 'btn-ghost'}`}
             onClick={() => setSelectedChartType('weekly')}
           >
             Weekly Trend
@@ -419,7 +419,7 @@ function ClientMealLogs(){
 
         {/* Daily Trend Chart */}
         {selectedChartType === 'daily' && dailyData.length > 0 && (
-          <div className="card bg-base-200 shadow-lg border border-base-500 rounded-lg p-4">
+          <div className="bg-base-100 rounded-lg p-4">
             <h3 className="text-lg font-semibold mb-4">Daily Calorie Intake</h3>
             <ResponsiveContainer width="100%" height={400}>
               <PieChart>
@@ -442,7 +442,7 @@ function ClientMealLogs(){
 
         {/* Weekly Trend Chart */}
         {selectedChartType === 'weekly' && weeklyData.length > 0 && (
-          <div className="card bg-base-200 shadow-lg border border-base-500 rounded-lg p-4">
+          <div className="bg-base-100 rounded-lg p-4">
             <h3 className="text-lg font-semibold mb-4">Weekly Average Calories</h3>
             <ResponsiveContainer width="100%" height={400}>
               <BarChart data={weeklyData}>
@@ -460,11 +460,11 @@ function ClientMealLogs(){
 
         {/* Summary Statistics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-          <div className="card bg-base-200 shadow-lg border border-base-500 rounded-lg p-4 text-center">
+          <div className="bg-base-100 rounded-lg p-4 text-center">
             <p className="text-sm opacity-70">Total Meals Logged</p>
             <p className="text-2xl font-bold">{nutritionInsights.summary?.days_logged || 0}</p>
           </div>
-          <div className="card bg-base-200 shadow-lg border border-base-500 rounded-lg p-4 text-center">
+          <div className="bg-base-100 rounded-lg p-4 text-center">
             <p className="text-sm opacity-70">Average Daily Calories</p>
             <p className="text-2xl font-bold">{Math.round(nutritionInsights.summary?.avg_daily_calories|| 0)}</p>
           </div>
@@ -489,7 +489,7 @@ function ClientMealLogs(){
           </div>
 
           <div className="flex w-full gap-4 items-start">
-            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box flex-1 p-4 min-w-0">
+            <div className="card bg-base-300 rounded-box flex-1 p-4 min-w-0">
               <h2 className="text-lg font-bold mb-2">Previously Logged Meals</h2>
               <div className="bg-base-200 rounded-box w-full">
           
@@ -553,7 +553,7 @@ function ClientMealLogs(){
           )}
             </div>
             </div>
-            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box flex-1 p-4 min-w-0">
+            <div className="card bg-base-300 rounded-box flex-1 p-4 min-w-0">
               <h2 className="text-lg font-bold mb-2">Meal Plans Listing</h2>
               <div className="bg-base-200 rounded-box w-full">
                 {isLoadingPlans ? (
@@ -609,7 +609,7 @@ function ClientMealLogs(){
                 )}
               </div>
             </div>
-            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box w-64 p-4 shrink-0">
+            <div className="card bg-base-300 rounded-box w-64 p-4 shrink-0">
               <h2 className="text-lg font-bold mb-2">Quick Actions</h2>
                 <div className="mt-auto flex flex-col gap-2 justify-center">
                   <button className="btn btn-primary text-white bg-blue-800 btn-sm" type="button" onClick={() => setPopOpen("create")}>Create New</button>

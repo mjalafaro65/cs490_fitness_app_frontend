@@ -175,7 +175,7 @@ function AReviews() {
           
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-5 shadow-sm p-5 hover:shadow-md transition-shadow">
+            <div className="card bg-base-300 rounded-box p-5 border border-gray-200 shadow-sm p-5 hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-medium text-blue-800 uppercase tracking-wide">Total Reviews</p>
@@ -189,7 +189,7 @@ function AReviews() {
               </div>
             </div>
 
-            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-5 border p-5 hover:shadow-md transition-shadow-shadow">
+            <div className="card bg-base-300 rounded-box p-5 border border-gray-200 shadow-sm p-5 hover:shadow-md transition-shadow-shadow">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-medium text-blue-800 uppercase tracking-wide">Flagged Reviews</p>
@@ -205,12 +205,12 @@ function AReviews() {
           </div>
 
           {/* Filters Section */}
-          <div className="rounded-lg card bg-base-200 shadow-lg border border-base-500 p-5 mb-6">
+          <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-5 mb-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-base font-semibold text-gray-800">Filters</h3>
               <button 
                 onClick={clearFilters} 
-                className="text-sm text-blue-800 hover:text-blue-700 font-medium"
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
               >
                 Clear All
               </button>
@@ -256,7 +256,7 @@ function AReviews() {
           </div>
 
           {/* Reviews Table */}
-          <div className="rounded-lg card bg-base-200 shadow-lg border border-base-500 overflow-hidden">
+          <div className="bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -281,7 +281,7 @@ function AReviews() {
                     </tr>
                   ) : (
                     filteredReviews.map(review => (
-                      <tr key={review.review_id} className={!review.is_visible ? 'bg-blue-50' : 'hover:bg-gray-50'}>
+                      <tr key={review.review_id} className={!review.is_visible ? 'bg-yellow-50' : 'hover:bg-gray-50'}>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">{review.review_id}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{review.coach_profile_id}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{review.client_user_id}</td>
@@ -307,7 +307,7 @@ function AReviews() {
                               </span>
                             )}
                             <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                              review.is_visible ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+                              review.is_visible ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
                             }`}>
                               {review.is_visible ? 'Visible' : 'Hidden'}
                             </span>
@@ -319,8 +319,8 @@ function AReviews() {
                               onClick={() => handleToggleFlag(review.review_id, review.is_flagged)}
                               className={`px-3 py-1 rounded-md text-sm font-medium transition-colors cursor-pointer ${
                                 review.is_flagged 
-                                  ? 'bg-blue-800 text-white hover:bg-blue-500' 
-                                  : 'border border-black text-black hover:bg-gray-300'
+                                  ? 'bg-blue-800 text-white hover:bg-blue-700' 
+                                  : 'border border-black text-black hover:bg-yellow-200'
                               }`}
                               title={review.is_flagged ? 'Remove flag' : 'Flag review'}
                             >
@@ -330,8 +330,8 @@ function AReviews() {
                               onClick={() => handleToggleVisibility(review.review_id, review.is_visible)}
                               className={`px-3 py-1 rounded-md text-sm font-medium transition-colors cursor-pointer ${
                                 review.is_visible 
-                                  ? 'bg-blue-800 text-white hover:bg-blue-500' 
-                                  : 'border border-black text-black hover:bg-gray-300'
+                                  ? 'bg-blue-800 text-white hover:bg-blue-700' 
+                                  : 'border border-black text-black hover:bg-yellow-200'
                               }`}
                               title={review.is_visible ? 'Hide review' : 'Show review'}
                             >

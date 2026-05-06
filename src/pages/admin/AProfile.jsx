@@ -310,7 +310,7 @@ const handleDeleteUser = async (userId) => {
             ) : (
               <>
                 <div className="overflow-x-auto">
-                  <table className="table w-full border border-gray-400 shadow-lg">
+                  <table className="table w-full">
                     <thead>
                       <tr className="bg-base-200">
                         <th className="p-3 text-left">User ID</th>
@@ -328,33 +328,27 @@ const handleDeleteUser = async (userId) => {
                           <td className="p-3">{user.first_name || "—"}</td>
                           <td className="p-3">{user.last_name || "—"}</td>
                           <td className="p-3">
-                          {userCoachStatus[user.user_id] === undefined || user.user_id === undefined ? (
-                            <div className="flex items-center gap-2">
-                              <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
-                              <span className="text-xs text-gray-500">Checking...</span>
-                            </div>
-                          ) : (
-                            <div className="flex gap-1">
-                              
-                              {userCoachStatus[user.user_id] && (
-                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2" />
-                                    <circle cx="12" cy="7" r="4" />
-                                  </svg>
-                                  Coach
-                                </span>
-                              )}
-                              {user.user_id && (
-                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-600">
-                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                  </svg>
-                                  Client
-                                </span>
-                              )}
-                            </div>
-                          )}
+                            {userCoachStatus[user.user_id] === undefined ? (
+                              <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+                                <span className="text-xs text-gray-500">Checking...</span>
+                              </div>
+                            ) : userCoachStatus[user.user_id] ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2" />
+                                  <circle cx="12" cy="7" r="4" />
+                                </svg>
+                                Coach
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-600">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                Client
+                              </span>
+                            )}
                           </td>
                           <td className="p-3">
                             <span className={`badge ${user.is_active ? 'badge border-2 border-blue-800' : 'badge border-2 border-gray-600'}`}>
