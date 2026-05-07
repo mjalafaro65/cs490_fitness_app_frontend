@@ -447,7 +447,7 @@ function CoClientDashboardView() {
           </div>
 
           {/* Meal Logs Section */}
-          <div className="card bg-base-300 rounded-box p-6">
+          <div className="card bg-base-100 rounded-box border border-base-500 p-6 shadow-lg">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold">Client Meal Logs</h2>
               <select 
