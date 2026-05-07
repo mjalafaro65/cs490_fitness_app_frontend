@@ -154,7 +154,6 @@ function CoMealLogs() {
   };
 
   const handleDeletePlan = async (plan_id) => {
-    if (!window.confirm("Are you sure you want to delete this entire workout plan? This action cannot be undone.")) return;
     try {
       await api.delete(`/nutrition/plans/${plan_id}`);
       await fetchPlansWithDetails();
@@ -198,7 +197,6 @@ function CoMealLogs() {
   };
 
   const handleDeleteDay = async (plan_id, plan_day_id) => {
-    if (!window.confirm("Remove this day and all its exercises?")) return;
     try {
       await api.delete(`/nutrition/plans/${plan_id}/days/${plan_day_id}`);
       await fetchPlansWithDetails();
@@ -234,7 +232,6 @@ function CoMealLogs() {
   };
 
   const handleDeleteDayExercise = async (plan_id, day_id, de_id) => {
-    if (!window.confirm("Remove this exercise?")) return;
     try {
       await api.delete(`/nutrition/plans/${plan_id}/days/${day_id}/exercises/${de_id}`);
       if (editingExercise?.de_id === de_id) setEditingExercise(null);

@@ -158,6 +158,7 @@ useEffect(() => {
       ]);
       
       const userData = userResponse.data;
+      console.log("response:",userResponse);
       setUser({
         first_name: userData.first_name || "",
         last_name: userData.last_name || "",
@@ -184,28 +185,35 @@ useEffect(() => {
 
 const handleDeleteUser = async (userId) => {
   try {
-    let coachProfileId = null;
-    try {
-      const coachCheck = await api.get("/coach/coach-profile", {
-        params: { user_id: userId }
-      });
-      if (coachCheck.data && coachCheck.data.coach_profile_id) {
-        coachProfileId = coachCheck.data.coach_profile_id;
-        console.log("Found coach profile ID:", coachProfileId);
-      }
-    } catch (err) {
-      console.log("No coach profile found for user");
-    }
+    console.log("=== DELETE REQUEST DEBUG ===");
+    console.log("User ID being deleted:", userId);
 
-    if (coachProfileId) {
-      console.log("Deleting coach profile first...");
-      try {
-        await api.delete("/admin/purge-user", { data: { coach_profile_id: coachProfileId } });
-      } catch (err) {
-        console.error("Failed to delete coach profile:", err);
-      }
-    }
+    // let coachProfileId = null;
+    // try {
+    //   const coachCheck = await api.get("/coach/coach-profile", {
+    //     params: { user_id: userId }
+    //   });
+    //   if (coachCheck.data && coachCheck.data.coach_profile_id) {
+    //     coachProfileId = coachCheck.data.coach_profile_id;
+    //     console.log("Found coach profile ID:", coachProfileId);
+    //   }
+    // } catch (err) {
+    //   console.log("No coach profile found for user");
+    // }
 
+    // if (coachProfileId) {
+    //   console.log("=== FIRST DELETE REQUEST (Coach Profile) ===");
+    //   console.log("Data being sent:", { user_id: userId });
+    //   try {
+    //     await api.delete("/admin/purge-user", { data: { user_id: userId } });
+    //   } catch (err) {
+    //     console.error("Failed to delete coach profile:");
+    //     console.error("Response data:", err.response?.data);
+    //     console.error("Request config:", err.config);
+    //   }
+    // }
+    console.log("=== FIRST DELETE REQUEST (Coach Profile) ===");
+    console.log("Data being sent:", { user_id: userId });
     console.log("Deleting user...");
     const response = await api.delete("/admin/purge-user", {
       data: { user_id: userId }
@@ -236,6 +244,9 @@ const handleDeleteUser = async (userId) => {
   } catch (error) {
     console.error("Failed to delete user:", error.response?.data || error);
     showAlert(error.response?.data?.message || "Failed to delete user", "error");
+    console.error("Failed to delete coach profile:");
+        console.error("Response data:", error.response?.data);
+        console.error("Request config:", error.config);
   }
 };
 
@@ -312,8 +323,8 @@ const handleDeleteUser = async (userId) => {
                 <div className="overflow-x-auto">
                   <table className="table w-full border border-gray-400 shadow-lg">
                     <thead>
-                      <tr className="bg-base-200">
-                        <th className="p-3 text-left">User ID</th>
+                      <tr className="bg-base-300">
+                        {/*<th className="p-3 text-left">User ID</th>*/}
                         <th className="p-3 text-left">First Name</th>
                         <th className="p-3 text-left">Last Name</th>
                         <th className="p-3 text-left">Coach Account</th>
@@ -324,7 +335,7 @@ const handleDeleteUser = async (userId) => {
                     <tbody>
                       {users.map((user) => (
                         <tr key={user.user_id} className="border-b hover:bg-base-100">
-                          <td className="p-3">{user.user_id}</td>
+                          {/*<td className="p-3">{user.user_id}</td>*/}
                           <td className="p-3">{user.first_name || "—"}</td>
                           <td className="p-3">{user.last_name || "—"}</td>
                           <td className="p-3">
@@ -374,7 +385,7 @@ const handleDeleteUser = async (userId) => {
                                   setActionUser(user);
                                   setPopOpen("deactivate");
                                 }}
-                                className="btn btn-sm border-black text-black"
+                                className="btn btn-sm border-gray-300 text-black w-20"
                               >
                                 {user.is_active ? 'Deactivate' : 'Activate'}
                               </button>
@@ -528,7 +539,7 @@ const handleDeleteUser = async (userId) => {
               
               <p className="text-sm text-gray-500 mb-6">
                 Are you sure you want to delete <span className="font-semibold text-gray-700">{actionUser?.first_name} {actionUser?.last_name}</span>?<br />
-                <p className="text-red-600 font-semibold">This action cannot be undone.</p>
+                <span className="text-red-600 font-semibold">This action cannot be undone.</span>
               </p>
 
               <div className="flex gap-3">
