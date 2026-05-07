@@ -199,7 +199,7 @@ function BrowsePlans() {
           <option value="all">All</option>
         </select>
 
-        <button className="btn btn-primary">Search</button>
+        <button className="btn btn-primary bg-blue-800 text-white">Search</button>
       </form>
 
       {loading ? (
@@ -212,7 +212,7 @@ function BrowsePlans() {
             plans.map((plan) => (
               <div
                 key={plan.plan_id}
-                className="card bg-base-300 p-4 rounded-box shadow"
+                className="card bg-base-200 border border-gray-200 p-4 rounded-box shadow"
               >
                 <h2 className="text-lg font-bold mb-2">
                   {plan.name || "Unnamed Plan"}
@@ -222,23 +222,17 @@ function BrowsePlans() {
                   {plan.description || "No description"}
                 </p>
 
-                <div className="text-xs opacity-60">
-                  <p>Type: {plan.training_type || "N/A"}</p>
-                  <p>Equipment: {plan.equipment || "N/A"}</p>
-                  <p>Muscle: {plan.muscle_group || "N/A"}</p>
-                </div>
-
                 <button onClick={async () => {
                                 setPopOpen(plan.plan_id);
                                 setSelectedPlan(null);
                                 await fetchPlanDetails(plan.plan_id);
-          }} className="btn btn-sm btn-primary mt-3">
+          }} className="btn btn-sm btn-primary bg-blue-800 text-white mt-3">
                   View Plan
                 </button>
 
                 <button 
                   onClick={() => handleCopyPlan(plan.plan_id, plan.name)} 
-                  className="btn btn-sm btn-secondary mt-3 ml-2"
+                  className="btn btn-sm border-gray-400 mt-3"
                   disabled={copyingPlanId === plan.plan_id}
                 >
                   {copyingPlanId === plan.plan_id ? (
