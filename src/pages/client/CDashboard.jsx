@@ -129,7 +129,8 @@ function CDashboard() {
     try {
       const params = {};
 
-
+      // For week view, pass the date as anchor to get the correct week
+      // For date view, pass the date to get that specific day
       if (date) {
         params.date =
           date instanceof Date
@@ -148,18 +149,26 @@ function CDashboard() {
 
       const workouts = response.data || [];
 
-      const transformedWorkouts = workouts.map((workout) => ({
-        id: workout.calendar_workout_id,
-        assignment_id: workout.assignment_id,
-        plan_id: workout.plan_day?.plan?.plan_id,
-        plan_name: workout.plan_day?.plan?.name,
-        day_label: workout.plan_day?.day_label,
-        day_id: workout.plan_day?.plan_day_id,
-        scheduled_start: workout.scheduled_start,
-        exercises: workout.plan_day?.exercises || [],
-        date_str: new Date(workout.scheduled_start).toDateString(),
-        session_time: workout.plan_day?.session_time,
-      }));
+      const transformedWorkouts = workouts.map((workout) => {
+        // Robustly parse the date string (e.g., "2026-05-02T10:00:00")
+        // We want to compare the calendar day, regardless of the time.
+        const [datePart] = workout.scheduled_start.split("T");
+        const [year, month, day] = datePart.split("-").map(Number);
+        const d = new Date(year, month - 1, day);
+        
+        return {
+          id: workout.calendar_workout_id,
+          assignment_id: workout.assignment_id,
+          plan_id: workout.plan_day?.plan?.plan_id,
+          plan_name: workout.plan_day?.plan?.name,
+          day_label: workout.plan_day?.day_label,
+          day_id: workout.plan_day?.plan_day_id,
+          scheduled_start: workout.scheduled_start,
+          exercises: workout.plan_day?.exercises || [],
+          date_str: d.toDateString(),
+          session_time: workout.plan_day?.session_time,
+        };
+      });
 
       setScheduledWorkouts(transformedWorkouts);
     } catch (err) {
@@ -173,75 +182,52 @@ function CDashboard() {
 
 
   const getWorkoutsForDate = (date) => {
-
     if (!date) return [];
-
-    const targetDateStr = date.toDateString();
-
+    
+    // Use ISO date string (YYYY-MM-DD) for reliable comparison
+    const targetDateStr = date.toISOString().split('T')[0];
     const workouts = [];
 
-
-
     scheduledWorkouts.forEach((workout) => {
+      if (!workout.scheduled_start) return;
+      const workoutDateStr = workout.scheduled_start.split('T')[0];
 
-      const workoutDate = new Date(workout.scheduled_start);
-
-      if (workoutDate.toDateString() === targetDateStr) {
-
+      if (workoutDateStr === targetDateStr) {
+        const workoutDate = new Date(workout.scheduled_start);
         const time = workoutDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
         workouts.push({
-
           planName: workout.plan_name,
-
           planId: workout.plan_id,
-
           dayLabel: workout.day_label,
-
           dayId: workout.day_id,
-
           exercises: workout.exercises || [],
-
           scheduledStart: workout.scheduled_start,
-
           occurrenceId: workout.id,
-
           time: time
-
         });
-
       }
-
     });
 
-
-
     return workouts;
-
   };
 
-
-
+  // Single useEffect to handle both initial fetch and week changes
   useEffect(() => {
-
     fetchScheduledWorkouts(weekAnchor, "week");
-
+    // Update selected day to the start of the week when weekAnchor changes
+    const firstDayOfWeek = weekDays[0];
+    setSelectedDay(firstDayOfWeek);
   }, [weekAnchor]);
 
-
-
+  // Separate useEffect for window focus event
   useEffect(() => {
-
     const handleFocus = () => {
-
       fetchScheduledWorkouts(weekAnchor, "week");
-
     };
 
     window.addEventListener('focus', handleFocus);
-
     return () => window.removeEventListener('focus', handleFocus);
-
   }, [weekAnchor]);
 
 
