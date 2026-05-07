@@ -102,6 +102,9 @@ function Navbar() {
             to: "/coach/meallogs", label: "Meal Logs", icon: (Icons.Meal)
         },
         {
+            to: "/coach/invoices", label: "Invoices", icon: (Icons.Logs)
+        },
+        {
             to: "/coach/settings", label: "Settings", icon: (Icons.Settings)
         },
         {

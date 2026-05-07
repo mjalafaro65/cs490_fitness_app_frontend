@@ -68,7 +68,7 @@ function CoInvoices() {
     <div className="p-6 flex flex-col gap-6">
       <div className="text-2xl font-bold">Invoices</div>
 
-      <div className="card bg-base-300 rounded-box p-4">
+      <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-4">
         <h2 className="text-lg font-bold mb-3">Create Invoice</h2>
 
         <p className="text-sm font-semibold mb-2">Select Client</p>
@@ -88,7 +88,7 @@ function CoInvoices() {
               return (
                 <button
                   key={client.relationship_id}
-                  className={`p-3 rounded-box text-left ${
+                  className={`p-3 rounded-box text-left cursor-pointer ${
                     isSelected
                       ? "bg-blue-800 text-white"
                       : "bg-base-100 hover:bg-base-200"
@@ -118,7 +118,7 @@ function CoInvoices() {
           />
 
           <button
-            className="btn bg-blue-800 text-white"
+            className="btn btn-primary bg-blue-800 text-white"
             onClick={handleCreateInvoice}
           >
             Create Invoice
@@ -126,7 +126,7 @@ function CoInvoices() {
         </div>
       </div>
 
-      <div className="card bg-base-300 rounded-box p-4">
+      <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-4">
         <h2 className="text-lg font-bold mb-3">All Invoices</h2>
 
         {loading ? (

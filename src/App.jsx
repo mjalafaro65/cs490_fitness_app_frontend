@@ -95,7 +95,7 @@ function App() {
           <Route path="progresslogs" element={<CoachProgressLogs />} />
           <Route path="clients/:id/workouts" element={<CoachWorkoutView />} />
           <Route path="clients/:id" element={<CoachClientDashboardView />} />
-          <Route path="/coach/invoices" element={<CoachInvoices />} />
+          <Route path="invoices" element={<CoachInvoices />} />
           
         </Route>
         

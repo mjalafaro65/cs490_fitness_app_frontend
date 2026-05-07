@@ -716,7 +716,7 @@ const handleViewPlan = async (plan) => {
     </div>
     
     <div className="flex gap-2 mt-6">
-      <button 
+      {/* <button 
         onClick={() => {
           closePopUp();
           handleEditPlan(selectedPlan);
@@ -724,7 +724,7 @@ const handleViewPlan = async (plan) => {
         className="btn bg-blue-800 text-white flex-1"
       >
         Edit Plan
-      </button>
+      </button> */}
       <button 
         onClick={() => {
           if (window.confirm(`Are you sure you want to delete "${selectedPlan?.name}"?`)) {

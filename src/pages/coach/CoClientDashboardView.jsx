@@ -225,16 +225,17 @@ function CoClientDashboardView() {
                 >
                   Back
                 </button>
-              </div>
+              <div className="text-2xl font-bold mb-4">{client.first_name || "Client"}{client.last_name ? ` ${client.last_name}'` : "'s"} Dashboard</div>
+            </div>
               <p className="text-sm opacity-70 mt-2">
                 Active since {client.relationship_start_date ? new Date(client.relationship_start_date).toLocaleDateString() : "--"} · {client.relationship_status || "--"} · {client.first_name} {client.last_name}
               </p>
-            </div>
+            </div> 
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Profile Card */}
-            <div className="card bg-base-300 rounded-box p-6">
+            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-6">
               <h2 className="text-lg font-bold mb-4">Profile</h2>
               <div className="space-y-3">
                 {dashboard.profile ? (
@@ -283,7 +284,7 @@ function CoClientDashboardView() {
             </div>
 
             {/* Progress Summary Card */}
-            <div className="card bg-base-300 rounded-box p-6">
+            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-6">
               <h2 className="text-lg font-bold mb-4">Progress Summary</h2>
               <div className="space-y-3">
                 {[
@@ -306,7 +307,7 @@ function CoClientDashboardView() {
             </div>
 
             {/* Goals Status Card */}
-            <div className="card bg-base-300 rounded-box p-6">
+            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-6">
               <h2 className="text-lg font-bold mb-4">Goals Status</h2>
               <div className="space-y-2 max-h-48 overflow-y-auto">
                 {dashboard.goals_status && dashboard.goals_status.length > 0 ? (
@@ -332,7 +333,7 @@ function CoClientDashboardView() {
             </div>
 
             {/* Survey Status Card */}
-            <div className="card bg-base-300 rounded-box p-6">
+            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-6">
               <h2 className="text-lg font-bold mb-4">Daily Survey Status</h2>
               <div className="space-y-3">
                 {dashboard.survey_status ? (
@@ -359,7 +360,7 @@ function CoClientDashboardView() {
             </div>
 
             {/* Recent Activity Card */}
-            <div className="card bg-base-300 rounded-box p-6 lg:col-span-2">
+            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-6 lg:col-span-2">
               <h2 className="text-lg font-bold mb-4">Recent Activity</h2>
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {dashboard.recent_activity && dashboard.recent_activity.length > 0 ? (
@@ -389,7 +390,7 @@ function CoClientDashboardView() {
           {/* Workout & Meal Assignments */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Workout Assignments Card */}
-            <div className="card bg-base-300 rounded-box p-6">
+            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-6">
               <h2 className="text-lg font-bold mb-4">Workout Assignments</h2>
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {dashboard.workout_assignments && dashboard.workout_assignments.length > 0 ? (
@@ -417,7 +418,7 @@ function CoClientDashboardView() {
             </div>
 
             {/* Meal Assignments Card */}
-            <div className="card bg-base-300 rounded-box p-6">
+            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-6">
               <h2 className="text-lg font-bold mb-4">Meal Assignments</h2>
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {dashboard.meal_assignments && dashboard.meal_assignments.length > 0 ? (
@@ -504,7 +505,7 @@ function CoClientDashboardView() {
           {/* Invoices & Payments */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Invoices Card */}
-            <div className="card bg-base-300 rounded-box p-6">
+            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-6">
               <h2 className="text-lg font-bold mb-4">Invoices</h2>
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {dashboard.invoices && dashboard.invoices.length > 0 ? (
@@ -535,7 +536,7 @@ function CoClientDashboardView() {
             </div>
 
             {/* Payments Card */}
-            <div className="card bg-base-300 rounded-box p-6">
+            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-6">
               <h2 className="text-lg font-bold mb-4">Payments</h2>
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {dashboard.payments && dashboard.payments.length > 0 ? (
@@ -569,7 +570,7 @@ function CoClientDashboardView() {
           {/* Coaches & Progress Photos */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Coaches Card */}
-            <div className="card bg-base-300 rounded-box p-6">
+            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-6">
               <h2 className="text-lg font-bold mb-4">Client's Coaches</h2>
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {dashboard.coaches && dashboard.coaches.length > 0 ? (
@@ -596,7 +597,7 @@ function CoClientDashboardView() {
             </div>
 
             {/* Progress Photos Card */}
-            <div className="card bg-base-300 rounded-box p-6">
+            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-6">
               <h2 className="text-lg font-bold mb-4">Progress Photos</h2>
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {dashboard.progress_photos && dashboard.progress_photos.length > 0 ? (
@@ -626,7 +627,7 @@ function CoClientDashboardView() {
             <h2 className="text-xl font-bold mb-4">Wellness Trends</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Sleep Hours Chart */}
-              <div className="card bg-base-300 rounded-box p-4 flex">
+              <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-4 flex">
                 <h2 className="text-lg font-bold mb-2">Sleep Hours</h2>
                 <p className="text-xs opacity-60 mb-4">This week's sleep pattern</p>
                 {insightsLoading ? (
@@ -660,7 +661,7 @@ function CoClientDashboardView() {
               </div>
 
               {/* Weight Chart */}
-              <div className="card bg-base-300 rounded-box p-4 flex">
+              <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-4 flex">
                 <h2 className="text-lg font-bold mb-2">Weight</h2>
                 <p className="text-xs opacity-60 mb-4">This week's weight (lbs)</p>
                 {insightsLoading ? (
@@ -694,7 +695,7 @@ function CoClientDashboardView() {
               </div>
 
               {/* Water Intake Chart */}
-              <div className="card bg-base-300 rounded-box p-4 flex">
+              <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-4 flex">
                 <h2 className="text-lg font-bold mb-2">Water Intake</h2>
                 <p className="text-xs opacity-60 mb-4">This week's water (oz)</p>
                 {insightsLoading ? (
