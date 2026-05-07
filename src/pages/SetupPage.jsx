@@ -4,7 +4,7 @@ import api from "../axios.jsx";
 import { useAuth } from "../AuthContext.jsx";
 
 function SetupPage() {
-    const {fetchUser}=useAuth()
+    const { fetchUser } = useAuth()
     const DEFAULT_PHOTO = "https://res.cloudinary.com/dh1rjok0f/image/upload/v1777335485/unknown_pfp_adcb09_zzqxwp.png";
 
     const [profileData, setProfileData] = useState({
@@ -40,15 +40,24 @@ function SetupPage() {
             [name]: finalValue
         });
     };
-    
+
 
 
     const handleFinish = async (e) => {
         e.preventDefault();
         try {
-            console.log(profileData)
-          
-            const res = await api.post("/auth/setup", profileData);
+            const payload = {
+                ...profileData,
+                profile_photo:
+                    profileData.profile_photo === null
+                        && DEFAULT_PHOTO
+                      
+            };
+
+            console.log(payload);
+
+
+            const res = await api.post("/auth/setup", payload);
             console.log(res)
             await fetchUser()
             navigate("/client/initial-survey");
@@ -65,7 +74,7 @@ function SetupPage() {
             return;
         }
 
-     
+
         const myCloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 
         const myPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;

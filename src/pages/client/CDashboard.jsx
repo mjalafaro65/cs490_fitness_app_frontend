@@ -313,11 +313,10 @@ function CDashboard() {
     }
     async function fetchAllInsights() {
       try {
-        const [survey, workouts, strength, nutrition, goals, summary] = await Promise.all([
+        const [survey, workouts, strength, goals, summary] = await Promise.all([
           api.get("/insights/survey?days=30"),
           api.get("/insights/workouts?days=30"),
           api.get("/insights/strength?days=90"),
-          api.get("/insights/nutrition?days=30"),
           api.get("/insights/goals"),
           api.get("/insights/summary"),
         ]);
@@ -325,7 +324,6 @@ function CDashboard() {
         console.log("=== SURVEY ===", survey.data);
         console.log("=== WORKOUTS ===", workouts.data);
         console.log("=== STRENGTH ===", strength.data);
-        console.log("=== NUTRITION ===", nutrition.data);
         console.log("=== GOALS ===", goals.data);
         console.log("=== SUMMARY ===", summary.data);
 

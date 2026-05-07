@@ -267,7 +267,9 @@ function CProfile() {
                   src={bioData.profile_photo}
                   alt="Profile"
                   className="w-full h-full   object-cover scale-160"
+                  
                 />
+                
               ) : (
                 <div className="w-full h-full bg-blue-800  rounded-full  text-primary-content flex items-center justify-center text-4xl font-bold uppercase border-4 border-base-100 shadow-lg">
                 </div>

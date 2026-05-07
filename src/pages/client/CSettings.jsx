@@ -240,10 +240,13 @@ function CSettings() {
                                         alt="Profile"
                                         className="w-full h-full  object-cover  object-cover scale-160   "
                                     />
+                                   
+                                    
                                 ) : (
-                                    <div className="w-50 h-50 bg-blue-800  rounded-full  text-primary-content flex items-center justify-center text-4xl font-bold uppercase border-4 border-base-100 shadow-lg">
+                                    <div className="w-full h-full bg-blue-800  rounded-full  text-primary-content flex items-center justify-center text-4xl font-bold uppercase border-4 border-base-100 shadow-lg">
                                         {users?.first_name?.[0]?.toUpperCase() || "?"}
                                     </div>
+
                                 )}
                             </div>
 
