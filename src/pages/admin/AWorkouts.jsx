@@ -235,7 +235,6 @@ function AWorkoutPlans() {
   };
 
   const handleDeletePlan = async (planId, planName) => {
-    if (window.confirm(`Are you sure you want to delete "${planName}"?`)) {
       try {
         await api.delete(`/workouts/plans/${planId}`);
         showAlert(`Plan "${planName}" deleted successfully`, "success");
@@ -245,7 +244,6 @@ function AWorkoutPlans() {
         console.error("Failed to delete plan:", err);
         showAlert(err.response?.data?.message || "Failed to delete plan", "error");
       }
-    }
   };
 
 const handleViewExercise = async (exercise) => {

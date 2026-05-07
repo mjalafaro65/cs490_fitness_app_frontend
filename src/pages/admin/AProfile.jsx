@@ -185,6 +185,9 @@ useEffect(() => {
 
 const handleDeleteUser = async (userId) => {
   try {
+    console.log("=== DELETE REQUEST DEBUG ===");
+    console.log("User ID being deleted:", userId);
+
     let coachProfileId = null;
     try {
       const coachCheck = await api.get("/coach/coach-profile", {
@@ -199,11 +202,14 @@ const handleDeleteUser = async (userId) => {
     }
 
     if (coachProfileId) {
-      console.log("Deleting coach profile first...");
+      console.log("=== FIRST DELETE REQUEST (Coach Profile) ===");
+      console.log("Data being sent:", { user_id: userId });
       try {
-        await api.delete("/admin/purge-user", { data: { coach_profile_id: coachProfileId } });
+        await api.delete("/admin/purge-user", { data: { user_id: userId } });
       } catch (err) {
-        console.error("Failed to delete coach profile:", err);
+        console.error("Failed to delete coach profile:");
+        console.error("Response data:", err.response?.data);
+        console.error("Request config:", err.config);
       }
     }
 
