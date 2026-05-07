@@ -23,7 +23,7 @@ function AProgressLogs() {
     total_users: 0,
     active_users: 0,
     inactive_users: 0,
-    new_users_last_7_days: 0
+    new_client_users_last_7: 0
   });
   
   const [currentPage, setCurrentPage] = useState(1);
@@ -55,7 +55,7 @@ function AProgressLogs() {
           total_users: data.total_users || 0,
           active_users: data.active_users || 0,
           inactive_users: data.inactive_users || 0,
-          new_users_last_7_days: data.new_users_last_7_days || 0
+          new_client_users_last_7: data.new_client_users_last_7 || 0
         });
         
       } catch (err) {
@@ -70,60 +70,51 @@ function AProgressLogs() {
   }, []);
 
   useEffect(() => {
-    async function fetchActiveReport() {
-      try {
-        setActiveReportLoading(true);
-        setReportError(null);
-        
-        console.log(`Fetching active report for period: ${selectedPeriod}`);
-        
-        const response = await api.get("/admin/users/active-report", {
-          params: {
-            period: selectedPeriod
-          }
-        });
-        
-        console.log("Active report response:", response);
-        console.log("Active report data:", response.data);
-        
-        let reportData = response.data;
-        
-        if (reportData && reportData.data && Array.isArray(reportData.data)) {
-          reportData = reportData.data;
-        }
-        else if (Array.isArray(reportData)) {
-          reportData = reportData;
-        }
-        else if (reportData && reportData.results && Array.isArray(reportData.results)) {
-          reportData = reportData.results;
-        }
-        else if (!Array.isArray(reportData)) {
-          console.warn("Unexpected data format:", reportData);
-          reportData = [];
-        }
-        
-        setActiveReport(reportData);
-        
-      } catch (err) {
-        console.error("Failed to fetch active report:", err);
-        console.error("Error response:", err.response?.data);
-        console.error("Error status:", err.response?.status);
-        console.error("Error headers:", err.response?.headers);
-        
-        setReportError({
-          message: err.response?.data?.message || err.message || "Failed to load activity report",
-          status: err.response?.status,
-          details: err.response?.data
-        });
-        
-        setActiveReport([]);
-      } finally {
-        setActiveReportLoading(false);
-      }
-    }
-
     fetchActiveReport();
   }, [selectedPeriod]);
+
+const fetchActiveReport = async () => {
+  try {
+    setActiveReportLoading(true);
+    setReportError(null);
+    
+    console.log(`Fetching active report for period: ${selectedPeriod}`);
+    
+    const response = await api.get("/admin/users/active-report", {
+      params: {
+        period: selectedPeriod
+      }
+    });
+    
+    console.log("Active report response:", response.data);
+    
+    let reportData = response.data;
+    
+    const transformedData = [];
+    
+    if (selectedPeriod === "daily") {
+      transformedData.push({ period: "Total Active", count: reportData.total_active_users });
+      transformedData.push({ period: "Clients", count: reportData.client_active_users });
+      transformedData.push({ period: "Coaches", count: reportData.coach_active_users });
+    } else if (selectedPeriod === "weekly") {
+      transformedData.push({ period: "Last 7 Days", count: reportData.total_active_users });
+      transformedData.push({ period: "Clients", count: reportData.client_active_users });
+      transformedData.push({ period: "Coaches", count: reportData.coach_active_users });
+    } else if (selectedPeriod === "monthly") {
+      transformedData.push({ period: "Last 30 Days", count: reportData.total_active_users });
+      transformedData.push({ period: "Clients", count: reportData.client_active_users });
+      transformedData.push({ period: "Coaches", count: reportData.coach_active_users });
+    }
+        
+    setActiveReport(transformedData);
+    return;
+  } catch (err) {
+    console.error("Failed to fetch active report:", err);
+    setActiveReport([]);
+  } finally {
+    setActiveReportLoading(false);
+  }
+};
 
   const closePopUp = () => {
     setPopOpen(null);
@@ -132,130 +123,140 @@ function AProgressLogs() {
   };
 
   const renderActivityChart = () => {
-    if (activeReportLoading) {
-      return (
-        <div className="text-center py-8">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <p className="text-sm opacity-70 mt-2">Loading activity data...</p>
-        </div>
-      );
-    }
+  if (activeReportLoading) {
+    return (
+      <div className="text-center py-8">
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <p className="text-sm opacity-70 mt-2">Loading activity data...</p>
+      </div>
+    );
+  }
 
-    if (reportError) {
-      return (
-        <div className="bg-error/10 border border-error rounded-lg p-4">
-          <div className="flex items-start">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium">Error loading activity report</h3>
-              <div className="mt-2 text-sm opacity-70">
-                <p>{reportError.message}</p>
-                {reportError.status && <p className="text-xs mt-1">Status: {reportError.status}</p>}
-              </div>
+  if (reportError) {
+    return (
+      <div className="bg-error/10 border border-error rounded-lg p-4">
+        <div className="flex items-start">
+          <div className="flex-shrink-0">
+            <svg className="h-5 w-5 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <h3 className="text-sm font-medium">Error loading activity report</h3>
+            <div className="mt-2 text-sm opacity-70">
+              <p>{reportError.message}</p>
+              {reportError.status && <p className="text-xs mt-1">Status: {reportError.status}</p>}
             </div>
           </div>
         </div>
-      );
-    }
+      </div>
+    );
+  }
 
-    if (!activeReport || activeReport.length === 0) {
-      return (
-        <div className="text-center py-8 opacity-50">
-          <svg className="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
-          <p className="mt-2 text-sm">No activity data available for {selectedPeriod} period</p>
-        </div>
-      );
-    }
+  if (!activeReport || activeReport.length === 0) {
+    return (
+      <div className="text-center py-8 opacity-50">
+        <svg className="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        <p className="mt-2 text-sm">No activity data available for {selectedPeriod} period</p>
+      </div>
+    );
+  }
 
-    const sampleItem = activeReport[0];
-    let countKey = null;
-    let labelKey = null;
-    
-    const possibleCountKeys = ['count', 'active_count', 'total', 'value', 'user_count'];
-    for (const key of possibleCountKeys) {
-      if (sampleItem.hasOwnProperty(key) && typeof sampleItem[key] === 'number') {
+  // Find count and label keys dynamically
+  const sampleItem = activeReport[0];
+  let countKey = null;
+  let labelKey = null;
+  
+  const possibleCountKeys = ['count', 'active_count', 'total', 'value', 'user_count'];
+  for (const key of possibleCountKeys) {
+    if (sampleItem.hasOwnProperty(key) && typeof sampleItem[key] === 'number') {
+      countKey = key;
+      break;
+    }
+  }
+  
+  if (!countKey) {
+    for (const key in sampleItem) {
+      if (typeof sampleItem[key] === 'number') {
         countKey = key;
         break;
       }
     }
-    
-    if (!countKey) {
-      for (const key in sampleItem) {
-        if (typeof sampleItem[key] === 'number') {
-          countKey = key;
-          break;
-        }
-      }
+  }
+  
+  const possibleLabelKeys = ['period', 'date', 'week', 'month', 'day', 'label', 'name'];
+  for (const key of possibleLabelKeys) {
+    if (sampleItem.hasOwnProperty(key)) {
+      labelKey = key;
+      break;
     }
-    
-    const possibleLabelKeys = ['period', 'date', 'week', 'month', 'day', 'label', 'name'];
-    for (const key of possibleLabelKeys) {
-      if (sampleItem.hasOwnProperty(key)) {
-        labelKey = key;
-        break;
-      }
-    }
-    
-    if (!labelKey) {
-      labelKey = null;
-    }
-    
-    const maxCount = Math.max(...activeReport.map(item => item[countKey] || 0));
-    
-    return (
-      <div className="mt-4">
-        <div className="flex items-center justify-between mb-4">
-          <h4 className="text-sm font-semibold opacity-70">
-            Active Users ({selectedPeriod === "daily" ? "Daily" : selectedPeriod === "weekly" ? "Weekly" : "Monthly"} Trend)
-          </h4>
-          <div className="text-xs opacity-50">
-            Total: {activeReport.reduce((sum, item) => sum + (item[countKey] || 0), 0)}
-          </div>
+  }
+  
+  if (!labelKey) {
+    labelKey = Object.keys(sampleItem).find(key => typeof sampleItem[key] !== 'number') || 'period';
+  }
+  
+  const maxCount = Math.max(...activeReport.map(item => item[countKey] || 0));
+  
+  return (
+    <div className="mt-4">
+      <div className="flex items-center justify-between mb-4">
+        <h4 className="text-sm font-semibold opacity-70">
+          Active Users ({selectedPeriod === "daily" ? "Today" : selectedPeriod === "weekly" ? "Last 7 Days" : "Last 30 Days"})
+        </h4>
+        <div className="text-xs opacity-50">
+          Total Active: {activeReport.reduce((sum, item) => sum + (item[countKey] || 0), 0)}
         </div>
-        
-        <div className="flex items-end space-x-2 overflow-x-auto pb-4">
-          {activeReport.map((item, index) => {
-            const count = item[countKey] || 0;
-            const height = maxCount > 0 ? (count / maxCount) * 150 : 0;
-            const label = labelKey ? item[labelKey] : `Period ${index + 1}`;
-            
-            return (
-              <div key={index} className="flex flex-col items-center min-w-[60px]">
-                <div className="relative w-full flex justify-center">
-                  <div 
-                    className="w-8 bg-primary rounded-t hover:opacity-80 transition-all duration-300 cursor-pointer group relative"
-                    style={{ height: `${height}px`, minHeight: count > 0 ? '4px' : '0px' }}
-                  >
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-base-300 text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-                      {count} users
-                    </div>
+      </div>
+      
+      <div className="flex items-end justify-center space-x-8 pb-4">
+        {activeReport.map((item, index) => {
+          const count = item[countKey] || 0;
+          const maxBarHeight = 200;
+          const height = maxCount > 0 ? (count / maxCount) * maxBarHeight : 0;
+          const label = item[labelKey] || `Category ${index + 1}`;
+
+          let barColor = "bg-primary";
+          if (label.toLowerCase().includes("client")) barColor = "bg-blue-300";
+          else if (label.toLowerCase().includes("coach")) barColor = "bg-blue-500";
+          else if (label.toLowerCase().includes("total")) barColor = "bg-blue-800";
+          
+          return (
+            <div key={index} className="flex flex-col items-center">
+              <div className="relative w-full flex justify-center">
+                <div 
+                  className={`${barColor} rounded-t hover:opacity-80 transition-all duration-300 cursor-pointer group relative`}
+                  style={{ width: "60px", height: `${height}px`, minHeight: count > 0 ? '4px' : '0px' }}
+                >
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-base-300 text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
+                    {count.toLocaleString()} users
                   </div>
                 </div>
-                <span className="text-xs opacity-60 mt-2 transform -rotate-45 origin-top-left whitespace-nowrap max-w-[80px] overflow-hidden text-ellipsis">
-                  {String(label).length > 15 ? String(label).substring(0, 15) + '...' : label}
-                </span>
               </div>
-            );
-          })}
-        </div>
-        
-        {process.env.NODE_ENV === 'development' && (
-          <details className="mt-4 text-xs opacity-50">
-            <summary>Debug: Data Structure</summary>
-            <pre className="mt-2 p-2 bg-base-200 rounded overflow-auto">
-              {JSON.stringify(activeReport[0], null, 2)}
-            </pre>
-          </details>
-        )}
+              <span className="text-xs font-medium mt-2 text-center">
+                {label}
+              </span>
+              <span className="text-xs opacity-60 mt-1">
+                {count}
+              </span>
+            </div>
+          );
+        })}
       </div>
-    );
-  };
+      
+      {process.env.NODE_ENV === 'development' && (
+        <details className="mt-4 text-xs opacity-50">
+          <summary>Debug: Data Structure</summary>
+          <pre className="mt-2 p-2 bg-base-200 rounded overflow-auto">
+            {JSON.stringify(activeReport, null, 2)}
+          </pre>
+        </details>
+      )}
+    </div>
+  );
+};
 
   return (
     <div className="drawer lg:drawer-open">
@@ -314,7 +315,7 @@ function AProgressLogs() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs font-semibold opacity-60 uppercase tracking-wide">New Users (7 days)</p>
-                      <p className="text-3xl font-bold mt-2">{stats.new_users_last_7_days}</p>
+                      <p className="text-3xl font-bold mt-2">{stats.new_client_users_last_7}</p>
                     </div>
                     <div className="w-10 h-10 rounded-full flex items-center justify-center">
                       <svg className="w-5 h-5 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -324,8 +325,7 @@ function AProgressLogs() {
                   </div>
                 </div>
               </div>
-{/*
-              <div className="mt-8 card bg-base-300 rounded-box p-6">
+              <div className="mt-8 card bg-base-200 shadow-lg border border-base-500 rounded-box p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="text-base font-bold">Active User Trends</div>
                   
@@ -353,7 +353,6 @@ function AProgressLogs() {
                 
                 {renderActivityChart()}
               </div>
-*/}
               {stats.total_users > 0 && (
   <div className="mt-8 card bg-base-200 shadow-lg border border-base-500 rounded-box p-6">
     <div className="text-base font-bold mb-6">Activity Overview</div>
@@ -393,7 +392,7 @@ function AProgressLogs() {
                 <>
                   <path
                     d={`M 100 100 L ${activeStartX} ${activeStartY} A 80 80 0 ${activeLargeArc} 1 ${activeEndX} ${activeEndY} Z`}
-                    fill="#3b82f6"
+                    fill="#16325f"
                     className="transition-all duration-500"
                   />
                   <path
@@ -460,59 +459,9 @@ function AProgressLogs() {
               {((stats.inactive_users / stats.total_users) * 100).toFixed(1)}% of total users
             </p>
           </div>
-
-          <div>
-            <div className="flex justify-between text-sm mb-1">
-              <span className="opacity-60">Engagement Rate</span>
-              <span className="font-semibold text-blue-800">{((stats.active_users / stats.total_users) * 100).toFixed(0)}%</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-              <div 
-                className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-700 ease-out"
-                style={{ width: `${(stats.active_users / stats.total_users) * 100}%` }}
-              />
-            </div>
-          </div>
         </div>
       </div>
     </div>
-
-    {/* Stats Cards Row */}
-    <div className="mt-6 pt-4 border-t border-base-100 grid grid-cols-2 gap-4">
-      <div className="text-center p-3 rounded-lg bg-blue-50">
-        <p className="text-2xl font-bold text-blue-700">
-          {((stats.active_users / stats.total_users) * 100).toFixed(0)}%
-        </p>
-        <p className="text-xs font-medium opacity-60 mt-1">Engagement Rate</p>
-      </div>
-      <div className="text-center p-3 rounded-lg bg-blue-50">
-        <p className="text-2xl font-bold text-blue-700">
-          +{stats.new_users_last_7_days}
-        </p>
-        <p className="text-xs font-medium opacity-60 mt-1">New this week</p>
-      </div>
-    </div>
-
-    {/* New Users Trend Mini Chart */}
-    {stats.new_users_last_7_days > 0 && (
-      <div className="mt-4 pt-4 border-t border-base-100">
-        <h4 className="text-xs font-semibold opacity-70 mb-3">New Users Trend (Last 7 Days)</h4>
-        <div className="flex items-end justify-between gap-1 h-24">
-          {[7, 6, 5, 4, 3, 2, 1].map((day, i) => {
-            const height = Math.random() * 60 + 10;
-            return (
-              <div key={i} className="flex flex-col items-center flex-1">
-                <div 
-                  className="w-full bg-blue-400 rounded-t hover:bg-blue-600 transition-all duration-300 cursor-pointer"
-                  style={{ height: `${height}px` }}
-                />
-                <span className="text-xs opacity-50 mt-1">-{day}d</span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    )}
   </div>
 )}
             </>

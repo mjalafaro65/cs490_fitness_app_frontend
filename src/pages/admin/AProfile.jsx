@@ -158,6 +158,7 @@ useEffect(() => {
       ]);
       
       const userData = userResponse.data;
+      console.log("response:",userResponse);
       setUser({
         first_name: userData.first_name || "",
         last_name: userData.last_name || "",
@@ -312,8 +313,8 @@ const handleDeleteUser = async (userId) => {
                 <div className="overflow-x-auto">
                   <table className="table w-full border border-gray-400 shadow-lg">
                     <thead>
-                      <tr className="bg-base-200">
-                        <th className="p-3 text-left">User ID</th>
+                      <tr className="bg-base-300">
+                        {/*<th className="p-3 text-left">User ID</th>*/}
                         <th className="p-3 text-left">First Name</th>
                         <th className="p-3 text-left">Last Name</th>
                         <th className="p-3 text-left">Coach Account</th>
@@ -324,7 +325,7 @@ const handleDeleteUser = async (userId) => {
                     <tbody>
                       {users.map((user) => (
                         <tr key={user.user_id} className="border-b hover:bg-base-100">
-                          <td className="p-3">{user.user_id}</td>
+                          {/*<td className="p-3">{user.user_id}</td>*/}
                           <td className="p-3">{user.first_name || "—"}</td>
                           <td className="p-3">{user.last_name || "—"}</td>
                           <td className="p-3">
@@ -374,7 +375,7 @@ const handleDeleteUser = async (userId) => {
                                   setActionUser(user);
                                   setPopOpen("deactivate");
                                 }}
-                                className="btn btn-sm border-black text-black"
+                                className="btn btn-sm border-gray-300 text-black w-20"
                               >
                                 {user.is_active ? 'Deactivate' : 'Activate'}
                               </button>

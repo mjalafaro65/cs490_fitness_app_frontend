@@ -57,6 +57,15 @@ function AWorkoutPlans() {
     setShowAlert(true);
   };
 
+  const handleNewExChange = (e) => {
+    const { name, value, type } = e.target;
+    if(!name) return;
+    setNewExercise((prev) => ({
+      ...prev, 
+      [name]: value
+    }));
+  };
+
   const fetchPlans = async () => {
     setPlansLoading(true);
     try {
@@ -175,6 +184,15 @@ function AWorkoutPlans() {
     });
   };
 
+  const [newExercise, setNewExercise] = useState({
+    name: "",
+    description: "",
+    muscle_group: "",
+    equipment: "",
+    training_type: "", 
+    is_public: true
+  });
+
   const handleExercisesFilterChange = (e) => {
     const { name, value } = e.target;
     setExercisesFilters(prev => ({ ...prev, [name]: value }));
@@ -268,6 +286,39 @@ const handleViewPlan = async (plan) => {
   }
 };
 
+  const handleCreateExercise = async (e) => {
+    e.preventDefault();
+     console.log("Sending exercise data:", newExercise);
+    try {
+      await api.post("/workouts/exercises", newExercise);
+      setNewExercise({
+        name: "",
+        muscle_group: "",
+        equipment: "",
+        training_type: "",
+        description: "",
+        is_public: true
+      });
+      setPopOpen(null);
+      fetchExercises();
+      showAlert("New exercise created!", "success");
+      setNewExercise({
+        name: "",
+        muscle_group: "",
+        equipment: "",
+        training_type: "",
+        description: "",
+        is_public: true
+      });
+    } catch (err) {
+      console.error("Create exercise failed:", err.response?.data || err);
+      showAlert("Failed to create new exercise", "error");
+      console.error("Full error object:", err);
+    console.error("Error response data:", err.response?.data);
+    console.error("Error response errors:", err.response?.data?.errors);
+    }
+  };
+
   const handleEditExercise = (exercise) => {
     setSelectedExercise(exercise);
     setEditExerciseData({
@@ -284,7 +335,14 @@ const handleViewPlan = async (plan) => {
   const handleUpdateExercise = async (e) => {
     e.preventDefault();
     try {
-      await api.patch(`/workouts/exercises/${selectedExercise.id || selectedExercise.exercise_id}`, editExerciseData);
+      const token = localStorage.getItem('token');
+      await api.patch(`/workouts/exercises/${selectedExercise.exercise_id}`, editExerciseData, 
+         {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    }
+      );
       showAlert(`Exercise "${editExerciseData.name}" updated successfully`, "success");
       setPopOpen(null);
       fetchExercises();
@@ -294,15 +352,16 @@ const handleViewPlan = async (plan) => {
     }
   };
 
-  const handleDeleteExercise = async (exerciseId, exerciseName) => {
-    if (window.confirm(`Are you sure you want to delete "${exerciseName}"?`)) {
+  const handleDeleteExercise = async (exercise) => {
+    if (window.confirm(`Are you sure you want to delete?`)) {
       try {
-        await api.delete(`/workouts/exercises/${exerciseId}`);
-        showAlert(`Exercise "${exerciseName}" deleted successfully`, "success");
+        await api.delete(`/workouts/exercises/${exercise.exercise_id}`);
+        showAlert(`Exercise deleted successfully`, "success");
         setPopOpen(null);
         fetchExercises();
       } catch (err) {
         console.error("Failed to delete exercise:", err);
+        console.error("");
         showAlert(err.response?.data?.message || "Failed to delete exercise", "error");
       }
     }
@@ -456,6 +515,11 @@ const handleViewPlan = async (plan) => {
 
             {activeTab === "exercises" && (
               <div>
+                <div className="flex justify-between items-right mb-4">
+                    <button className="btn btn-primary bg-blue-800 text-white btn-sm ml-auto"
+                            onClick={() => setPopOpen("create")}
+                            >+ Add</button>
+                </div>
                 <div className="mb-4">
                   <div className="flex gap-2 mb-2">
                     <input
@@ -803,46 +867,62 @@ const handleViewPlan = async (plan) => {
 </PopUp>
 
       {/* View Exercise Popup */}
-      <PopUp isOpen={popOpen === "viewExercise"} onClose={closePopUp}>
-        <div className="card bg-base-200 border-base-300 border p-6 rounded-box w-full max-w-md">
-          <h2 className="text-xl font-bold mb-4">Exercise Details</h2>
-          <div className="space-y-3">
-            <div className="flex justify-between border-b border-base-300 pb-2">
-              <span className="font-semibold opacity-70">Name:</span>
-              <span className="font-medium">{selectedExercise?.name}</span>
-            </div>
-            <div className="flex justify-between border-b border-base-300 pb-2">
-              <span className="font-semibold opacity-70">Description: </span>
-              <span className="font-medium">{selectedExercise?.description || "N/A"}</span>
-            </div>
-            <div className="flex justify-between border-b border-base-300 pb-2">
-              <span className="font-semibold opacity-70">Muscle Group:</span>
-              <span className="font-semibold">{selectedExercise?.muscle_group || "N/A"}</span>
-            </div>
-            <div className="flex justify-between border-b border-base-300 pb-2">
-              <span className="font-semibold opacity-70">Equipment:</span>
-              <span className="font-semibold">{selectedExercise?.equipment || "N/A"}</span>
-            </div>
-            <div className="flex justify-between border-b border-base-300 pb-2">
-              <span className="font-semibold opacity-70">Training Type:</span>
-              <span className="font-semibold">{selectedExercise?.training_type || "N/A"}</span>
-            </div>
-          </div>
-          <div className="flex gap-2 mt-6">
-            <button onClick={() => {
-              closePopUp();
-              handleEditExercise(selectedExercise);
-            }} className="btn btn-primary flex-1">
-              Edit
-            </button>
-            <button onClick={() => {
-              handleDeleteExercise(selectedExercise);
-            }} className="btn bg-red-600 text-white flex-1">
-              Delete
-            </button>
-          </div>
+<PopUp isOpen={popOpen === "viewExercise"} onClose={closePopUp}>
+  <div className="card bg-base-200 border-base-300 border p-6 rounded-box w-full max-w-md max-h-[80vh] overflow-y-auto">
+    <h2 className="text-xl font-bold mb-4">Exercise Details</h2>
+    <div className="space-y-4">
+      <div className="grid gap-3 pb-3 border-b border-base-300">
+        <div>
+          <span className="font-semibold opacity-70 text-sm">Name:</span>
+          <p className="mt-1">{selectedExercise?.name}</p>
         </div>
-      </PopUp>
+      </div>
+
+      <div className="pb-3 border-b border-base-300">
+        <span className="font-semibold opacity-70 text-sm">Description:</span>
+        <p className="mt-1">{selectedExercise?.description || "N/A"}</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 pb-3 border-b border-base-300">
+        <div>
+          <span className="font-semibold opacity-70 text-sm">Muscle Group:</span>
+          <p className="mt-1">{selectedExercise?.muscle_group || "N/A"}</p>
+        </div>
+        <div>
+          <span className="font-semibold opacity-70 text-sm">Equipment:</span>
+          <p className="mt-1">{selectedExercise?.equipment || "N/A"}</p>
+        </div>
+      </div>
+
+      <div className="pb-3">
+        <div>
+          <span className="font-semibold opacity-70 text-sm">Training Type:</span>
+          <p className="mt-1">{selectedExercise?.training_type || "N/A"}</p>
+        </div>
+      </div>
+    </div>
+    
+    <div className="flex gap-2 mt-6">
+      <button 
+        onClick={() => {
+          closePopUp();
+          handleEditExercise(selectedExercise);
+        }} 
+        className="btn btn-primary bg-blue-800 flex-1"
+      >
+        Edit
+      </button>
+      <button 
+        onClick={() => {
+          handleDeleteExercise(selectedExercise);
+        }} 
+        className="btn bg-red-600 text-white shadow-md flex-1 hover:bg-red-700"
+      >
+        Delete
+      </button>
+    </div>
+  </div>
+</PopUp>
 
       {/* Edit Exercise Popup */}
       <PopUp isOpen={popOpen === "editExercise"} onClose={closePopUp}>
@@ -876,13 +956,14 @@ const handleViewPlan = async (plan) => {
                 className="select select-bordered w-full"
               >
                 <option value="">Select Muscle Group</option>
-                <option value="chest">Chest</option>
-                <option value="back">Back</option>
-                <option value="shoulders">Shoulders</option>
-                <option value="legs">Legs</option>
-                <option value="arms">Arms</option>
-                <option value="core">Core</option>
-                <option value="cardio">Cardio</option>
+                <option value="Chest">Chest</option>
+                <option value="Back">Back</option>
+                <option value="Shoulders">Shoulders</option>
+                <option value="Legs">Legs</option>
+                <option value="Arms">Arms</option>
+                <option value="Core">Core</option>
+                <option value="Cardio">Cardio</option>
+                <option value="Quads/Glutes">Quads/Glutes</option>
               </select>
             </div>
             <div>
@@ -893,13 +974,13 @@ const handleViewPlan = async (plan) => {
                 className="select select-bordered w-full"
               >
                 <option value="">Select Equipment</option>
-                <option value="barbell">Barbell</option>
-                <option value="dumbbell">Dumbbell</option>
-                <option value="machine">Machine</option>
-                <option value="cables">Cables</option>
-                <option value="bodyweight">Bodyweight</option>
-                <option value="bands">Bands</option>
-                <option value="kettlebell">Kettlebell</option>
+                <option value="Barbell">Barbell</option>
+                <option value="Dumbbell">Dumbbell</option>
+                <option value="Machine">Machine</option>
+                <option value="Cable Machine">Cable Machine</option>
+                <option value="Bodyweight">Bodyweight</option>
+                <option value="Bands">Bands</option>
+                <option value="Kettlebell">Kettlebell</option>
               </select>
             </div>
             <div>
@@ -921,6 +1002,92 @@ const handleViewPlan = async (plan) => {
           <div className="flex gap-2 mt-6">
             <button type="submit" className="btn btn-primary bg-blue-800 text-white flex-1">Save Changes</button>
             <button type="button" onClick={closePopUp} className="btn btn-ghost flex-1">Cancel</button>
+          </div>
+        </form>
+      </PopUp>
+
+      <PopUp isOpen={popOpen === "create"} onClose={() => setPopOpen(null)}>
+        <form onSubmit={handleCreateExercise} className="card bg-base-200 border-base-300 border p-6 rounded-box w-full max-w-md">
+          <h2 className="text-xl font-bold mb-4">Create New Exercise</h2>
+          <div className="space-y-3">
+            <div>
+              <label className="label font-semibold opacity-70">Name</label>
+              <input
+                name="name"
+                type="text"
+                value={newExercise.name}
+                onChange={handleNewExChange}
+                className="input input-bordered w-full"
+                required
+              />
+            </div>
+            <div>
+              <label className="label font-semibold opacity-70">Description</label>
+              <textarea
+                name="description"
+                value={newExercise.description}
+                onChange={handleNewExChange}
+                className="textarea textarea-bordered w-full"
+                rows="3"
+              />
+            </div>
+            <div>
+              <label className="label font-semibold opacity-70">Muscle Group</label>
+              <select
+                name="muscle_group"
+                value={newExercise.muscle_group}
+                onChange={handleNewExChange}
+                className="select select-bordered w-full"
+              >
+                <option value="">Select Muscle Group</option>
+                <option value="Chest">Chest</option>
+                <option value="Back">Back</option>
+                <option value="Shoulders">Shoulders</option>
+                <option value="Legs">Legs</option>
+                <option value="Arms">Arms</option>
+                <option value="Core">Core</option>
+                <option value="Cardio">Cardio</option>
+                <option value="Quads/Glutes">Quads/Glutes</option>
+              </select>
+            </div>
+            <div>
+              <label className="label font-semibold opacity-70">Equipment</label>
+              <select
+                name="equipment"
+                value={newExercise.equipment}
+                onChange={handleNewExChange}
+                className="select select-bordered w-full"
+              >
+                <option value="">Select Equipment</option>
+                <option value="Barbell">Barbell</option>
+                <option value="Dumbbell">Dumbbell</option>
+                <option value="Machine">Machine</option>
+                <option value="Cable Machine">Cable Machine</option>
+                <option value="Bodyweight">Bodyweight</option>
+                <option value="Bands">Bands</option>
+                <option value="Kettlebell">Kettlebell</option>
+              </select>
+            </div>
+            <div>
+              <label className="label font-semibold opacity-70">Training Type</label>
+              <select
+                name="training_type"
+                value={newExercise.training_type}
+                onChange={handleNewExChange}
+                className="select select-bordered w-full"
+              >
+                <option value="">Select Training Type</option>
+                <option value="strength">Strength</option>
+                <option value="hypertrophy">Hypertrophy</option>
+                <option value="endurance">Endurance</option>
+                <option value="power">Power</option>
+                <option value="cardio">Cardio</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex gap-2 mt-6">
+            <button type="submit" className="btn btn-primary bg-blue-800 text-white flex-1">Create</button>
+            <button type="button" onClick={() => setPopOpen(null)} className="btn btn-ghost flex-1">Cancel</button>
           </div>
         </form>
       </PopUp>
