@@ -389,113 +389,148 @@ function ClientMealLogs() {
     }));
   };
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+  const COLORS = ['#0088FE', '#1e5376', '#73c7df', '#2780d3', '#4151b9', '#989ca7'];
 
 
   const renderNutritionInsights = () => {
-    if (isLoadingInsights) {
-      return (
-        <div className="card bg-base-300 rounded-box p-6">
-          <div className="text-center py-8">
-            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-            <p className="mt-2 opacity-70">Loading nutrition insights...</p>
-          </div>
-        </div>
-      );
-    }
-
-    if (!nutritionInsights) {
-      return (
-        <div className="card bg-base-300 rounded-box p-6">
-          <div className="text-center py-8">
-            <p className="opacity-70">No nutrition data available yet.</p>
-            <p className="text-sm opacity-50 mt-2">Start logging meals to see your nutrition insights!</p>
-          </div>
-        </div>
-      );
-    }
-
-    const dailyData = prepareDailyData();
-    const weeklyData = prepareWeeklyData();
-    //I have to fix this
-    const pieData = dailyData.map(day => ({
-      name: day.date,
-      value: day.calories
-    }));
-
+  if (isLoadingInsights) {
     return (
-      <div className="space-y-6">
-        {/* Chart Type Selector */}
-        <div className="flex gap-2 mb-4">
-          <button
-            className={`btn btn-sm text-black ${selectedChartType === 'daily' ? 'btn-primary bg-blue-800 text-white' : 'btn-ghost'}`}
-            onClick={() => setSelectedChartType('daily')}
-          >
-            Daily Trend
-          </button>
-          <button
-            className={`btn btn-sm text-black ${selectedChartType === 'weekly' ? 'btn-primary bg-blue-800 text-white' : 'btn-ghost'}`}
-            onClick={() => setSelectedChartType('weekly')}
-          >
-            Weekly Trend
-          </button>
-        </div>
-
-        {/* Daily Trend Chart */}
-        {selectedChartType === 'daily' && dailyData.length > 0 && (
-          <div className="card bg-base-200 shadow-lg border border-base-500 rounded-lg p-4">
-            <h3 className="text-lg font-semibold mb-4">Daily Calorie Intake</h3>
-            <ResponsiveContainer width="100%" height={400}>
-              <PieChart>
-                <Pie data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, value }) => `${name}: ${(value)}`}
-                  outerRadius={150}
-                  fill="#8884d8"
-                  dataKey="value">
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-
-        {/* Weekly Trend Chart */}
-        {selectedChartType === 'weekly' && weeklyData.length > 0 && (
-          <div className="card bg-base-200 shadow-lg border border-base-500 rounded-lg p-4">
-            <h3 className="text-lg font-semibold mb-4">Weekly Average Calories</h3>
-            <ResponsiveContainer width="100%" height={400}>
-              <BarChart data={weeklyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="week" />
-                <YAxis label={{ value: 'Average Calories', angle: -90, position: 'insideLeft' }} />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="calories" fill="#5e6c9a" name="Avg Calories" />
-                <Bar dataKey="meals" fill="#5e8ac6" name="Total Meals" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-
-        {/* Summary Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-          <div className="card bg-base-200 shadow-lg border border-base-500 rounded-lg p-4 text-center">
-            <p className="text-sm opacity-70">Total Meals Logged</p>
-            <p className="text-2xl font-bold">{nutritionInsights.summary?.days_logged || 0}</p>
-          </div>
-          <div className="card bg-base-200 shadow-lg border border-base-500 rounded-lg p-4 text-center">
-            <p className="text-sm opacity-70">Average Daily Calories</p>
-            <p className="text-2xl font-bold">{Math.round(nutritionInsights.summary?.avg_daily_calories || 0)}</p>
-          </div>
+      <div className="card bg-base-300 rounded-box p-6">
+        <div className="text-center py-8">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="mt-2 opacity-70">Loading nutrition insights...</p>
         </div>
       </div>
     );
-  };
+  }
+
+  if (!nutritionInsights) {
+    return (
+      <div className="card bg-base-300 rounded-box p-6">
+        <div className="text-center py-8">
+          <p className="opacity-70">No nutrition data available yet.</p>
+          <p className="text-sm opacity-50 mt-2">Start logging meals to see your nutrition insights!</p>
+        </div>
+      </div>
+    );
+  }
+
+  const summary = nutritionInsights.summary;
+  const daysLogged = summary?.days_logged || 0;
+
+  // Calculate totals from history
+  const totalCalories = nutritionInsights.history?.reduce((sum, day) => sum + (day.calories || 0), 0) || 0;
+  const totalCarbs = nutritionInsights.history?.reduce((sum, day) => sum + (day.carbs_g || 0), 0) || 0;
+  const totalProtein = nutritionInsights.history?.reduce((sum, day) => sum + (day.protein_g || 0), 0) || 0;
+  const totalFat = nutritionInsights.history?.reduce((sum, day) => sum + (day.fat_g || 0), 0) || 0;
+
+  // Get latest day's data for macro breakdown (most recent log)
+  const latestDay = nutritionInsights.history?.[nutritionInsights.history.length - 1];
+  
+  const macroData = latestDay ? [
+    { name: 'Carbs', value: latestDay.carbs_g || 0, color: '#0088FE' },
+    { name: 'Protein', value: latestDay.protein_g || 0, color: '#007cc4' },
+    { name: 'Fat', value: latestDay.fat_g || 0, color: '#7b97d8' }
+  ] : [];
+
+  const COLORS = ['#0088FE', '#007cc4', '#7b97d8'];
+
+  return (
+    <div className="space-y-6">
+
+      {/* Averages Section */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="card bg-base-200 shadow-lg border border-base-500 rounded-lg p-4">
+          <h3 className="text-md font-semibold mb-3 text-center">Average Carbs</h3>
+          <p className="text-2xl font-bold text-center text-blue-800">
+            {Math.round(summary?.avg_carbs_g || 0)}g
+          </p>
+          <p className="text-xs text-center opacity-60 mt-2">per day</p>
+        </div>
+        <div className="card bg-base-200 shadow-lg border border-base-500 rounded-lg p-4">
+          <h3 className="text-md font-semibold mb-3 text-center">Average Protein</h3>
+          <p className="text-2xl font-bold text-center text-blue-800">
+            {Math.round(summary?.avg_protein_g || 0)}g
+          </p>
+          <p className="text-xs text-center opacity-60 mt-2">per day</p>
+        </div>
+        <div className="card bg-base-200 shadow-lg border border-base-500 rounded-lg p-4">
+          <h3 className="text-md font-semibold mb-3 text-center">Average Fat</h3>
+          <p className="text-2xl font-bold text-center text-blue-800">
+            {Math.round(summary?.avg_fat_g || 0)}g
+          </p>
+          <p className="text-xs text-center opacity-60 mt-2">per day</p>
+        </div>
+      </div>
+
+      {/* Macro Breakdown from Latest Day (Pie Chart) */}
+      {macroData.length > 0 && macroData.some(m => m.value > 0) && (
+        <div className="card bg-base-200 shadow-lg border border-base-500 rounded-lg p-4">
+          <h3 className="text-lg font-semibold mb-2 text-center">Latest Day Macro Breakdown</h3>
+          <p className="text-xs text-center opacity-60 mb-4">
+            {latestDay?.date ? new Date(latestDay.date).toLocaleDateString() : 'Latest log'}
+          </p>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={macroData}
+                cx="50%"
+                cy="50%"
+                labelLine={true}
+                label={({ name, value }) => `${name}: ${value}g`}
+                outerRadius={100}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {macroData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value) => `${value}g`} />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Recent Daily Logs Table */}
+      {nutritionInsights.history && nutritionInsights.history.length > 0 && (
+        <div className="card bg-base-200 shadow-lg border border-base-500 rounded-lg p-4">
+          <h3 className="text-lg font-semibold mb-3">Recent Daily Summary</h3>
+          <div className="overflow-x-auto">
+            <table className="table table-sm">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Calories</th>
+                  <th>Carbs (g)</th>
+                  <th>Protein (g)</th>
+                  <th>Fat (g)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...nutritionInsights.history].reverse().slice(0, 7).map((day, idx) => (
+                  <tr key={idx}>
+                    <td>{new Date(day.date).toLocaleDateString()}</td>
+                    <td className="font-semibold">{Math.round(day.calories || 0)}</td>
+                    <td>{Math.round(day.carbs_g || 0)}</td>
+                    <td>{Math.round(day.protein_g || 0)}</td>
+                    <td>{Math.round(day.fat_g || 0)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {nutritionInsights.history.length > 7 && (
+            <p className="text-xs text-center opacity-50 mt-3">
+              Showing last 7 days of {nutritionInsights.history.length} total
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
   return (
     <div className="drawer lg:drawer-open">
