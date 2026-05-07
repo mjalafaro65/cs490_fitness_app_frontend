@@ -33,7 +33,7 @@ function LargeModal({ open, onClose, children, width = "80vw", height = "85vh" }
         style={{ width, height }}
         onClick={(e) => e.stopPropagation()}
       >
-        <button 
+        <button
           className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 
                             text-white rounded-md w-8 h-8 flex items-center justify-center transition-colors 
                             duration-200 z-10 shadow-md cursor-pointer"
@@ -47,7 +47,7 @@ function LargeModal({ open, onClose, children, width = "80vw", height = "85vh" }
   );
 }
 
-function ClientMealLogs(){
+function ClientMealLogs() {
   const [isPopOpen, setPopOpen] = useState(null);
   const [isLargeOpen, setLargeOpen] = useState(null);
   const navigate = useNavigate();
@@ -70,26 +70,27 @@ function ClientMealLogs(){
         alertMessage = 'An error occurred';
       }
     }
-    
+
     if (typeof message === 'string') {
       alertMessage = message;
     }
-    
+
     console.log("ALERT FUNCTION CALLED with:", alertMessage, type);
     setAlertMsg(alertMessage);
     setAlertType(type);
     setShowAlert(true);
   };
-  
+
   const [logData, setData] = useState({
-    meal_id: "", 
-    servings: "", 
+    meal_id: "",
+    servings: "",
+    custom_meal_name: "",
     calories: "",
     notes: ""
   });
 
   const [newMeal, setNewMeal] = useState({
-    name: "", 
+    name: "",
     description: ""
   });
 
@@ -126,9 +127,7 @@ function ClientMealLogs(){
 
     setIsLoadingHistory(true);
     try {
-      const response = await api.get("/nutrition/meal-logs", {
-        params: { user_id: user.user_id }
-      });
+      const response = await api.get("/nutrition/meal-logs");
       console.log("Meal history fetched:", response.data);
       setMealHistory(response.data || []);
     } catch (err) {
@@ -184,7 +183,7 @@ function ClientMealLogs(){
       console.log("Meal log updated:", response.data);
       showAlert("Meal log updated successfully!", "success");
       await fetchMealHistory();
-      await fetchNutritionInsights(); 
+      await fetchNutritionInsights();
       setSelectedMealLog(null);
       setEditLogData({ servings: "", notes: "" });
       return response.data;
@@ -198,16 +197,16 @@ function ClientMealLogs(){
 
   const deleteMealLog = async (logId) => {
     if (!logId) {
-    showAlert("No meal log selected to delete", "error");
-    return false;
-  }
-    
+      showAlert("No meal log selected to delete", "error");
+      return false;
+    }
+
     try {
       await api.delete(`/nutrition/meal-logs/${logId}`);
       console.log("Meal log deleted:", logId);
       showAlert("Meal log deleted successfully!", "success");
       await fetchMealHistory();
-      await fetchNutritionInsights(); 
+      await fetchNutritionInsights();
       setPopOpen(null);
       setMealLogToDelete(null);
       return true;
@@ -222,11 +221,18 @@ function ClientMealLogs(){
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     if (!selectedMealLog) return;
-    
-    await updateMealLog(selectedMealLog.meal_log_id, {
+
+    const payload = {
       servings: editLogData.servings,
       notes: editLogData.notes
-    });
+    };
+
+    // only include calories if you actually allow editing it
+    // if (editLogData.calories !== undefined) {
+    //   payload.calories = editLogData.calories;
+    // }
+
+    await updateMealLog(selectedMealLog.meal_log_id, payload);
   };
 
   const openDeleteConfirm = (mealLog) => {
@@ -247,12 +253,12 @@ function ClientMealLogs(){
   }, []);
 
   useEffect(() => {
-  if (user?.user_id) {
-    fetchMealHistory();
-    fetchNutritionInsights();
-    fetchMealPlans();
-  }
-}, [user]);
+    if (user?.user_id) {
+      fetchMealHistory();
+      fetchNutritionInsights();
+      fetchMealPlans();
+    }
+  }, [user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -278,7 +284,8 @@ function ClientMealLogs(){
       meal_id: parseInt(logData.meal_id, 10),
       calories: parseFloat(logData.calories) || 0,
       servings: logData.servings ? parseFloat(logData.servings).toString() : "0",
-      notes: logData.notes || ""
+      notes: logData.notes || "",
+      custom_meal_name: logData.custom_meal_name || null,
     };
 
     console.log("Sending request data:", requestData);
@@ -299,7 +306,7 @@ function ClientMealLogs(){
       showAlert("Meal logged successfully!", "success");
 
       await fetchMealHistory();
-      await fetchNutritionInsights(); 
+      await fetchNutritionInsights();
 
     } catch (error) {
       console.error("Update failed:", error.response?.data || error);
@@ -316,9 +323,7 @@ function ClientMealLogs(){
 
     setIsLoadingPlans(true);
     try {
-      const response = await api.get("/nutrition/mealplans", {
-        params: { user_id: user.user_id }
-      });
+      const response = await api.get("/nutrition/mealplans");
       console.log("Meal plans fetched:", response.data);
       setMealPlans(response.data || []);
     } catch (err) {
@@ -332,24 +337,24 @@ function ClientMealLogs(){
 
   const handleCreateMealPlan = async (e) => {
     e.preventDefault();
-    
+
     try {
       console.log("Creating meal plan:", newMeal);
-      
+
       const response = await api.post("/nutrition/mealplans", newMeal);
-      
+
       console.log("Meal plan created:", response.data);
       setPopOpen(null);
-      
+
       setNewMeal({
         name: "",
         description: ""
       });
-      
+
       showAlert("Meal plan created successfully!", "success");
-      
+
       await fetchMealPlans();
-      
+
     } catch (error) {
       console.error("Creation failed:", error.response?.data || error);
       const errorMessage = error.response?.data?.message || error.response?.data?.status || "Failed to create meal plan";
@@ -433,7 +438,7 @@ function ClientMealLogs(){
             <h3 className="text-lg font-semibold mb-4">Daily Calorie Intake</h3>
             <ResponsiveContainer width="100%" height={400}>
               <PieChart>
-              <Pie data={pieData}
+                <Pie data={pieData}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -444,7 +449,7 @@ function ClientMealLogs(){
                   {pieData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
-              </Pie>
+                </Pie>
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -476,7 +481,7 @@ function ClientMealLogs(){
           </div>
           <div className="card bg-base-200 shadow-lg border border-base-500 rounded-lg p-4 text-center">
             <p className="text-sm opacity-70">Average Daily Calories</p>
-            <p className="text-2xl font-bold">{Math.round(nutritionInsights.summary?.avg_daily_calories|| 0)}</p>
+            <p className="text-2xl font-bold">{Math.round(nutritionInsights.summary?.avg_daily_calories || 0)}</p>
           </div>
         </div>
       </div>
@@ -489,7 +494,7 @@ function ClientMealLogs(){
       <div className="drawer-content">
         <section className="p-6 flex flex-col gap-6">
           <div className="text-2xl font-bold mb-4">My Meal Plans</div>
-          
+
           {/* Nutrition Insights Section */}
           <div className="mb-6">
             <div className="flex justify-between items-center mb-4">
@@ -502,67 +507,67 @@ function ClientMealLogs(){
             <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box flex-1 p-4 min-w-0">
               <h2 className="text-lg font-bold mb-2">Previously Logged Meals</h2>
               <div className="bg-base-200 rounded-box w-full">
-          
-          {isLoadingHistory ? (
-            <div className="text-center py-8">
-              <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-              <p className="mt-2 opacity-70">Loading meal history...</p>
-            </div>
-          ) : mealHistory.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="opacity-70">No meal logs found.</p>
-              <p className="text-sm opacity-50 mt-2">Click "Log Meals" to add your first meal log.</p>
-            </div>
-          ) : (
-            <div className="space-y-3 max-h-[60vh] overflow-y-auto">
-              {mealHistory.map((meal) => (
-                <div 
-                  key={meal.meal_log_id} 
-                  className="border rounded-lg p-4 bg-base-100 hover:bg-base-200 transition cursor-pointer"
-                  onClick={() => fetchMealLogDetails(meal.meal_log_id)}
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <p className="font-semibold text-lg">
-                        Meal ID: {meal.meal_id}
-                      </p>
-                      <p className="text-md mt-1">
-                        Servings: {meal.servings}
-                      </p>
-                      {meal.notes && (
-                        <p className="text-sm opacity-70 mt-2">
-                          Notes: {meal.notes}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      <button 
-                        className="btn btn-sm btn-primary bg-blue-800 text-white"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          fetchMealLogDetails(meal.meal_log_id);
-                        }}
-                      >
-                        Edit
-                      </button>
-                      <button 
-                        className="btn btn-sm bg-red-600 text-white"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openDeleteConfirm(meal); 
-                        }}
-                      >
-                        Delete
-                      </button>
-                    </div>
+
+                {isLoadingHistory ? (
+                  <div className="text-center py-8">
+                    <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                    <p className="mt-2 opacity-70">Loading meal history...</p>
                   </div>
-                </div>
-              ))}
+                ) : mealHistory.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="opacity-70">No meal logs found.</p>
+                    <p className="text-sm opacity-50 mt-2">Click "Log Meals" to add your first meal log.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3 max-h-[60vh] overflow-y-auto">
+                    {mealHistory.map((meal) => (
+                      <div
+                        key={meal.meal_log_id}
+                        className="border rounded-lg p-4 bg-base-100 hover:bg-base-200 transition cursor-pointer"
+                        onClick={() => fetchMealLogDetails(meal.meal_log_id)}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <p className="font-semibold text-lg">
+                              Meal Name: {meal.custom_meal_name}
+                            </p>
+                            <p className="text-md mt-1">
+                              Servings: {meal.servings}
+                            </p>
+                            {meal.notes && (
+                              <p className="text-sm opacity-70 mt-2">
+                                Notes: {meal.notes}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              className="btn btn-sm btn-primary bg-blue-800 text-white"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                fetchMealLogDetails(meal.meal_log_id);
+                              }}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              className="btn btn-sm bg-red-600 text-white"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openDeleteConfirm(meal);
+                              }}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-          )}
-            </div>
-            </div>
-            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box flex-1 p-4 min-w-0">
+            {/* <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box flex-1 p-4 min-w-0">
               <h2 className="text-lg font-bold mb-2">Meal Plans Listing</h2>
               <div className="bg-base-200 rounded-box w-full">
                 {isLoadingPlans ? (
@@ -617,23 +622,23 @@ function ClientMealLogs(){
                   </div>
                 )}
               </div>
-            </div>
+            </div> */}
             <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box w-64 p-4 shrink-0">
               <h2 className="text-lg font-bold mb-2">Quick Actions</h2>
-                <div className="mt-auto flex flex-col gap-2 justify-center">
-                  <button className="btn btn-primary text-white bg-blue-800 btn-sm" type="button" onClick={() => setPopOpen("create")}>Create New</button>
-                  <button type="button" className="btn btn-primary text-white bg-blue-800 btn-sm rounded-t" onClick={() => setPopOpen("log")}>Log Meals</button>
-                </div>
+              <div className="mt-auto flex flex-col gap-2 justify-center">
+                {/* <button className="btn btn-primary text-white bg-blue-800 btn-sm" type="button" onClick={() => setPopOpen("create")}>Create New</button> */}
+                <button type="button" className="btn btn-primary text-white bg-blue-800 btn-sm rounded-t" onClick={() => setPopOpen("log")}>Log Meals</button>
+              </div>
             </div>
           </div>
         </section>
       </div>
 
-    <PopUp isOpen={isPopOpen !== null} onClose={() => setPopOpen(null)}>
-       {isPopOpen === "create" && (
-        <form onSubmit={handleCreateMealPlan}>
-          <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-full max-w-md border p-6">
-            <h2 className="text-xl font-bold mb-4">Create New Meal Plan</h2>
+      <PopUp isOpen={isPopOpen !== null} onClose={() => setPopOpen(null)}>
+        {isPopOpen === "create" && (
+          <form onSubmit={handleCreateMealPlan}>
+            <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-full max-w-md border p-6">
+              <h2 className="text-xl font-bold mb-4">Create New Meal Plan</h2>
               <label className="label">
                 Name:
                 <input className="input w-full" type="text" name="name" value={newMeal.name} onChange={handleMealPlanChange} required />
@@ -643,17 +648,27 @@ function ClientMealLogs(){
                 <textarea className="textarea w-full" name="description" value={newMeal.description} onChange={handleMealPlanChange} rows="3" />
               </label>
               <button className="btn btn-primary bg-blue-800 w-full mt-4" type="submit">Create</button>
-          </fieldset>
-        </form>
-      )}
-      
-      {isPopOpen === "log" && (
-        <form onSubmit={handleLogSubmit}>
-          <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-full max-w-md border p-6">
-            <h2 className="text-xl font-bold mb-4">Log Meal</h2>
-              <label className="label">
+            </fieldset>
+          </form>
+        )}
+
+        {isPopOpen === "log" && (
+          <form onSubmit={handleLogSubmit}>
+            <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-full max-w-md border p-6">
+              <h2 className="text-xl font-bold mb-4">Log Meal</h2>
+              {/* <label className="label">
                 Meal ID:
                 <input className="input w-full" type="number" name="meal_id" value={logData.meal_id} onChange={handleChange} required />
+              </label> */}
+              <label className="label">
+                Meal Name:
+                <input
+                  className="input w-full"
+                  type="text"
+                  name="custom_meal_name"
+                  value={logData.custom_meal_name}
+                  onChange={handleChange}
+                />
               </label>
               <label className="label">
                 Servings:
@@ -668,106 +683,121 @@ function ClientMealLogs(){
                 <textarea className="textarea w-full" name="notes" value={logData.notes} onChange={handleChange} rows="3" />
               </label>
               <button className="btn btn-primary bg-blue-800 w-full mt-4" type="submit">Log</button>
-          </fieldset>
-        </form>
-      )}
+            </fieldset>
+          </form>
+        )}
 
-      {isPopOpen === "editLog" && selectedMealLog && (
-        <form onSubmit={handleEditSubmit}>
-          <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-full max-w-md border p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Edit Meal Log</h2>
-            </div>
-            
-            <h3 className="text-md opacity-70 mb-4">
-              Meal ID: {selectedMealLog.meal_id}
-            </h3>
-            
-            <label className="label">
-              Servings:
-              <input 
-                className="input w-full" 
-                type="number" 
-                step="0.5" 
-                name="servings" 
-                value={editLogData.servings} 
-                onChange={(e) => setEditLogData({...editLogData, servings: e.target.value})}
-                required 
-              />
-            </label>
-            
-            <label className="label">
-              Notes:
-              <textarea 
-                className="textarea w-full" 
-                name="notes" 
-                value={editLogData.notes} 
-                onChange={(e) => setEditLogData({...editLogData, notes: e.target.value})}
-                rows="3" 
-              />
-            </label>
-            
-            <div className="flex gap-3 mt-4">
-              <button className="btn bg-blue-800 flex-1 text-white" type="submit">
-                Save Changes
-              </button>
-            </div>
-          </fieldset>
-        </form>
-      )}
-      </PopUp>
-      <PopUp isOpen={isPopOpen === "delete"} onClose={() => {setPopOpen(null); setMealLogToDelete(null);}}>
-          <fieldset className="fieldset bg-base-200 border-gray-500 rounded-box w-s border p-4">
-              <legend className="fieldset-legend px-2 text-xl bg-base-200 rounded-box">
-                  Delete This Log
-              </legend>
-              <p className="text-gray-700 font-semibold my-2">
-                  Are you sure you want delete this log?
-              </p>
-              {mealLogToDelete && (
-                <div className="bg-base-100 p-3 rounded mt-2 mb-2">
-                  <p><strong>Meal ID:</strong> {mealLogToDelete.meal_id}</p>
-                  <p><strong>Servings:</strong> {mealLogToDelete.servings}</p>
-                  {mealLogToDelete.notes && <p><strong>Notes:</strong> {mealLogToDelete.notes}</p>}
-                </div>
-              )}
-              <div className="flex gap-4 mt-4">
-                  <button
-                      className="btn bg-red-600 btn-neutral ml-auto"
-                      type="button"
-                      onClick={() => deleteMealLog(mealLogToDelete?.meal_log_id)}
-                  >
-                      Delete
-                  </button>
-                  <button
-                      className="btn bg-blue-800 btn-neutral"
-                      type="button"
-                      onClick={() => {setPopOpen(null);
-                                      setMealLogToDelete(null);}}
-                  >
-                      Cancel
-                  </button>
+        {isPopOpen === "editLog" && selectedMealLog && (
+          <form onSubmit={handleEditSubmit}>
+            <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-full max-w-md border p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">Edit Meal Log</h2>
               </div>
-          </fieldset>
+
+              <h3 className="text-md opacity-70 mb-4">
+                Meal Name: {selectedMealLog.custom_meal_name}
+              </h3>
+
+              <label className="label">
+                Servings:
+                <input
+                  className="input w-full"
+                  type="number"
+                  step="0.5"
+                  name="servings"
+                  value={editLogData.servings}
+                  onChange={(e) => setEditLogData({ ...editLogData, servings: e.target.value })}
+                  required
+                />
+              </label>
+
+
+              <label className="label">
+                Calories:
+                <input
+                  className="input w-full"
+                  type="number"
+                  name="calories"
+                  value={editLogData.calories}
+                  onChange={(e) =>
+                    setEditLogData({ ...editLogData, calories: e.target.value })
+                  }
+                />
+              </label>
+              <label className="label">
+                Notes:
+                <textarea
+                  className="textarea w-full"
+                  name="notes"
+                  value={editLogData.notes}
+                  onChange={(e) => setEditLogData({ ...editLogData, notes: e.target.value })}
+                  rows="3"
+                />
+              </label>
+
+              <div className="flex gap-3 mt-4">
+                <button className="btn bg-blue-800 flex-1 text-white" type="submit">
+                  Save Changes
+                </button>
+              </div>
+            </fieldset>
+          </form>
+        )}
+      </PopUp>
+      <PopUp isOpen={isPopOpen === "delete"} onClose={() => { setPopOpen(null); setMealLogToDelete(null); }}>
+        <fieldset className="fieldset bg-base-200 border-gray-500 rounded-box w-s border p-4">
+          <legend className="fieldset-legend px-2 text-xl bg-base-200 rounded-box">
+            Delete This Log
+          </legend>
+          <p className="text-gray-700 font-semibold my-2">
+            Are you sure you want delete this log?
+          </p>
+          {mealLogToDelete && (
+            <div className="bg-base-100 p-3 rounded mt-2 mb-2">
+              <p><strong>Meal ID:</strong> {mealLogToDelete.meal_id}</p>
+              <p><strong>Servings:</strong> {mealLogToDelete.servings}</p>
+              {mealLogToDelete.notes && <p><strong>Notes:</strong> {mealLogToDelete.notes}</p>}
+            </div>
+          )}
+          <div className="flex gap-4 mt-4">
+            <button
+              className="btn bg-red-600 btn-neutral ml-auto"
+              type="button"
+              onClick={() => deleteMealLog(mealLogToDelete?.meal_log_id)}
+            >
+              Delete
+            </button>
+            <button
+              className="btn bg-blue-800 btn-neutral"
+              type="button"
+              onClick={() => {
+                setPopOpen(null);
+                setMealLogToDelete(null);
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </fieldset>
       </PopUp>
       <LargeModal open={isLargeOpen !== null} onClose={() => setLargeOpen(null)}>
-      {isLargeOpen === "browse" && ( 
-        <div className="bg-base-200 p-6 rounded-box w-full max-w-2xl">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold">Browse Meals</h2>
+        {isLargeOpen === "browse" && (
+          <div className="bg-base-200 p-6 rounded-box w-full max-w-2xl">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold">Browse Meals</h2>
+            </div>
+            <p className="text-center opacity-70 py-8 text-lg">Meal browsing feature coming soon...</p>
           </div>
-          <p className="text-center opacity-70 py-8 text-lg">Meal browsing feature coming soon...</p>
-        </div>
-      )}
-    </LargeModal>
+        )}
+      </LargeModal>
 
-    <Alert 
-      isOpen={alert} 
-      message={alertMsg}
-      type={alertType}
-      onClose={() => setShowAlert(false)}
-    />
-  </div>
+      <Alert
+        isOpen={alert}
+        message={alertMsg}
+        type={alertType}
+        onClose={() => setShowAlert(false)}
+      />
+    </div>
   );
 }
 

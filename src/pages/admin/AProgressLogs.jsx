@@ -70,8 +70,63 @@ function AProgressLogs() {
   }, []);
 
   useEffect(() => {
+    async function fetchActiveReport() {
+      try {
+        setActiveReportLoading(true);
+        setReportError(null);
+        
+        console.log(`Fetching active report for period: ${selectedPeriod}`);
+
+        // GET /admin/users/active-report?period=daily|weekly|monthly
+        
+        const response = await api.get("/admin/users/active-report", {
+          params: {
+            period: selectedPeriod
+          }
+        });
+        
+        console.log("Active report response:", response);
+        console.log("Active report data:", response.data);
+        
+        let reportData = response.data;
+        
+        if (reportData && reportData.data && Array.isArray(reportData.data)) {
+          reportData = reportData.data;
+        }
+        else if (Array.isArray(reportData)) {
+          reportData = reportData;
+        }
+        else if (reportData && reportData.results && Array.isArray(reportData.results)) {
+          reportData = reportData.results;
+        }
+        else if (!Array.isArray(reportData)) {
+          console.warn("Unexpected data format:", reportData);
+          reportData = [];
+        }
+        
+        setActiveReport(reportData);
+        
+      } catch (err) {
+        console.error("Failed to fetch active report:", err);
+        console.error("Error response:", err.response?.data);
+        console.error("Error status:", err.response?.status);
+        console.error("Error headers:", err.response?.headers);
+        
+        setReportError({
+          message: err.response?.data?.message || err.message || "Failed to load activity report",
+          status: err.response?.status,
+          details: err.response?.data
+        });
+        
+        setActiveReport([]);
+      } finally {
+        setActiveReportLoading(false);
+      }
+    }
+
     fetchActiveReport();
   }, [selectedPeriod]);
+  selectedPeriod
 
 const fetchActiveReport = async () => {
   try {
