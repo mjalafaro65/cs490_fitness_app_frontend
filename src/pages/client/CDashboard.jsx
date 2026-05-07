@@ -83,7 +83,7 @@ function CDashboard() {
   const [selectedDay, setSelectedDay] = useState(new Date());
 
   const [daily, setData] = useState({
-
+ 
     daily_goal: "",
 
     energy_level: "",
