@@ -99,7 +99,8 @@ function ClientMealLogs() {
   const [selectedMealLog, setSelectedMealLog] = useState(null);
   const [editLogData, setEditLogData] = useState({
     servings: "",
-    notes: ""
+    notes: "",
+    calories:""
   });
   const [mealPlans, setMealPlans] = useState([]);
   const [isLoadingPlans, setIsLoadingPlans] = useState(false);
@@ -165,10 +166,13 @@ function ClientMealLogs() {
       const response = await api.get(`/nutrition/meal-logs/${logId}`);
       console.log("Meal log details:", response.data);
       setSelectedMealLog(response.data);
+
       setEditLogData({
         servings: response.data.servings || "",
-        notes: response.data.notes || ""
+        notes: response.data.notes || "",
+        calories: response.data.calories || ""
       });
+      console.log(editLogData)
       setPopOpen("editLog");
     } catch (err) {
       console.error("Failed to fetch meal log details:", err.response?.data || err);
@@ -179,13 +183,14 @@ function ClientMealLogs() {
 
   const updateMealLog = async (logId, updateData) => {
     try {
+      console.log(updateData)
       const response = await api.patch(`/nutrition/meal-logs/${logId}`, updateData);
       console.log("Meal log updated:", response.data);
       showAlert("Meal log updated successfully!", "success");
       await fetchMealHistory();
       await fetchNutritionInsights();
       setSelectedMealLog(null);
-      setEditLogData({ servings: "", notes: "" });
+      // setEditLogData({ servings: "", notes: "" , calories: ""});
       return response.data;
     } catch (err) {
       console.error("Failed to update meal log:", err.response?.data || err);
@@ -220,11 +225,13 @@ function ClientMealLogs() {
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedMealLog) return;
+    // if (!selectedMealLog) return;
 
+    console.log(selectedMealLog.meal_log_id)
     const payload = {
       servings: editLogData.servings,
-      notes: editLogData.notes
+      notes: editLogData.notes,
+      calories: editLogData.calories,
     };
 
     // only include calories if you actually allow editing it
@@ -233,6 +240,7 @@ function ClientMealLogs() {
     // }
 
     await updateMealLog(selectedMealLog.meal_log_id, payload);
+    setPopOpen(null)
   };
 
   const openDeleteConfirm = (mealLog) => {
@@ -304,6 +312,7 @@ function ClientMealLogs() {
       });
 
       showAlert("Meal logged successfully!", "success");
+
 
       await fetchMealHistory();
       await fetchNutritionInsights();
