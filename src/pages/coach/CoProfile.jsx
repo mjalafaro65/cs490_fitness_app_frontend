@@ -206,7 +206,7 @@ function AvailabilitySection() {
                 {daySlots.map((slot) => (
                   <div
                     key={slot.availability_id}
-                    className="flex items-center gap-2 bg-base-200 rounded-xl px-3 py-2 text-sm"
+                    className="flex items-center gap-2 bg-base-100 rounded-xl px-3 py-2 text-sm"
                   >
                     <span>
                       {formatTime(slot.start_time)} – {formatTime(slot.end_time)}
@@ -360,7 +360,7 @@ function PaymentPlansSection({ coachId }) {
           {plans.map((plan) => (
             <div
               key={plan.payment_plan_id}
-              className="flex justify-between items-center bg-base-200 rounded-xl px-4 py-3"
+              className="flex justify-between items-center bg-base-100 rounded-xl px-4 py-3"
             >
               {/* LEFT SIDE */}
               <div>
@@ -557,7 +557,7 @@ function DocumentsSection() {
           {docs.map((doc) => (
             <div
               key={doc.document_id}
-              className="flex items-center justify-between bg-base-200 rounded-xl px-4 py-3"
+              className="flex items-center justify-between bg-base-100 rounded-xl px-4 py-3"
             >
               <div className="flex flex-col min-w-0">
                 <span className="font-semibold text-sm">
@@ -637,7 +637,7 @@ function InvoicesSection() {
           {invoices.map((inv) => (
             <div
               key={inv.invoice_id}
-              className="flex items-center justify-between bg-base-200 rounded-xl px-4 py-3 gap-4"
+              className="flex items-center justify-between bg-base-100 rounded-xl px-4 py-3 gap-4"
             >
               <div className="flex flex-col gap-0.5">
                 <span className="font-bold text-sm">
