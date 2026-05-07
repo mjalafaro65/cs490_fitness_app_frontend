@@ -3,6 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import api from "../../axios";
 import "../../App.css";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer
+} from 'recharts';
 
 function getWeekDays(anchorDate) {
   const d = new Date(anchorDate);
@@ -30,33 +39,15 @@ function CoClientDashboardView() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [dashboard, setDashboard] = useState(null);
-  const [weekAnchor, setWeekAnchor] = useState(new Date());
-  const [selectedDay, setSelectedDay] = useState(new Date());
-  const [selectedWorkouts, setSelectedWorkouts] = useState([]);
-  const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(false);
+  const [insightsData, setInsightsData] = useState([]);
   const [insightsLoading, setInsightsLoading] = useState(false);
   const [weeklyChartData, setWeeklyChartData] = useState([]);
-  const [hiredCoaches, setHiredCoaches] = useState([]);
-  const [dayLog, setDayLog] = useState(null);
-
-  const weekDays = getWeekDays(weekAnchor);
-  const today = new Date();
 
   const fetchClientDashboard = async () => {
     try {
       const res = await api.get(`/coach/dashboard/clients/${id}/progress`);
       console.log("CLIENT DASHBOARD:", res.data);
       setDashboard(res.data);
-      
-      // Set coaches from dashboard data
-      if (res.data.coaches) {
-        setHiredCoaches(res.data.coaches.map(coach => ({
-          relationship_id: coach.coach_profile_id,
-          coach_name: `${coach.first_name} ${coach.last_name}`,
-          specialty: "Fitness Training",
-          started_at: coach.started_at
-        })));
-      }
     } catch (err) {
       console.error("Error fetching client dashboard:", err.response?.data || err);
       setDashboard({
@@ -67,7 +58,6 @@ function CoClientDashboardView() {
           relationship_status: "active",
           relationship_start_date: null,
         },
-        profile: null,
         progress_summary: {
           avg_energy_level: null,
           avg_mood_score: null,
@@ -79,92 +69,116 @@ function CoClientDashboardView() {
           total_workouts_completed: null,
           days_tracked: null,
         },
-        recent_activity: [],
         goals_status: [],
-        workout_assignments: [],
-        meal_assignments: [],
-        invoices: [],
-        payments: [],
-        coaches: [],
-        progress_photos: [],
-        survey_status: {
-          completed: false,
-          last_completed: null
-        }
       });
     }
   };
 
   useEffect(() => {
     fetchClientDashboard();
-  }, [id]);
-
-  useEffect(() => {
-    fetchScheduledWorkouts(weekAnchor, "week");
-  }, [weekAnchor]);
-
-  useEffect(() => {
     fetchInsights();
-  }, []);
-
-  const fetchScheduledWorkouts = async (anchorDate, range) => {
-    setIsLoadingWorkouts(true);
-    try {
-      // Use workout assignments from dashboard data
-      if (dashboard && dashboard.workout_assignments) {
-        const workouts = dashboard.workout_assignments.flatMap(assignment => 
-          assignment.days ? assignment.days.map(day => ({
-            planName: assignment.plan_name,
-            dayLabel: day.day_label,
-            exercises: day.exercises || [],
-            date: anchorDate, // Simplified for coach view
-            time: "All Day"
-          })) : []
-        );
-        setSelectedWorkouts(workouts);
-      }
-    } catch (err) {
-      console.error("Error fetching workouts:", err);
-    } finally {
-      setIsLoadingWorkouts(false);
-    }
-  };
+  }, [id]);
 
   const fetchInsights = async () => {
     setInsightsLoading(true);
     try {
-      // Create mock chart data from progress summary
-      if (dashboard && dashboard.progress_summary) {
-        const mockData = [];
-        for (let i = 6; i >= 0; i--) {
-          const date = new Date();
-          date.setDate(date.getDate() - i);
-          mockData.push({
-            date: date.toLocaleDateString('en-US', { weekday: 'short' }),
-            fullDate: date.toLocaleDateString(),
-            sleep: dashboard.progress_summary.avg_sleep_hours || 0,
-            weight: 150, // Mock weight
-            water: dashboard.progress_summary.avg_energy_level ? dashboard.progress_summary.avg_energy_level * 20 : 0,
-            mood: dashboard.progress_summary.avg_mood_score || 0,
-            energy: dashboard.progress_summary.avg_energy_level || 0,
-            hasData: true,
-            isLogged: true
-          });
-        }
-        setWeeklyChartData(mockData);
-      }
+      const response = await api.get(`/insights/survey?client_id=${id}&days=30`);
+      console.log("INSIGHTS DATA:", response.data);
+      setInsightsData(response.data.history || []);
     } catch (error) {
       console.error("Error fetching insights:", error);
+      setInsightsData([]);
     } finally {
       setInsightsLoading(false);
     }
   };
 
-  const getWorkoutsForDate = (date) => {
-    return selectedWorkouts.filter(workout => 
-      isSameDay(workout.date, date)
-    );
+  const prepareWeeklyChartData = () => {
+    const dataMap = new Map();
+    insightsData.forEach(item => {
+      if (item.date) {
+        const dateObj = new Date(item.date);
+        const dateStr = dateObj.toISOString().split('T')[0];
+        const monthDay = `${dateObj.getMonth() + 1}/${dateObj.getDate()}`;
+        
+        if (!dataMap.has(dateStr)) {
+          dataMap.set(dateStr, {
+            date: monthDay,
+            fullDate: dateObj.toLocaleDateString(),
+            dateStr: dateStr,
+            displayDate: monthDay,
+            sleep: 0,
+            mood: 0,
+            energy: 0,
+            water: 0,
+            weight: 0,
+            hasData: false,
+            isLogged: false
+          });
+        }
+        
+        const dayData = dataMap.get(dateStr);
+        if (item.sleep_hours) {
+          dayData.sleep = item.sleep_hours;
+          dayData.hasData = true;
+          dayData.isLogged = true;
+        }
+        if (item.mood_score) {
+          dayData.mood = item.mood_score;
+          dayData.hasData = true;
+          dayData.isLogged = true;
+        }
+        if (item.energy_level) {
+          dayData.energy = item.energy_level;
+          dayData.hasData = true;
+          dayData.isLogged = true;
+        }
+        if (item.water_oz) {
+          dayData.water = item.water_oz;
+          dayData.hasData = true;
+          dayData.isLogged = true;
+        }
+        if (item.weight_lbs) {
+          dayData.weight = item.weight_lbs;
+          dayData.hasData = true;
+          dayData.isLogged = true;
+        }
+      }
+    });
+    
+    // Fill in missing days for the last 7 days
+    const chartData = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      const monthDay = `${date.getMonth() + 1}/${date.getDate()}`;
+      
+      if (dataMap.has(dateStr)) {
+        chartData.push(dataMap.get(dateStr));
+      } else {
+        chartData.push({
+          date: monthDay,
+          fullDate: date.toLocaleDateString(),
+          dateStr: dateStr,
+          displayDate: monthDay,
+          sleep: 0,
+          mood: 0,
+          energy: 0,
+          water: 0,
+          weight: 0,
+          hasData: false,
+          isLogged: false
+        });
+      }
+    }
+    
+    return chartData;
   };
+
+  useEffect(() => {
+    setWeeklyChartData(prepareWeeklyChartData());
+  }, [insightsData]);
 
   if (dashboard === null) {
     return <div className="p-6">Loading client dashboard...</div>;
@@ -194,202 +208,344 @@ function CoClientDashboardView() {
             </div>
           </div>
 
-          <div className="card bg-base-300 rounded-box p-4">
-            <div className="flex items-center justify-between mb-4">
-              <button
-                className="btn btn-sm btn-ghost"
-                onClick={() => {
-                  const d = new Date(weekAnchor);
-                  d.setDate(d.getDate() - 7);
-                  setWeekAnchor(d);
-                }}
-              >
-                ← Prev
-              </button>
-              <h2 className="text-base font-bold">
-                {weekDays[0].toLocaleDateString("default", { month: "short", day: "numeric" })}
-                {" — "}
-                {weekDays[6].toLocaleDateString("default", { month: "short", day: "numeric", year: "numeric" })}
-              </h2>
-              <button
-                className="btn btn-sm btn-ghost"
-                onClick={() => {
-                  const d = new Date(weekAnchor);
-                  d.setDate(d.getDate() + 7);
-                  setWeekAnchor(d);
-                }}
-              >
-                Next →
-              </button>
-            </div>
-
-            {isLoadingWorkouts ? (
-              <div className="text-center py-8">
-                <p className="text-sm opacity-70">Loading workouts...</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-7 gap-2">
-                {weekDays.map((date, i) => {
-                  const isToday = isSameDay(date, today);
-                  const isSelected = isSameDay(date, selectedDay);
-                  const sessions = getWorkoutsForDate(date);
-                  const hasSession = sessions.length > 0;
-
-                  return (
-                    <div
-                      key={`wd-${i}`}
-                      onClick={() => setSelectedDay(date)}
-                      className={`
-                        cursor-pointer rounded-xl p-2 flex flex-col gap-1 min-h-[110px] transition
-                        border-2
-                        ${isSelected
-                          ? "border-primary bg-primary/10"
-                          : isToday
-                            ? "border-neutral bg-neutral/10"
-                            : "border-transparent bg-base-200 hover:bg-base-100"}
-                      `}
-                    >
-                      <div className="flex flex-col items-center mb-1">
-                        <span className="text-[10px] font-bold opacity-50 uppercase tracking-widest">
-                          {DAY_LABELS[i]}
-                        </span>
-                        <span
-                          className={`text-sm font-bold w-7 h-7 flex items-center justify-center rounded-full
-                            ${isToday ? "bg-neutral text-neutral-content" : ""}`}
-                        >
-                          {date.getDate()}
-                        </span>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Profile Card */}
+            <div className="card bg-base-300 rounded-box p-6">
+              <h2 className="text-lg font-bold mb-4">Profile</h2>
+              <div className="space-y-3">
+                {dashboard.profile ? (
+                  <>
+                    {dashboard.profile.bio && (
+                      <div className="flex flex-col py-2 border-b border-base-content/10">
+                        <span className="text-sm opacity-70">Bio</span>
+                        <span className="font-semibold text-sm">{dashboard.profile.bio}</span>
                       </div>
-
-                      {hasSession ? (
-                        sessions.map((s, si) => (
-                          <div
-                            key={`s-${si}`}
-                            className="bg-blue-400/20 text-blue-400 rounded px-1.5 py-0.5 text-[10px] font-semibold leading-tight truncate"
-                            title={`${s.planName} — ${s.dayLabel}`}
-                          >
-                            {s.dayLabel || s.planName}
-                          </div>
-                        ))
-                      ) : (
-                        <span className="text-[10px] opacity-30 text-center mt-auto">Rest day</span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          <div className="flex gap-4 items-start">
-            <div className="card bg-base-300 rounded-box flex-1 p-4 h-72">
-              <h2 className="text-base font-bold mb-3">
-                {selectedDay.toLocaleDateString("default", {
-                  weekday: "long", month: "long", day: "numeric",
-                })}
-              </h2>
-
-              {isLoadingWorkouts ? (
-                <p className="text-sm opacity-50">Loading workouts...</p>
-              ) : selectedWorkouts.length === 0 ? (
-                <p className="text-sm opacity-50">No workouts scheduled for this day.</p>
-              ) : (
-                selectedWorkouts.map((s, si) => (
-                  <div key={`det-${si}`} className="mb-3 p-3 bg-base-200 rounded-lg">
-                    <div className="flex justify-between items-start mb-1">
-                      <p className="font-semibold text-sm">{s.planName} — {s.dayLabel}</p>
-                      <span className="text-xs opacity-50">{s.time}</span>
-                    </div>
-                    {s.exercises.length > 0 ? (
-                      <ul className="text-xs flex flex-col gap-0.5 ml-2">
-                        {s.exercises.map((ex) => (
-                          <li key={`ex-${ex.exercise_id}`} className="opacity-70">
-                            • Exercise {ex.exercise_id}
-                            {ex.sets && ex.reps ? ` — ${ex.sets}×${ex.reps}` : ""}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-xs opacity-40 ml-2">No exercises listed</p>
                     )}
-                  </div>
-                ))
-              )}
+                    {dashboard.profile.age && (
+                      <div className="flex justify-between items-center py-2 border-b border-base-content/10">
+                        <span className="text-sm opacity-70">Age</span>
+                        <span className="font-semibold text-sm">{dashboard.profile.age}</span>
+                      </div>
+                    )}
+                    {dashboard.profile.height && (
+                      <div className="flex justify-between items-center py-2 border-b border-base-content/10">
+                        <span className="text-sm opacity-70">Height</span>
+                        <span className="font-semibold text-sm">{dashboard.profile.height} cm</span>
+                      </div>
+                    )}
+                    {dashboard.profile.weight && (
+                      <div className="flex justify-between items-center py-2 border-b border-base-content/10">
+                        <span className="text-sm opacity-70">Weight</span>
+                        <span className="font-semibold text-sm">{dashboard.profile.weight} kg</span>
+                      </div>
+                    )}
+                    {dashboard.profile.fitness_goals && (
+                      <div className="flex flex-col py-2 border-b border-base-content/10">
+                        <span className="text-sm opacity-70">Fitness Goals</span>
+                        <span className="font-semibold text-sm">{dashboard.profile.fitness_goals}</span>
+                      </div>
+                    )}
+                    {dashboard.profile.activity_level && (
+                      <div className="flex justify-between items-center py-2 border-b border-base-content/10">
+                        <span className="text-sm opacity-70">Activity Level</span>
+                        <span className="font-semibold text-sm">{dashboard.profile.activity_level}</span>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-sm opacity-50">No profile data</p>
+                )}
+              </div>
             </div>
 
-            <div className="card bg-base-300 rounded-box w-64 p-4 flex flex-col h-72">
-              <h2 className="text-lg font-bold mb-2">My Coach</h2>
-              <div className="flex-1">
-                {hiredCoaches && hiredCoaches.length > 0 ? (
-                  hiredCoaches.map((rel) => (
-                    <div key={rel.relationship_id}>
-                      <p className="font-semibold">{rel.coach_name}</p>
-                      <p className="text-xs opacity-70">
-                        Specialty: {rel.specialty}
-                      </p>
-                      <p className="text-xs opacity-60">
-                        Since: {rel.started_at
-                          ? new Date(rel.started_at).toLocaleDateString(undefined, {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            })
-                          : "—"}
-                      </p>
+            {/* Progress Summary Card */}
+            <div className="card bg-base-300 rounded-box p-6">
+              <h2 className="text-lg font-bold mb-4">Progress Summary</h2>
+              <div className="space-y-3">
+                {[
+                  { label: "Avg Energy Level", value: dashboard.progress_summary?.avg_energy_level ? `${dashboard.progress_summary.avg_energy_level.toFixed(1)}` : "No data" },
+                  { label: "Avg Mood Score", value: dashboard.progress_summary?.avg_mood_score ? `${dashboard.progress_summary.avg_mood_score.toFixed(1)}` : "No data" },
+                  { label: "Avg Sleep Hours", value: dashboard.progress_summary?.avg_sleep_hours ? `${dashboard.progress_summary.avg_sleep_hours.toFixed(1)}h` : "No data" },
+                  { label: "Workout Completion", value: dashboard.progress_summary?.workout_completion_rate ? `${Number(dashboard.progress_summary.workout_completion_rate).toFixed(2)}%` : "No data" },
+                  { label: "Nutrition Logging", value: dashboard.progress_summary?.nutrition_logging_rate ? `${Number(dashboard.progress_summary.nutrition_logging_rate).toFixed(2)}%` : "No data" },
+                  { label: "Active Goals", value: dashboard.progress_summary?.active_goals_count || "0" },
+                  { label: "Completed Goals", value: dashboard.progress_summary?.completed_goals_count || "0" },
+                  { label: "Total Workouts", value: dashboard.progress_summary?.total_workouts_completed || "0" },
+                  { label: "Days Tracked", value: dashboard.progress_summary?.days_tracked || "0" }
+                ].map(({ label, value }) => (
+                  <div key={label} className="flex justify-between items-center py-2 border-b border-base-content/10">
+                    <span className="text-sm opacity-70">{label}</span>
+                    <span className="font-semibold text-sm">{value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Goals Status Card */}
+            <div className="card bg-base-300 rounded-box p-6">
+              <h2 className="text-lg font-bold mb-4">Goals Status</h2>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {dashboard.goals_status && dashboard.goals_status.length > 0 ? (
+                  dashboard.goals_status.map((goal, index) => (
+                    <div key={goal.goal_id || index} className="text-sm py-2 border-b border-base-content/10">
+                      <p className="font-medium">{goal.description || "Goal"}</p>
+                      {goal.progress_percentage !== undefined && (
+                        <p className="text-xs opacity-60">Progress: {goal.progress_percentage}%</p>
+                      )}
+                      <span className={`text-xs px-2 py-1 rounded-full inline-block mt-1 ${
+                        goal.status === 'completed' ? 'bg-green-500/20 text-green-400' :
+                        goal.status === 'in_progress' ? 'bg-blue-500/20 text-blue-400' :
+                        'bg-gray-500/20 text-gray-400'
+                      }`}>
+                        {goal.status || 'unknown'}
+                      </span>
                     </div>
                   ))
                 ) : (
-                  <span className="text-sm opacity-70">No coach assigned</span>
+                  <p className="text-sm opacity-50">No goals set</p>
                 )}
-              </div>
-
-              <div className="mt-auto flex justify-center">
-                <button className="btn bg-blue-800 text-white btn-sm" onClick={() => navigate("/client/reviews")}>
-                  My Reviews
-                </button>
               </div>
             </div>
 
-            <div className="card bg-base-300 rounded-box w-64 p-4 shrink-0">
-              <h2 className="text-base font-bold mb-3">Wellness Log</h2>
-              {isSameDay(selectedDay, today) ? (
-                <div className="flex flex-col gap-2 text-sm">
-                  {[
-                    { label: "Sleep", value: dashboard.progress_summary?.avg_sleep_hours ? `${dashboard.progress_summary.avg_sleep_hours} hrs` : null },
-                    { label: "Mood", value: dashboard.progress_summary?.avg_mood_score ? `${dashboard.progress_summary.avg_mood_score} / 5` : null },
-                    { label: "Energy", value: dashboard.progress_summary?.avg_energy_level ? `${dashboard.progress_summary.avg_energy_level} / 5` : null },
-                  ].map(({ label, value }) =>
-                    value ? (
-                      <div key={label} className="flex justify-between border-b border-base-content/10 pb-1">
-                        <span className="opacity-60">{label}</span>
-                        <span className="font-semibold">{value}</span>
+            {/* Survey Status Card */}
+            <div className="card bg-base-300 rounded-box p-6">
+              <h2 className="text-lg font-bold mb-4">Daily Survey Status</h2>
+              <div className="space-y-3">
+                {dashboard.survey_status ? (
+                  <>
+                    <div className="flex justify-between items-center py-2 border-b border-base-content/10">
+                      <span className="text-sm opacity-70">Today's Survey</span>
+                      <span className={`font-semibold text-sm px-2 py-1 rounded-full ${
+                        dashboard.survey_status.completed ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                      }`}>
+                        {dashboard.survey_status.completed ? 'Completed' : 'Not Completed'}
+                      </span>
+                    </div>
+                    {dashboard.survey_status.last_completed && (
+                      <div className="flex justify-between items-center py-2 border-b border-base-content/10">
+                        <span className="text-sm opacity-70">Last Completed</span>
+                        <span className="font-semibold text-sm">{new Date(dashboard.survey_status.last_completed).toLocaleString()}</span>
                       </div>
-                    ) : null
-                  )}
-                  {(!dashboard.progress_summary?.avg_sleep_hours && !dashboard.progress_summary?.avg_mood_score && !dashboard.progress_summary?.avg_energy_level) && (
-                    <p className="text-xs opacity-40">Nothing logged yet today.</p>
-                  )}
-                </div>
-              ) : (
-                <p className="text-xs opacity-40">
-                  {isSameDay(selectedDay, today)
-                    ? "Nothing logged yet today."
-                    : "Log history not available for past days."}
-                </p>
-              )}
-              {isSameDay(selectedDay, today) && (
-                <button
-                  className="btn bg-blue-800 text-white btn-xs p-3 mt-4 w-full"
-                  disabled
-                >
-                  View Only Mode
-                </button>
-              )}
+                    )}
+                  </>
+                ) : (
+                  <p className="text-sm opacity-50">No survey data</p>
+                )}
+              </div>
+            </div>
+
+            {/* Recent Activity Card */}
+            <div className="card bg-base-300 rounded-box p-6 lg:col-span-2">
+              <h2 className="text-lg font-bold mb-4">Recent Activity</h2>
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {dashboard.recent_activity && dashboard.recent_activity.length > 0 ? (
+                  dashboard.recent_activity.map((activity, index) => (
+                    <div key={index} className="text-sm py-2 border-b border-base-content/10">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-medium">{activity.description || "Activity"}</p>
+                          <p className="text-xs opacity-60">Type: {activity.activity_type || 'unknown'}</p>
+                        </div>
+                        <span className="text-xs opacity-60">{activity.date ? new Date(activity.date).toLocaleDateString() : '--'}</span>
+                      </div>
+                      {activity.details && Object.keys(activity.details).length > 0 && (
+                        <div className="text-xs opacity-50 mt-1">
+                          {JSON.stringify(activity.details)}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm opacity-50">No recent activity</p>
+                )}
+              </div>
             </div>
           </div>
 
+          {/* Workout & Meal Assignments */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Workout Assignments Card */}
+            <div className="card bg-base-300 rounded-box p-6">
+              <h2 className="text-lg font-bold mb-4">Workout Assignments</h2>
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {dashboard.workout_assignments && dashboard.workout_assignments.length > 0 ? (
+                  dashboard.workout_assignments.map((assignment) => (
+                    <div key={assignment.assignment_id} className="text-sm py-2 border-b border-base-content/10">
+                      <p className="font-medium">{assignment.plan_name || "Workout Plan"}</p>
+                      <div className="flex justify-between items-center mt-1">
+                        <span className="text-xs opacity-60">
+                          {assignment.start_date ? new Date(assignment.start_date).toLocaleDateString() : '--'} - {assignment.end_date ? new Date(assignment.end_date).toLocaleDateString() : 'Ongoing'}
+                        </span>
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          assignment.status === 'active' ? 'bg-green-500/20 text-green-400' :
+                          assignment.status === 'completed' ? 'bg-blue-500/20 text-blue-400' :
+                          'bg-gray-500/20 text-gray-400'
+                        }`}>
+                          {assignment.status || 'unknown'}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm opacity-50">No workout assignments</p>
+                )}
+              </div>
+            </div>
+
+            {/* Meal Assignments Card */}
+            <div className="card bg-base-300 rounded-box p-6">
+              <h2 className="text-lg font-bold mb-4">Meal Assignments</h2>
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {dashboard.meal_assignments && dashboard.meal_assignments.length > 0 ? (
+                  dashboard.meal_assignments.map((assignment) => (
+                    <div key={assignment.meal_plan_assignment_id} className="text-sm py-2 border-b border-base-content/10">
+                      <p className="font-medium">{assignment.plan_name || "Meal Plan"}</p>
+                      <div className="flex justify-between items-center mt-1">
+                        <span className="text-xs opacity-60">
+                          {assignment.start_date ? new Date(assignment.start_date).toLocaleDateString() : '--'} - {assignment.end_date ? new Date(assignment.end_date).toLocaleDateString() : 'Ongoing'}
+                        </span>
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          assignment.status === 'active' ? 'bg-green-500/20 text-green-400' :
+                          assignment.status === 'completed' ? 'bg-blue-500/20 text-blue-400' :
+                          'bg-gray-500/20 text-gray-400'
+                        }`}>
+                          {assignment.status || 'unknown'}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm opacity-50">No meal assignments</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Invoices & Payments */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Invoices Card */}
+            <div className="card bg-base-300 rounded-box p-6">
+              <h2 className="text-lg font-bold mb-4">Invoices</h2>
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {dashboard.invoices && dashboard.invoices.length > 0 ? (
+                  dashboard.invoices.map((invoice) => (
+                    <div key={invoice.invoice_id} className="text-sm py-2 border-b border-base-content/10">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="font-medium">Invoice #{invoice.invoice_id}</p>
+                          <p className="text-xs opacity-60">Due: {invoice.due_date ? new Date(invoice.due_date).toLocaleDateString() : '--'}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold">${invoice.amount || '0.00'}</p>
+                          <span className={`text-xs px-2 py-1 rounded-full ${
+                            invoice.status === 'paid' ? 'bg-green-500/20 text-green-400' :
+                            invoice.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
+                            'bg-gray-500/20 text-gray-400'
+                          }`}>
+                            {invoice.status || 'unknown'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm opacity-50">No invoices</p>
+                )}
+              </div>
+            </div>
+
+            {/* Payments Card */}
+            <div className="card bg-base-300 rounded-box p-6">
+              <h2 className="text-lg font-bold mb-4">Payments</h2>
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {dashboard.payments && dashboard.payments.length > 0 ? (
+                  dashboard.payments.map((payment) => (
+                    <div key={payment.payment_id} className="text-sm py-2 border-b border-base-content/10">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="font-medium">Payment #{payment.payment_id}</p>
+                          <p className="text-xs opacity-60">Date: {payment.payment_date ? new Date(payment.payment_date).toLocaleDateString() : '--'}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold">${payment.amount || '0.00'}</p>
+                          <span className={`text-xs px-2 py-1 rounded-full ${
+                            payment.status === 'completed' ? 'bg-green-500/20 text-green-400' :
+                            payment.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
+                            'bg-gray-500/20 text-gray-400'
+                          }`}>
+                            {payment.status || 'unknown'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm opacity-50">No payments</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Coaches & Progress Photos */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Coaches Card */}
+            <div className="card bg-base-300 rounded-box p-6">
+              <h2 className="text-lg font-bold mb-4">Client's Coaches</h2>
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {dashboard.coaches && dashboard.coaches.length > 0 ? (
+                  dashboard.coaches.map((coach) => (
+                    <div key={coach.coach_profile_id} className="text-sm py-2 border-b border-base-content/10">
+                      <p className="font-medium">{coach.first_name} {coach.last_name}</p>
+                      <div className="flex justify-between items-center mt-1">
+                        <span className="text-xs opacity-60">
+                          Since: {coach.started_at ? new Date(coach.started_at).toLocaleDateString() : '--'}
+                        </span>
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          coach.relationship_status === 'active' ? 'bg-green-500/20 text-green-400' :
+                          'bg-gray-500/20 text-gray-400'
+                        }`}>
+                          {coach.relationship_status || 'unknown'}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm opacity-50">No coaches assigned</p>
+                )}
+              </div>
+            </div>
+
+            {/* Progress Photos Card */}
+            <div className="card bg-base-300 rounded-box p-6">
+              <h2 className="text-lg font-bold mb-4">Progress Photos</h2>
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {dashboard.progress_photos && dashboard.progress_photos.length > 0 ? (
+                  <div className="grid grid-cols-3 gap-2">
+                    {dashboard.progress_photos.map((photo) => (
+                      <div key={photo.photo_id} className="relative">
+                        <img 
+                          src={photo.photo_url} 
+                          alt="Progress photo" 
+                          className="w-full h-24 object-cover rounded-lg"
+                        />
+                        <p className="text-xs opacity-60 mt-1 text-center">
+                          {photo.upload_date ? new Date(photo.upload_date).toLocaleDateString() : '--'}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm opacity-50">No progress photos</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Wellness Charts Section */}
           <div className="w-full">
+            <h2 className="text-xl font-bold mb-4">Wellness Trends</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Sleep Hours Chart */}
               <div className="card bg-base-300 rounded-box p-4 flex">
                 <h2 className="text-lg font-bold mb-2">Sleep Hours</h2>
                 <p className="text-xs opacity-60 mb-4">This week's sleep pattern</p>
@@ -398,43 +554,96 @@ function CoClientDashboardView() {
                     <p className="text-sm opacity-50">Loading...</p>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center h-48">
-                    <p className="text-lg font-semibold">
-                      {dashboard.progress_summary?.avg_sleep_hours ? `${dashboard.progress_summary.avg_sleep_hours} hrs avg` : "No data"}
-                    </p>
-                  </div>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <LineChart data={weeklyChartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                      <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#9CA3AF' }} />
+                      <YAxis domain={[0, 12]} tick={{ fontSize: 10, fill: '#9CA3AF' }} />
+                      <Tooltip
+                        labelFormatter={(label) => {
+                          const dayData = weeklyChartData.find(d => d.date === label);
+                          return dayData ? dayData.fullDate : label;
+                        }}
+                        formatter={(value, name, props) => {
+                          const dayData = weeklyChartData.find(d => d.date === props.payload.date);
+                          if (!dayData?.hasData && dayData?.isLogged === false) {
+                            return ["No data logged", name];
+                          }
+                          return [`${value}`, name];
+                        }}
+                        contentStyle={{ backgroundColor: '#ffffff', border: 'none', borderRadius: '8px' }}
+                      />
+                      <Line type="monotone" dataKey="sleep" stroke="#3c74ba" name="Sleep Hours" strokeWidth={2} dot={{ r: 3 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
                 )}
               </div>
 
+              {/* Weight Chart */}
               <div className="card bg-base-300 rounded-box p-4 flex">
-                <h2 className="text-lg font-bold mb-2">Energy Level</h2>
-                <p className="text-xs opacity-60 mb-4">This week's energy levels</p>
+                <h2 className="text-lg font-bold mb-2">Weight</h2>
+                <p className="text-xs opacity-60 mb-4">This week's weight (lbs)</p>
                 {insightsLoading ? (
                   <div className="flex items-center justify-center h-48">
                     <p className="text-sm opacity-50">Loading...</p>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center h-48">
-                    <p className="text-lg font-semibold">
-                      {dashboard.progress_summary?.avg_energy_level ? `${dashboard.progress_summary.avg_energy_level} / 5 avg` : "No data"}
-                    </p>
-                  </div>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <LineChart data={weeklyChartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                      <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#9CA3AF' }} />
+                      <YAxis tick={{ fontSize: 10, fill: '#9CA3AF' }} domain={['auto', 'auto']} />
+                      <Tooltip
+                        labelFormatter={(label) => {
+                          const dayData = weeklyChartData.find(d => d.date === label);
+                          return dayData ? dayData.fullDate : label;
+                        }}
+                        formatter={(value, name, props) => {
+                          const dayData = weeklyChartData.find(d => d.date === props.payload.date);
+                          if (!dayData?.hasData && dayData?.isLogged === false) {
+                            return ["No data logged", name];
+                          }
+                          return [`${value}`, name];
+                        }}
+                        contentStyle={{ backgroundColor: '#ffffff', border: 'none', borderRadius: '8px' }}
+                      />
+                      <Line type="monotone" dataKey="weight" stroke="#5cbbf6" name="Weight (lbs)" strokeWidth={2} dot={{ r: 3 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
                 )}
               </div>
 
+              {/* Water Intake Chart */}
               <div className="card bg-base-300 rounded-box p-4 flex">
-                <h2 className="text-lg font-bold mb-2">Mood Score</h2>
-                <p className="text-xs opacity-60 mb-4">This week's mood scores</p>
+                <h2 className="text-lg font-bold mb-2">Water Intake</h2>
+                <p className="text-xs opacity-60 mb-4">This week's water (oz)</p>
                 {insightsLoading ? (
                   <div className="flex items-center justify-center h-48">
                     <p className="text-sm opacity-50">Loading...</p>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center h-48">
-                    <p className="text-lg font-semibold">
-                      {dashboard.progress_summary?.avg_mood_score ? `${dashboard.progress_summary.avg_mood_score} / 5 avg` : "No data"}
-                    </p>
-                  </div>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <LineChart data={weeklyChartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                      <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#9CA3AF' }} />
+                      <YAxis tick={{ fontSize: 10, fill: '#9CA3AF' }} domain={['auto', 'auto']} />
+                      <Tooltip
+                        labelFormatter={(label) => {
+                          const dayData = weeklyChartData.find(d => d.date === label);
+                          return dayData ? dayData.fullDate : label;
+                        }}
+                        formatter={(value, name, props) => {
+                          const dayData = weeklyChartData.find(d => d.date === props.payload.date);
+                          if (!dayData?.hasData && dayData?.isLogged === false) {
+                            return ["No data logged", name];
+                          }
+                          return [`${value}`, name];
+                        }}
+                        contentStyle={{ backgroundColor: '#ffffff', border: 'none', borderRadius: '8px' }}
+                      />
+                      <Line type="monotone" dataKey="water" stroke="#194dfa" name="Water (oz)" strokeWidth={2} dot={{ r: 3 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
                 )}
               </div>
             </div>
