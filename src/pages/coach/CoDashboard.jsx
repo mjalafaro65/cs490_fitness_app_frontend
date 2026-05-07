@@ -441,7 +441,7 @@ function CoDashboard() {
                 className="btn btn-sm"
                 onClick={() =>
                   navigate(
-                    `/coach/clients/${selectedClient.user?.user_id}/progress`
+                    `/coach/clients/${selectedClient.user?.user_id}`
                   )
                 }
               >
