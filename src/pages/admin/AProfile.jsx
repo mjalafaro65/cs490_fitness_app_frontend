@@ -188,31 +188,32 @@ const handleDeleteUser = async (userId) => {
     console.log("=== DELETE REQUEST DEBUG ===");
     console.log("User ID being deleted:", userId);
 
-    let coachProfileId = null;
-    try {
-      const coachCheck = await api.get("/coach/coach-profile", {
-        params: { user_id: userId }
-      });
-      if (coachCheck.data && coachCheck.data.coach_profile_id) {
-        coachProfileId = coachCheck.data.coach_profile_id;
-        console.log("Found coach profile ID:", coachProfileId);
-      }
-    } catch (err) {
-      console.log("No coach profile found for user");
-    }
+    // let coachProfileId = null;
+    // try {
+    //   const coachCheck = await api.get("/coach/coach-profile", {
+    //     params: { user_id: userId }
+    //   });
+    //   if (coachCheck.data && coachCheck.data.coach_profile_id) {
+    //     coachProfileId = coachCheck.data.coach_profile_id;
+    //     console.log("Found coach profile ID:", coachProfileId);
+    //   }
+    // } catch (err) {
+    //   console.log("No coach profile found for user");
+    // }
 
-    if (coachProfileId) {
-      console.log("=== FIRST DELETE REQUEST (Coach Profile) ===");
-      console.log("Data being sent:", { user_id: userId });
-      try {
-        await api.delete("/admin/purge-user", { data: { user_id: userId } });
-      } catch (err) {
-        console.error("Failed to delete coach profile:");
-        console.error("Response data:", err.response?.data);
-        console.error("Request config:", err.config);
-      }
-    }
-
+    // if (coachProfileId) {
+    //   console.log("=== FIRST DELETE REQUEST (Coach Profile) ===");
+    //   console.log("Data being sent:", { user_id: userId });
+    //   try {
+    //     await api.delete("/admin/purge-user", { data: { user_id: userId } });
+    //   } catch (err) {
+    //     console.error("Failed to delete coach profile:");
+    //     console.error("Response data:", err.response?.data);
+    //     console.error("Request config:", err.config);
+    //   }
+    // }
+    console.log("=== FIRST DELETE REQUEST (Coach Profile) ===");
+    console.log("Data being sent:", { user_id: userId });
     console.log("Deleting user...");
     const response = await api.delete("/admin/purge-user", {
       data: { user_id: userId }
@@ -243,6 +244,9 @@ const handleDeleteUser = async (userId) => {
   } catch (error) {
     console.error("Failed to delete user:", error.response?.data || error);
     showAlert(error.response?.data?.message || "Failed to delete user", "error");
+    console.error("Failed to delete coach profile:");
+        console.error("Response data:", error.response?.data);
+        console.error("Request config:", error.config);
   }
 };
 
@@ -535,7 +539,7 @@ const handleDeleteUser = async (userId) => {
               
               <p className="text-sm text-gray-500 mb-6">
                 Are you sure you want to delete <span className="font-semibold text-gray-700">{actionUser?.first_name} {actionUser?.last_name}</span>?<br />
-                <p className="text-red-600 font-semibold">This action cannot be undone.</p>
+                <span className="text-red-600 font-semibold">This action cannot be undone.</span>
               </p>
 
               <div className="flex gap-3">
