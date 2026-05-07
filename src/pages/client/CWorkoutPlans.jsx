@@ -703,9 +703,13 @@ function ClientWorkoutPlans() {
         payload
       );
 
+      try {
+        await fetchWork(currentDate);
+        await fetchWorkoutsForDate(selectedDateC);
+      } catch {
+        console.log("failed reload fetches")
+      }
 
-      await fetchWork(currentDate);
-      await fetchWorkoutsForDate(selectedDateC);
 
       showAlert("Workout scheduled successfully!", "success");
     } catch (err) {
