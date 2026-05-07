@@ -42,6 +42,9 @@ function CoClientDashboardView() {
   const [insightsData, setInsightsData] = useState([]);
   const [insightsLoading, setInsightsLoading] = useState(false);
   const [weeklyChartData, setWeeklyChartData] = useState([]);
+  const [mealLogs, setMealLogs] = useState([]);
+  const [mealLogsLoading, setMealLogsLoading] = useState(false);
+  const [mealLogsDays, setMealLogsDays] = useState(7);
 
   const fetchClientDashboard = async () => {
     try {
@@ -77,6 +80,7 @@ function CoClientDashboardView() {
   useEffect(() => {
     fetchClientDashboard();
     fetchInsights();
+    fetchMealLogs();
   }, [id]);
 
   const fetchInsights = async () => {
@@ -91,6 +95,26 @@ function CoClientDashboardView() {
     } finally {
       setInsightsLoading(false);
     }
+  };
+
+  const fetchMealLogs = async (days = mealLogsDays) => {
+    setMealLogsLoading(true);
+    try {
+      const response = await api.get(`/nutrition/coach/meal-logs?client_id=${id}&days=${days}`);
+      console.log("MEAL LOGS:", response.data);
+      setMealLogs(response.data || []);
+    } catch (error) {
+      console.error("Error fetching meal logs:", error);
+      setMealLogs([]);
+    } finally {
+      setMealLogsLoading(false);
+    }
+  };
+
+  const handleMealLogsDaysChange = (e) => {
+    const days = parseInt(e.target.value, 10);
+    setMealLogsDays(days);
+    fetchMealLogs(days);
   };
 
   const prepareWeeklyChartData = () => {
@@ -193,7 +217,7 @@ function CoClientDashboardView() {
         <section className="p-6 flex flex-col gap-6">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-2xl font-bold mb-4">{client.first_name || "Client"}{client.last_name ? ` ${client.last_name}'` : "'s"} Dashboard</div>
+              <div className="text-2xl font-bold mb-4">{client.first_name || "Client"}{client.last_name ? ` ${client.last_name}` : ""}'s Dashboard</div>
               <div className="flex items-center gap-4">
                 <button 
                   className="cursor-pointer border flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200" 
@@ -418,6 +442,62 @@ function CoClientDashboardView() {
                   <p className="text-sm opacity-50">No meal assignments</p>
                 )}
               </div>
+            </div>
+          </div>
+
+          {/* Meal Logs Section */}
+          <div className="card bg-base-300 rounded-box p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold">Client Meal Logs</h2>
+              <select 
+                className="select select-sm select-bordered"
+                value={mealLogsDays}
+                onChange={handleMealLogsDaysChange}
+              >
+                <option value={7}>Last 7 days</option>
+                <option value={14}>Last 14 days</option>
+                <option value={30}>Last 30 days</option>
+              </select>
+            </div>
+            <div className="space-y-3 max-h-80 overflow-y-auto">
+              {mealLogsLoading ? (
+                <p className="text-sm opacity-50">Loading meal logs...</p>
+              ) : mealLogs.length > 0 ? (
+                mealLogs.map((log, index) => (
+                  <div key={log.log_id || index} className="text-sm py-3 border-b border-base-content/10">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-medium">
+                          {log.meal_type ? log.meal_type.charAt(0).toUpperCase() + log.meal_type.slice(1) : 'Meal'} 
+                          <span className="text-xs opacity-60 ml-2">
+                            {log.logged_at ? new Date(log.logged_at).toLocaleDateString() : '--'} 
+                            {log.logged_at && new Date(log.logged_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                          </span>
+                        </p>
+                        {log.food_items && log.food_items.length > 0 && (
+                          <p className="text-xs opacity-70 mt-1">
+                            {log.food_items.slice(0, 3).map(item => item.name || item.food_name).join(', ')}
+                            {log.food_items.length > 3 && ` +${log.food_items.length - 3} more`}
+                          </p>
+                        )}
+                        {log.notes && (
+                          <p className="text-xs opacity-50 mt-1 italic">{log.notes}</p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-sm">{log.total_calories || 0} kcal</p>
+                        {(log.total_protein || log.total_carbs || log.total_fat) && (
+                          <p className="text-xs opacity-60">
+                            P: {log.total_protein || 0}g · C: {log.total_carbs || 0}g · F: {log.total_fat || 0}g
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm opacity-50">No meal logs found for the selected period</p>
+              )}
             </div>
           </div>
 
