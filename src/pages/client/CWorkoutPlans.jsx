@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import Alert from "../../components/Alert";
 import Confirm from "../../components/confirm";
 
+
 function LargeModal({ open, onClose, children, width = "50vw", height = "70vh" }) {
   if (!open) return null;
   return (
@@ -166,7 +167,6 @@ function ClientWorkoutPlans() {
 
 
   const fetchAllData = async () => {
-    console.log("[DEBUG] fetchAllData called - fetching plans and calendar workouts");
     await Promise.all([
       fetchPlansWithDetails(),
       getMyAssignments()
@@ -278,7 +278,9 @@ function ClientWorkoutPlans() {
 
   const handleDeletePlan = async (plan_id) => {
     console.log("[DEBUG] handleDeletePlan called for plan_id:", plan_id);
-    if (!window.confirm("Are you sure you want to delete this entire workout plan? This action cannot be undone.")) return;
+
+    const ok = await confirm({ message: "Are you sure you want to delete this entire workout plan? This action cannot be undone.", type: "cancel" });
+    if (!ok) return;
     try {
       await api.delete(`/workouts/plans/${plan_id}`);
       console.log("[DEBUG] Plan deleted successfully:", plan_id);
@@ -383,7 +385,8 @@ function ClientWorkoutPlans() {
 
   const handleDeleteDay = async (plan_id, plan_day_id) => {
     console.log("[DEBUG] handleDeleteDay called - plan_id:", plan_id, "plan_day_id:", plan_day_id);
-    if (!window.confirm("Remove this day and all its exercises?")) return;
+    const ok = await confirm({ message: "Remove this day and all its exercises?", type: "cancel" });
+    if (!ok) return;
     try {
       await api.delete(`/workouts/plans/${plan_id}/days/${plan_day_id}`);
       console.log("[DEBUG] Day deleted successfully");
@@ -400,7 +403,8 @@ function ClientWorkoutPlans() {
   const refreshAll = async () => {
     await Promise.all([
       fetchAllData(),
-      refreshActivePlans()
+      refreshActivePlans(),
+      fetchWork()
     ]);
   };
 
@@ -436,7 +440,8 @@ function ClientWorkoutPlans() {
 
   const handleDeleteDayExercise = async (plan_id, day_id, de_id) => {
     console.log("[DEBUG] handleDeleteDayExercise called:", { plan_id, day_id, de_id });
-    if (!window.confirm("Remove this exercise?")) return;
+    const ok = await confirm({ message: "Remove this exercise?", type: "cancel" });
+    if (!ok) return;
     try {
       await api.delete(`/workouts/plans/${plan_id}/days/${day_id}/exercises/${de_id}`);
       console.log("[DEBUG] Exercise deleted successfully");
@@ -494,8 +499,8 @@ function ClientWorkoutPlans() {
       await getMyAssignments()
 
     } catch (err) {
-      console.error("[ERROR] Schedule failed:", err);
-      showAlert(err.response?.data || "Failed to schedule plan", "error");
+      const msg = err.response?.data?.description || err.response?.data?.message || "Failed to schedule plan.";
+      showAlert(msg + " Check assigned exercises", "error");
     }
   };
 
@@ -515,8 +520,6 @@ function ClientWorkoutPlans() {
   };
 
   const handleUpdateSchedule = async () => {
-    console.log("[DEBUG] handleUpdateSchedule called");
-    if (!editingSchedule) return;
 
     try {
       const [year, month, day] = editScheduleForm.date.split('-');
@@ -531,7 +534,6 @@ function ClientWorkoutPlans() {
         status: editingSchedule.status || "scheduled"
       });
 
-      console.log("[DEBUG] Schedule updated successfully");
       await fetchAllData();
 
       setEditingSchedule(null);
@@ -702,7 +704,8 @@ function ClientWorkoutPlans() {
       );
 
 
-      await fetchAllData(); // refresh UI
+      await fetchWork(currentDate);
+      await fetchWorkoutsForDate(selectedDateC);
 
       showAlert("Workout scheduled successfully!", "success");
     } catch (err) {
@@ -720,7 +723,11 @@ function ClientWorkoutPlans() {
         onResolve: resolve,
       });
     });
+
+
   };
+
+  const today = new Date().toISOString().split("T")[0];
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -738,22 +745,6 @@ function ClientWorkoutPlans() {
           <div className="flex text-2xl font-bold">My Workout Plans</div>
           <div className="p-6 flex gap-4">
 
-            {/* {!loadingInsights && workoutInsights && (
-              <div className="grid grid-row-6 gap-4 mb-4">
-                <div className="card bg-base-300 rounded-box p-4 text-center">
-                  <p className="text-xs opacity-70">Total Workouts</p>
-                  <p className="text-xl font-bold text-blue-400">{workoutInsights.total || 0}</p>
-                </div>
-                <div className="card bg-base-300 rounded-box p-4 text-center">
-                  <p className="text-xs opacity-70">Current Streak</p>
-                  <p className="text-xl font-bold text-blue-300">{workoutInsights.current_streak_days || 0} days</p>
-                </div>
-                <div className="card bg-base-300 rounded-box p-4 text-center">
-                  <p className="text-xs opacity-70">Scheduled</p>
-                  <p className="text-xl font-bold text-blue-800">{workoutInsights.scheduled || 0}</p>
-                </div>
-              </div>
-            )} */}
 
             {/* Calendar top */}
             <div className="flex w-full gap-4">
@@ -763,7 +754,6 @@ function ClientWorkoutPlans() {
                   <button
                     className="btn btn-sm"
                     onClick={() => {
-                      console.log("[DEBUG] Previous month button clicked");
                       const newDate = new Date(year, month - 1, 1);
                       setCurrentDate(newDate);
                     }}
@@ -772,7 +762,6 @@ function ClientWorkoutPlans() {
                   <button
                     className="btn btn-sm"
                     onClick={() => {
-                      console.log("[DEBUG] Next month button clicked");
                       const newDate = new Date(year, month + 1, 1);
                       setCurrentDate(newDate);
                     }}
@@ -843,7 +832,7 @@ function ClientWorkoutPlans() {
                     <span className="opacity-70">Today</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 bg-primary/20 ring-2 ring-primary rounded"></div>
+                    <div className="w-3 h-3 bg-blue-800 bg-primary/20 ring-2 ring-primary rounded"></div>
                     <span className="opacity-70">Selected</span>
                   </div>
                 </div>
@@ -927,6 +916,10 @@ function ClientWorkoutPlans() {
                                     await api.patch(`/workouts/calendar-workouts/${workout.calendar_workout_id}`, {
                                       status: "completed",
                                     });
+
+                                    await fetchWork(currentDate);
+                                    await getMyAssignments();
+                                    await fetchWorkoutsForDate(selectedDateC);
                                   }}
                                 >
                                   Complete
@@ -960,6 +953,7 @@ function ClientWorkoutPlans() {
                                       setLogData({
                                         calendar_workout_id: workout.calendar_workout_id,
                                         exercise_id: ex.exercise?.exercise_id,
+                                        exercise_name: ex.exercise?.name,
                                         sets: ex.sets || 3,
                                         reps: ex.reps || 10,
                                         weight: ex.weight || 0,
@@ -995,6 +989,9 @@ function ClientWorkoutPlans() {
                                     await api.patch(`/workouts/calendar-workouts/${workout.calendar_workout_id}`, {
                                       status: "canceled",
                                     });
+                                    await fetchWork(currentDate);
+                                    await getMyAssignments();
+                                    await fetchWorkoutsForDate(selectedDateC);
                                   }}
                                 >
                                   Delete Planned Workout
@@ -1005,7 +1002,8 @@ function ClientWorkoutPlans() {
                             )
                           }
 
-                          {confirmState.open && (
+
+                          {/* {confirmState.open && (
                             <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
                               <div className="bg-white p-4 rounded w-80">
 
@@ -1040,7 +1038,7 @@ function ClientWorkoutPlans() {
 
                               </div>
                             </div>
-                          )}
+                          )} */}
 
                         </div>
                       </div>
@@ -1056,66 +1054,97 @@ function ClientWorkoutPlans() {
 
 
           {/* Active Plans  */}
-          <div className="card bg-base-300 rounded-box p-4">
+          <div className="bg-base-300 rounded-box p-4">
             <h2 className="text-lg font-bold mb-4">Active Plans</h2>
-            {scheduledPlans.map((plan) => {
-              if (plan?.status == "completed" || plan?.status == "canceled") return null;
 
-              return (
-                <div key={plan.assignment_id} className="border rounded p-4 mb-4">
-                  <h2 className="font-bold text-lg mb-2">
-                    {plan.plan_name} - From:{" "}
-                    {new Date(plan.start_date).toLocaleDateString()} →{" "}
-                    {new Date(plan.end_date).toLocaleDateString()}
-                  </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {scheduledPlans.map((plan) => {
+                if (plan?.status == "completed" || plan?.status == "canceled") return null;
 
-                  <div className="flex flex-wrap gap-2">
-                    {plan.days?.map((d, i) => {
-                      const time = d.session?.start
-                        ? new Date(d.session.start).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                        : "";
+                return (
+                  <div
+                    key={plan.assignment_id}
+                    className="bg-base-100 border border-base-300 rounded-xl p-4 shadow-sm mb-3"
+                  >
 
-                      return (
-                        <div
-                          key={i}
-                          className="flex items-center gap-2 px-3 py-1 rounded-full bg-base-200 text-sm"
-                        >
-                          <span className="font-semibold">
-                            {d.day_label}
-                          </span>
+                    <div className="mb-3">
+                      <h2 className="font-semibold text-lg tracking-tight">
+                        {plan.plan_name}
+                      </h2>
 
-                          {time && (
-                            <>
-                              <span className="opacity-60">|</span>
-                              <span className="font-mono">{time}</span>
-                            </>
-                          )}
+                      <p className="text-xs opacity-60 mt-1">
+                        {plan.start_date && plan.end_date ? (
+                          <>
+                            Active from{" "}
+                            <span className="font-medium">
+                              {new Date(plan.start_date).toLocaleDateString()}
+                            </span>
+                            {" "}to{" "}
+                            <span className="font-medium">
+                              {new Date(plan.end_date).toLocaleDateString()}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="italic opacity-50">No scheduled timeframe</span>
+                        )}
+                      </p>
+                    </div>
 
-                        </div>
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {plan.days?.map((d, i) => {
+                        const time = d.session?.start
+                          ? new Date(d.session.start).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                          : "";
 
-                      );
-                    })}
-                    <button
-                      className="btn btn-xs btn-primary"
-                      onClick={() => {
-                        setSelectedAssignment(plan);
-                        setTempActiveDays([]);
-                        setScheduleOpen(true);
-                      }}
-                    >
-                      Schedule
-                    </button>
+                        return (
+                          <div
+                            key={i}
+                            className="flex items-center gap-2 px-3 py-1 rounded-full bg-base-200 text-sm"
+                          >
+                            <span className="font-semibold">
+                              {d.day_label}
+                            </span>
+
+                            {time && (
+                              <>
+                                <span className="opacity-60">|</span>
+                                <span className="font-mono">{time}</span>
+                              </>
+                            )}
+
+                          </div>
+
+                        );
+                      })}
+
+                    </div>
+
+                    <div className="mt-4 flex justify-end">
+                      <button
+                        className="btn btn-sm bg-blue-800 text-white"
+                        onClick={() => {
+                          setSelectedAssignment(plan);
+                          setTempActiveDays([]);
+                          setScheduleOpen(true);
+                        }}
+                      >
+                        Schedule
+                      </button>
+                    </div>
                   </div>
-                </div>
-              );
+                );
 
-            })}
+              })}
+
+            </div>
 
 
           </div>
+
+
 
           {/* Pop up to schedule labeled days */}
 
@@ -1208,7 +1237,13 @@ function ClientWorkoutPlans() {
 
           <div className="flex w-full gap-4">
             <div className="card bg-base-300 rounded-box flex-1 p-4">
-              <h2 className="text-lg font-bold mb-2">My Workout Plans</h2>
+              <div>
+                <h1 className="text-2xl font-bold">My Workout Plans</h1>
+
+                <p className="text-sm opacity-70 mt-1">
+                  Select a template plan below to assign.
+                </p>
+              </div>
               {isLoading ? (
                 <div className="flex flex-col gap-2">
                   {[1, 2, 3].map((placeholder) => (
@@ -1285,25 +1320,27 @@ function ClientWorkoutPlans() {
             </h3>
 
             <p className="text-sm opacity-70 mt-2">
-              Do you want to schedule a date?
+              Do you want to schedule a date? If not select Assign Now
             </p>
 
             <div className="mt-3">
-              <label className="text-sm">Start Date</label>
+              <label className="text-sm">Start Date  (Optional)</label>
               <input
                 type="date"
                 className="input input-bordered w-full mt-1"
+                min={today}
                 value={startDate || ""}
                 onChange={(e) => setStartDate(e.target.value)}
               />
             </div>
 
             <div className="mt-3">
-              <label className="text-sm">End Date</label>
+              <label className="text-sm">End Date (Optional)</label>
               <input
                 type="date"
                 className="input input-bordered w-full mt-1"
                 value={endDate || ""}
+                min={today}
                 onChange={(e) => setEndDate(e.target.value)}
               />
             </div>
@@ -1339,7 +1376,7 @@ function ClientWorkoutPlans() {
 
                 {/* Schedule */}
                 <button
-                  className="btn btn-primary"
+                  className="btn bg-blue-800 btn-primary"
                   onClick={() => {
                     handleAssignPlan(assignPlan.plan_id, selectedDateP);
                     setShowAssignModal(false);
@@ -1493,7 +1530,7 @@ function ClientWorkoutPlans() {
 
           <div className="bg-base-300 p-2 rounded mb-3">
             <p className="text-xs opacity-70">Logging:</p>
-            <p className="text-sm font-semibold">Exercise ID: {logData.exercise_name || 'Not selected'}</p>
+            <p className="text-sm font-semibold">Exercise: {logData.exercise_name || 'Not selected'}</p>
           </div>
 
           <label className="label flex flex-col items-start gap-1 mb-2">
@@ -1697,7 +1734,7 @@ function ClientWorkoutPlans() {
             </div>
           </div>
 
-     
+
         )}
       </LargeModal>
 
@@ -1776,6 +1813,44 @@ function ClientWorkoutPlans() {
           </LargeModal>
         )
       }
+
+      {confirmState.open && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+          <div className="bg-white rounded-xl shadow-xl p-6 w-96">
+
+            <p className="text-sm text-gray-700 mb-6">
+              {confirmState.message}
+            </p>
+
+            <div className="flex justify-end gap-2">
+              <button
+                className="btn btn-xs"
+                onClick={() => {
+                  confirmState.onResolve(false);
+                  setConfirmState({ ...confirmState, open: false });
+                }}
+              >
+                No
+              </button>
+
+              <button
+                className={`btn btn-xs text-white ${confirmState.type === "cancel"
+                  ? "bg-red-600"
+                  : "bg-blue-700"
+                  }`}
+                onClick={() => {
+                  confirmState.onResolve(true);
+                  setConfirmState({ ...confirmState, open: false });
+                }}
+              >
+                Yes
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
 
 
       <Alert

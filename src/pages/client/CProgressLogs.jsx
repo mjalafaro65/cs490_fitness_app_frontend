@@ -69,28 +69,23 @@ function ProgressLogs() {
   })
 
   const [goalData, setGoalData] = useState({
-    goal_type: "weight",
-    status: "active",
-    title: "",
-    target_value: "",
-    unit: "",
-    start_date: "",
-    end_date: "",
-    description: ""
+    goal_type: "weight", status: "active", title: "",
+    target_value: "", unit: "", start_date: "", end_date: "", description: ""
+  });
+
+  const [editGoalData, setEditGoalData] = useState({
+    goal_id: null, title: "", goal_type: "", description: "",
+    target_value: "", unit: "", start_date: "", end_date: "", status: ""
   });
 
   const [editingGoal, setEditingGoal] = useState(null);
-  const [editGoalData, setEditGoalData] = useState({
-    goal_id: null,
-    title: "",
-    goal_type: "",
-    description: "",
-    target_value: "",
-    unit: "",
-    start_date: "",
-    end_date: "",
-    status: ""
-  });
+
+  const [progressModalOpen, setProgressModalOpen] = useState(false);
+  const [selectedGoalId, setSelectedGoalId] = useState(null);
+  const [progressValue, setProgressValue] = useState("");
+
+  const [selectedGoal, setSelectedGoal] = useState(null);
+  const [goalHistory, setGoalHistory] = useState([]);
 
   const fetchProgressPhotos = async () => {
     try {
@@ -117,169 +112,115 @@ function ProgressLogs() {
     }
   };
 
-  useEffect(() => {
-    async function fetchAllInsights() {
-      setLoadingInsights(true);
-      try {
-        // Fetch progress photos
-        await fetchProgressPhotos();
+  async function fetchAllInsights() {
+    setLoadingInsights(true);
+    try {
+      // Fetch progress photos
+      await fetchProgressPhotos();
 
-        const surveyRes = await api.get("/insights/survey");
-        if (surveyRes.data?.history) {
-          setSurveyData(surveyRes.data.history);
-          setSummaryData(surveyRes.data.summary);
-        }
-
-        const workoutRes = await api.get("/insights/workouts");
-        if (workoutRes.data) {
-          if (workoutRes.data.history && Array.isArray(workoutRes.data.history)) {
-            setWorkoutData(workoutRes.data.history);
-            setWorkoutSummary(workoutRes.data.summary);
-          } else if (workoutRes.data.workouts && Array.isArray(workoutRes.data.workouts)) {
-            setWorkoutData(workoutRes.data.workouts);
-            setWorkoutSummary(workoutRes.data.summary);
-          } else if (Array.isArray(workoutRes.data)) {
-            setWorkoutData(workoutRes.data);
-          }
-        }
-
-        const strengthRes = await api.get("/insights/strength");
-        if (Array.isArray(strengthRes.data)) {
-          setStrengthData(strengthRes.data);
-        } else if (strengthRes.data?.exercises) {
-          setStrengthData(strengthRes.data.exercises);
-        }
-
-        const goalsRes = await api.get("/insights/goals");
-        console.log(goalsRes.data)
-        if (Array.isArray(goalsRes.data)) {
-          setGoalsData(goalsRes.data);
-        } else if (goalsRes.data?.goals) {
-          setGoalsData(goalsRes.data.goals);
-        }
-
-      } catch (err) {
-        console.error("Failed to fetch insights:", err);
-        setMockData();
-      } finally {
-        setLoadingInsights(false);
-      }
-    }
-
-
-    async function fetchMyLogs() {
-
-      try {
-        const res = await api.get('workouts/workout-logs')
-        console.log(res.data)
-
-
-        setLogs(res.data)
-        console.log(res.data)
-
-      } catch (err) {
-        console.log(err)
+      const surveyRes = await api.get("/insights/survey");
+      if (surveyRes.data?.history) {
+        setSurveyData(surveyRes.data.history);
+        setSummaryData(surveyRes.data.summary);
       }
 
+      const workoutRes = await api.get("/insights/workouts");
+      if (workoutRes.data) {
+        if (workoutRes.data.history && Array.isArray(workoutRes.data.history)) {
+          setWorkoutData(workoutRes.data.history);
+          setWorkoutSummary(workoutRes.data.summary);
+        } else if (workoutRes.data.workouts && Array.isArray(workoutRes.data.workouts)) {
+          setWorkoutData(workoutRes.data.workouts);
+          setWorkoutSummary(workoutRes.data.summary);
+        } else if (Array.isArray(workoutRes.data)) {
+          setWorkoutData(workoutRes.data);
+        }
+      }
+
+      const strengthRes = await api.get("/insights/strength");
+      if (Array.isArray(strengthRes.data)) {
+        setStrengthData(strengthRes.data);
+      } else if (strengthRes.data?.exercises) {
+        setStrengthData(strengthRes.data.exercises);
+      }
+
+    } catch (err) {
+      console.error("Failed to fetch insights:", err);
+      setMockData();
+    } finally {
+      setLoadingInsights(false);
+    }
+  }
+  async function fetchMyLogs() {
+
+    try {
+      const res = await api.get('workouts/workout-logs')
+      console.log(res.data)
+
+
+      setLogs(res.data)
+      console.log(res.data)
+
+    } catch (err) {
+      console.log(err)
+    }
+
+
+  }
+
+
+  async function fetchGoals() {
+    try {
+
+      const res = await api.get("/client/my-goals")
+      console.log(res.data)
+      setGoalsData(res.data)
+
+    } catch {
+      console.log("no goals fetch ")
 
     }
 
 
-    fetchAllInsights();
-    fetchMyLogs();
-  }, []);
+  }
 
 
-
-  const setMockData = () => {
-    const mockHistory = [];
-    const todayDate = new Date();
-    for (let i = 89; i >= 0; i--) {
-      const date = new Date(todayDate);
-      date.setDate(todayDate.getDate() - i);
-      mockHistory.push({
-        date: date.toISOString().split('T')[0],
-        sleep_hours: Math.floor(Math.random() * 4) + 5,
-        mood_score: Math.floor(Math.random() * 3) + 2,
-        energy_level: Math.floor(Math.random() * 3) + 2,
-        water_oz: Math.floor(Math.random() * 40) + 40,
-        weight_lbs: 165 + (Math.random() - 0.5) * 8
-      });
-    }
-    setSurveyData(mockHistory);
-    setSummaryData({
-      total_entries: mockHistory.length,
-      avg_sleep_hours: 7.2,
-      avg_mood: 3.6,
-      avg_energy: 3.2,
-      weight_change_lbs: -2.5
-    });
-
-    const mockWorkouts = [];
-    for (let i = 89; i >= 0; i--) {
-      const date = new Date(todayDate);
-      date.setDate(todayDate.getDate() - i);
-      mockWorkouts.push({
-        date: date.toISOString().split('T')[0],
-        scheduled_start: date.toISOString(),
-        status: Math.random() > 0.7 ? "completed" : "scheduled"
-      });
-    }
-    setWorkoutData(mockWorkouts);
-    setWorkoutSummary({
-      total: 90,
-      scheduled: 60,
-      completed: 30,
-      canceled: 0,
-      skipped: 0,
-      completion_rate: 33.3,
-      current_streak_days: 2
-    });
-
-    setStrengthData([
-      { exercise: "Bench Press", max_weight: 185 },
-      { exercise: "Squat", max_weight: 225 },
-      { exercise: "Deadlift", max_weight: 275 },
-      { exercise: "Overhead Press", max_weight: 115 },
-      { exercise: "Pull Ups", max_weight: 65 }
-    ]);
-
-    setGoalsData([
-      { goal: "Increase Bench Press", progress: 65, target_date: "2024-06-01" },
-      { goal: "Improve Cardio", progress: 70, target_date: "2024-05-15" },
-      { goal: "Lose Body Fat", progress: 45, target_date: "2024-07-01" }
-    ]);
-  };
 
   useEffect(() => {
-    async function fetchUser() {
-      try {
-        const response = await api.get("/client/daily-survey");
-        const data = response.data;
-
-        setData({
-          daily_goal: data.daily_goal || "",
-          energy_level: data.energy_level || "",
-          target_focus: data.target_focus || "",
-          water_oz: data.water_oz || "",
-          weight_lbs: data.weight_lbs || "",
-          sleep_hours: data.sleep_hours || "",
-          mood_score: data.mood_score || ""
-        });
-
-      } catch (err) {
-        console.error("Failed to fetch user:", err.response?.data || err);
-      }
-    }
 
     fetchUser();
+
+    fetchGoals()
+    fetchAllInsights();
+    fetchMyLogs();
+
+
   }, []);
 
-  const handleChange = (e) => {
-    setLogData({
-      ...logData, [e.target.name]: e.target.value
-    });
-  };
+
+
+
+  async function fetchUser() {
+    try {
+      const response = await api.get("/client/daily-survey");
+      const data = response.data;
+
+      setData({
+        daily_goal: data.daily_goal || "",
+        energy_level: data.energy_level || "",
+        target_focus: data.target_focus || "",
+        water_oz: data.water_oz || "",
+        weight_lbs: data.weight_lbs || "",
+        sleep_hours: data.sleep_hours || "",
+        mood_score: data.mood_score || ""
+      });
+
+    } catch (err) {
+      console.error("Failed to fetch user:", err.response?.data || err);
+    }
+  }
+
+
 
   const handleGoalChange = (e) => {
     setGoalData({
@@ -299,7 +240,9 @@ function ProgressLogs() {
         goal_type: goalData.goal_type,
         title: goalData.title,
         description: goalData.description,
-        target_value: parseFloat(goalData.target_value),
+        target_value: goalData.target_value
+          && parseFloat(goalData.target_value),
+
         unit: goalData.unit,
         start_date: goalData.start_date,
         end_date: goalData.end_date,
@@ -310,18 +253,9 @@ function ProgressLogs() {
       await api.post("/client/create-goal", payload);
       showAlert("Goal created successfully!", "success");
 
-      setGoalData({
-        goal_type: "weight",
-        status: "active",
-        title: "",
-        target_value: "",
-        unit: "",
-        start_date: "",
-        end_date: "",
-        description: ""
-      });
 
       setPopOpen(null);
+      await fetchGoals()
     } catch (err) {
       console.log("Full error response:", err.response);
 
@@ -334,128 +268,78 @@ function ProgressLogs() {
     }
   };
 
-  const handleEditGoal = (goal) => {
-    setEditingGoal(goal);
-    setEditGoalData({
-      goal_id: goal.goal_id || goal.id,
-      title: goal.title || "",
-      goal_type: goal.goal_type || "",
-      description: goal.description || "",
-      target_value: goal.target_value || "",
-      unit: goal.unit || "",
-      start_date: goal.start_date ? goal.start_date.split('T')[0] : "",
-      end_date: goal.end_date ? goal.end_date.split('T')[0] : "",
-      status: goal.status || "active"
-    });
-    setPopOpen("edit");
+  const fetchGoalHistory = (goal) => {
+    setSelectedGoal(goal);
+    setGoalHistory(goal.history || []);
   };
+
+
 
   const handleUpdateGoal = async (e) => {
     e.preventDefault();
 
     try {
+      const { goal_id, ...rest } = editGoalData;
+
       const payload = {
-        title: editGoalData.title,
-        goal_type: editGoalData.goal_type,
-        description: editGoalData.description,
-        target_value: parseFloat(editGoalData.target_value),
-        unit: editGoalData.unit,
-        start_date: editGoalData.start_date,
-        end_date: editGoalData.end_date,
-        status: editGoalData.status
+        ...rest,
+        target_value: rest.target_value
+          ? parseFloat(rest.target_value)
+          : null
       };
+      console.log(payload)
 
       await api.patch(`/client/goal/${editGoalData.goal_id}`, payload);
-      showAlert("Goal updated successfully!", "success");
 
-      const goalsRes = await api.get("/insights/goals");
-      if (Array.isArray(goalsRes.data)) {
-        setGoalsData(goalsRes.data);
-      } else if (goalsRes.data?.goals) {
-        setGoalsData(goalsRes.data.goals);
-      }
+      showAlert("Goal updated successfully!", "success");
 
       setPopOpen(null);
       setEditingGoal(null);
+      fetchGoals()
     } catch (err) {
       console.error("Error updating goal:", err.response?.data);
-      if (err.response?.data?.errors) {
-        const errorMessages = Object.values(err.response.data.errors).flat();
-        showAlert(errorMessages.join(", "), "error");
-      } else {
-        showAlert("Failed to update goal", "error");
-      }
+      showAlert("Failed to update goal", "error");
+    }
+
+  };
+
+  const handleEditGoal = (goal) => {
+    setEditingGoal(goal);
+
+    setEditGoalData({
+      goal_id: goal.goal_id || goal.id,
+      title: goal.title || "",
+      goal_type: goal.goal_type || "",
+      description: goal.description || "",
+      target_value: goal.target_value ?? "",
+      unit: goal.unit || "",
+      start_date: goal.start_date ? goal.start_date.split("T")[0] : "",
+      end_date: goal.end_date ? goal.end_date.split("T")[0] : "",
+      status: goal.status || "active"
+    });
+
+    setPopOpen("edit");
+  };
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+
+    setEditGoalData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  const handleAddProgress = async (goalId, value) => {
+    try {
+      await api.post(`/client/goals/${goalId}/progress`, {
+        value: parseFloat(value)
+      });
+      showAlert("Progress updated!", "success");
+      await fetchGoals();
+    } catch (err) {
+      showAlert("Failed to update progress", "error");
     }
   };
 
-  const handleEditChange = (e) => {
-    setEditGoalData({
-      ...editGoalData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-
-  // const handleOpenWidget = (type) => {
-  //   console.log("Opening widget for type:", type);
-  //   setImageType(type);
-
-  //   if (!window.cloudinary) {
-  //     console.error("Cloudinary script not found. Is it in index.html?");
-  //     return;
-  //   }
-
-  //   const myCloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-  //   const myPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
-
-  //   const widget = window.cloudinary.createUploadWidget(
-  //     {
-  //       cloudName: myCloudName,
-  //       uploadPreset: myPreset,
-  //       sources: ["local", "url", "camera"],
-  //       multiple: false,
-  //       cropping: true,
-  //       clientAllowedFormats: ["jpg", "png", "jpeg", "pdf"],
-  //       zIndex: 2000
-  //     },
-  //     (error, result) => {
-  //       if (!error && result && result.event === "success") {
-  //         const imageUrl = result.info.secure_url;
-  //         console.log("Upload successful, imageType:", type, "imageUrl:", imageUrl);
-
-  //         let newBeforeImage = beforeImage;
-  //         let newAfterImage = afterImage;
-
-  //         // Use the type parameter directly instead of imageType state
-  //         if (type === 'before') {
-  //           console.log("Setting before image");
-  //           setBeforeImage(imageUrl);
-  //           newBeforeImage = imageUrl;
-  //         } else if (type === 'after') {
-  //           console.log("Setting after image");
-  //           setAfterImage(imageUrl);
-  //           newAfterImage = imageUrl;
-  //         }
-
-  //         // Save to backend
-  //         saveProgressPhotos(newBeforeImage, newAfterImage)
-  //           .then(() => {
-  //             showAlert("Image uploaded and saved successfully!", "success");
-  //           })
-  //           .catch((err) => {
-  //             console.error("Failed to save to backend:", err);
-  //             showAlert("Image uploaded but failed to save. Please try again.", "error");
-  //           });
-  //       }
-  //       if (error) {
-  //         console.error("Cloudinary Widget Error:", error);
-  //         showAlert("Failed to upload image", "error");
-  //       }
-  //     }
-  //   );
-
-  //   widget.open();
-  // };
 
   const filterDataByPeriod = (data, period) => {
     const now = new Date();
@@ -686,11 +570,13 @@ function ProgressLogs() {
   const [selectedDay, setSelectedDay] = useState(null);
   const [calendarMonth, setCalendarMonth] = useState(new Date());
 
+
+
   const handleUpload = (type) => {
     openCloudinaryWidget(async (url) => {
       let newBeforeImage = beforeImage;
       let newAfterImage = afterImage;
-      
+
       // Update the profileData object specifically
       if (type === 'before') {
         console.log("Setting before image");
@@ -701,7 +587,7 @@ function ProgressLogs() {
         setAfterImage(url);
         newAfterImage = url;
       }
-      
+
       // Save to backend
       try {
         await saveProgressPhotos(newBeforeImage, newAfterImage);
@@ -756,6 +642,9 @@ function ProgressLogs() {
   };
 
   const { firstDay, daysInMonth } = getDaysInMonth(calendarMonth);
+
+  const goal = goalsData.find(g => g.goal_id === selectedGoalId);
+  const goalType = goal?.goal_type;
 
   return (
     <div className="drawer lg:drawer-open">
@@ -947,37 +836,29 @@ function ProgressLogs() {
 
               ) : goalsData.length > 0 ? (
                 <div className="space-y-3 overflow-y-auto max-h-64">
+
+
                   {goalsData.map((goal, idx) => (
-                    <div
-                      key={idx}
-                      className="cursor-pointer hover:bg-base-200 p-2 rounded-lg transition-colors"
-                      onClick={() => handleEditGoal(goal)}
-                    >
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="truncate font-medium">
-                          {goal.title || goal.goal || goal.description || 'Untitled Goal'}
-                        </span>
-                        <span className="text-blue-600 font-bold">{goal.progress || 0}%</span>
+                    <div key={idx} className="p-3 bg-base-200 rounded-lg cursor-pointer hover:bg-base-300 transition-colors" onClick={() => fetchGoalHistory(goal)}>
+
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="font-medium text-sm truncate">{goal.title || 'Untitled Goal'}</span>
+                        <span className="text-xs text-blue-600 font-bold ml-2 whitespace-nowrap">{goal.progress || 0}%</span>
                       </div>
-                      <div className="w-full bg-gray-700 rounded-full h-2">
+
+                      <div className="w-full bg-gray-300 rounded-full h-3 mb-1">
                         <div
-                          className="bg-blue-500 h-2 rounded-full transition-all duration-500"
-                          style={{ width: `${goal.progress || 0}%` }}
+                          className={`h-3 rounded-full transition-all duration-500 ${(goal.progress || 0) >= 100 ? 'bg-green-500' :
+                            (goal.progress || 0) >= 50 ? 'bg-blue-600' : 'bg-blue-400'
+                            }`}
+                          style={{ width: `${Math.min(goal.progress || 0, 100)}%` }}
                         />
                       </div>
-                      <div className="flex justify-between text-xs opacity-50 mt-1">
-                        {goal.goal_type && (
-                          <span className="capitalize">Type: {goal.goal_type}</span>
-                        )}
-                        {goal.target_value && goal.unit && (
-                          <span>Target: {goal.target_value} {goal.unit}</span>
-                        )}
+
+                      <div className="flex justify-between text-xs opacity-60">
+                        <span className="capitalize">{goal.goal_type}</span>
+                        <span>{goal.current_value ?? 0} / {Number(goal.target_value)} {goal.unit}</span>
                       </div>
-                      {goal.target_date && (
-                        <p className="text-xs opacity-50 mt-1">
-                          Target Date: {new Date(goal.target_date).toLocaleDateString()}
-                        </p>
-                      )}
                     </div>
                   ))}
                 </div>
@@ -995,7 +876,7 @@ function ProgressLogs() {
                 <button
                   type="button"
                   onClick={() => handleUpload('before')}
-                  className="btn btn-outline border-blue-800 text-blue-800 hover:bg-blue-800 hover:text-white bg-white dark:bg-gray-700"
+                  className="btn btn-outline border-blue-800 text-blue-500 hover:bg-blue-800 hover:text-white bg-white dark:bg-gray-700"
                 >
                   Upload Before Image
                 </button>
@@ -1020,7 +901,7 @@ function ProgressLogs() {
                 <button
                   type="button"
                   onClick={() => handleUpload('after')}
-                  className="btn btn-outline border-blue-800 text-blue-800 hover:bg-blue-800 hover:text-white bg-white dark:bg-gray-700"
+                  className="btn btn-outline border-blue-00 text-blue-500 hover:bg-blue-800 hover:text-white bg-white dark:bg-gray-700"
                 >
                   Upload After Image
                 </button>
@@ -1039,55 +920,59 @@ function ProgressLogs() {
                 )}
               </div>
             </div>
+
           </form>
 
-          <div className="flex flex-wrap gap-2 card bg-base-300 rounded-box grow p-4">
-            <h2 className="text-lg font-bold">Logs </h2>
+          <div className="card bg-base-300 rounded-box p-4 w-full">
+            <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+              Workout Logs
+              <span className="text-sm font-normal text-gray-500">
+                • Select a day to view logs
+              </span>
+            </h2>
+            <div className="flex justify-center">
+              <div className="bg-base-200 rounded-lg p-6 w-full max-w-lg">
+                <div className="flex justify-between items-center mb-4">
+                  <button className="btn btn-sm btn-ghost" onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1))}>←</button>
+                  <span className="font-semibold text-base">
+                    {calendarMonth.toLocaleDateString('default', { month: 'long', year: 'numeric' })}
+                  </span>
+                  <button className="btn btn-sm btn-ghost" onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1))}>→</button>
+                </div>
 
-            <div className="bg-base-200 rounded-lg p-4 w-72">
-              {/* Header */}
-              <div className="flex justify-between items-center mb-3">
-                <button onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1))}>←</button>
-                <span className="font-semibold text-sm">
-                  {calendarMonth.toLocaleDateString('default', { month: 'long', year: 'numeric' })}
-                </span>
-                <button onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1))}>→</button>
-              </div>
+                <div className="grid grid-cols-7 text-sm text-center font-medium opacity-60 mb-2">
+                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => <div key={d}>{d}</div>)}
+                </div>
 
-              {/* Day labels */}
-              <div className="grid grid-cols-7 text-xs text-center opacity-50 mb-1">
-                {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => <div key={d}>{d}</div>)}
-              </div>
-
-              {/* Days */}
-              <div className="grid grid-cols-7 text-xs text-center gap-1">
-                {Array(firstDay).fill(null).map((_, i) => <div key={`empty-${i}`} />)}
-                {Array(daysInMonth).fill(null).map((_, i) => {
-                  const day = i + 1;
-                  const dateStr = toDateKey(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day));
-                  const hasLog = logDateSet.has(dateStr);
-                  const dayData = groupedArray.find(d => d.date === dateStr);
-                  return (
-                    <div
-                      key={day}
-                      onClick={() => hasLog && setSelectedDay(dayData)}
-                      className={`rounded-full w-7 h-7 flex items-center justify-center mx-auto
-            ${hasLog ? 'bg-blue-800 text-white cursor-pointer hover:bg-blue-600' : 'opacity-40'}
-          `}
-                    >
-                      {day}
-                    </div>
-                  );
-                })}
+                <div className="grid grid-cols-7 text-sm text-center gap-2">
+                  {Array(firstDay).fill(null).map((_, i) => <div key={`empty-${i}`} />)}
+                  {Array(daysInMonth).fill(null).map((_, i) => {
+                    const day = i + 1;
+                    const dateStr = toDateKey(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day));
+                    const hasLog = logDateSet.has(dateStr);
+                    const dayData = groupedArray.find(d => d.date === dateStr);
+                    return (
+                      <div
+                        key={day}
+                        onClick={() => hasLog && setSelectedDay(dayData)}
+                        className={`rounded-full w-10 h-10 flex items-center justify-center mx-auto transition-colors font-medium
+                ${hasLog ? 'bg-blue-800 text-white cursor-pointer hover:bg-blue-600' : 'opacity-40'}
+              `}
+                      >
+                        {day}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
-            
-
-
           </div>
 
+
           <PopUp isOpen={selectedDay !== null} onClose={() => setSelectedDay(null)}>
+
             {selectedDay && (
+
               <div className="p-4 w-80">
                 <h2 className="font-bold text-lg mb-3">🗓️ {selectedDay.date}</h2>
                 {selectedDay.sessions.map((session) => (
@@ -1096,7 +981,7 @@ function ProgressLogs() {
                     <div className="flex flex-col gap-1">
                       {session.entries.map((entry) => (
                         <div key={entry.workout_log_entry_id} className="bg-base-200 rounded p-2 text-xs">
-                          <span className="font-semibold">Ex {entry.exercise_id}</span>
+                          <span className="font-semibold">Ex {entry.exercise.name}</span>
                           <span className="ml-2 opacity-80">{entry.sets}x{entry.reps} @ {entry.weight}lb</span>
                         </div>
                       ))}
@@ -1110,6 +995,138 @@ function ProgressLogs() {
 
         </section>
       </div>
+
+
+
+
+      <PopUp isOpen={selectedGoal !== null} onClose={() => { setSelectedGoal(null); setGoalHistory([]); }}>
+        {selectedGoal && (() => {
+
+
+          const goalType = selectedGoal.goal_type;
+
+          return (
+            < div className="fieldset bg-base-200 border-base-300 rounded-box w-full max-w-sm min-w-0 border p-4">
+              <h2 className="font-bold text-lg mb-1">{selectedGoal.title}</h2>
+              <p className="text-xs opacity-60 mb-4">Target: {selectedGoal.target_value} {selectedGoal.unit}</p>
+
+              {goalHistory.length > 1 ? (
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={goalHistory}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                    <YAxis tick={{ fontSize: 10 }} domain={[0, parseFloat(selectedGoal.target_value) * 1.1]} />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="value" stroke="#1d4ed8" strokeWidth={2} dot={{ r: 4 }} name="Progress" />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : goalHistory.length === 1 ? (
+                <div className="text-center py-8 opacity-60 text-sm">Only one entry — log more days to see your trend.</div>
+              ) : (
+                <div className="text-center py-8 opacity-60 text-sm">No progress logged yet.</div>
+              )}
+
+              <div className="mt-4 flex justify-between items-center">
+                <span className="text-sm opacity-60">
+                  Current: <span className="font-bold text-blue-600">{selectedGoal.current_value ?? 0} {selectedGoal.unit}</span>
+                </span>
+                <div className="flex gap-2">
+                  <button className="btn btn-sm btn-ghost" onClick={() => handleEditGoal(selectedGoal)}>Edit Goal</button>
+                  {selectedGoal.status == "active" &&
+                    < button
+                      className="btn btn-sm bg-blue-800 text-white"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+
+                        const goal = selectedGoal;
+
+                        if (goal.goal_type === "frequency") {
+                          // instant complete (no modal)
+                          await handleAddProgress(goal.goal_id, selectedGoal.current_value + 1);
+
+                        } else {
+                          // normal goals use modal
+                          setSelectedGoalId(goal.goal_id);
+                          setProgressModalOpen(true);
+                        }
+                      }}
+                    >
+                      Update Progress
+                    </button>
+                  }
+
+                </div>
+              </div>
+            </div>
+          );
+
+        })()}
+      </PopUp >
+
+
+      {progressModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-base-100 p-6 rounded-lg w-80 shadow-xl">
+
+            <h3 className="text-lg font-bold mb-4">Update Progress</h3>
+
+            <input
+              type="number"
+              placeholder="Enter value"
+              className="input input-bordered w-full mb-4"
+              value={progressValue}
+              onChange={(e) => setProgressValue(e.target.value)}
+            />
+
+            <div className="flex justify-end gap-2">
+              <button
+                className="btn btn-ghost"
+                onClick={() => {
+                  setProgressModalOpen(false);
+                  setProgressValue("");
+                }}
+              >
+                Cancel
+              </button>
+
+              <button
+                className="btn bg-blue-800 btn-primary"
+                onClick={async () => {
+                  await handleAddProgress(selectedGoalId, progressValue);
+                  setProgressModalOpen(false);
+                  setProgressValue("");
+                }}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+
+          {/* 
+          {goalType === "frequency" ? (
+            <button
+              className="btn bg-blue-800 text-white w-full"
+              onClick={async () => {
+                await handleAddProgress(selectedGoalId, 1);
+                setProgressModalOpen(false);
+              }}
+            >
+              Complete
+            </button>
+          ) : (
+            <input
+              type="number"
+              placeholder="Enter value"
+              className="input input-bordered w-full mb-4"
+              value={progressValue}
+              onChange={(e) => setProgressValue(e.target.value)}
+            />
+          )} */}
+        </div>
+
+
+
+      )}
 
       <PopUp isOpen={isPopOpen !== null} onClose={() => setPopOpen(null)}>
         {isPopOpen === "create" && (
@@ -1143,6 +1160,7 @@ function ProgressLogs() {
                 >
                   <option value="weight">Weight</option>
                   <option value="strength">Strength</option>
+                  <option value="frequency">Frequency</option>
                   <option value="performance">Performance</option>
                   <option value="nutrition">Nutrition</option>
                   <option value="custom">Custom</option>
@@ -1167,9 +1185,14 @@ function ProgressLogs() {
                   name="target_value"
                   value={goalData.target_value}
                   onChange={handleGoalChange}
+                  placeholder="e.g. 30, 100, 5"
                   required
                 />
+                <span className="text-xs opacity-50">
+                  Example: 30 (weight loss), 5 (workouts), 100 (lbs lifted)
+                </span>
               </label>
+
 
               <label className="label flex flex-col items-start gap-1 mb-2">
                 <span>Unit:</span>
@@ -1179,9 +1202,12 @@ function ProgressLogs() {
                   name="unit"
                   value={goalData.unit}
                   onChange={handleGoalChange}
-                  placeholder="e.g. lbs, reps, miles"
+                  placeholder="e.g. lbs, reps, miles, grams, workouts"
                   required
                 />
+                <span className="text-xs opacity-50">
+                  Example: lbs, reps, miles, grams, workouts
+                </span>
               </label>
 
               <label className="label flex flex-col items-start gap-1 mb-2">
@@ -1250,6 +1276,7 @@ function ProgressLogs() {
                 <option value="weight">Weight</option>
                 <option value="strength">Strength</option>
                 <option value="performance">Performance</option>
+                <option value="frequency">Frequency</option>
                 <option value="nutrition">Nutrition</option>
                 <option value="custom">Custom</option>
               </select>
@@ -1266,7 +1293,7 @@ function ProgressLogs() {
               >
                 <option value="active">Active</option>
                 <option value="completed">Completed</option>
-                <option value="archived">Archived</option>
+                <option value="archived">Paused</option>
               </select>
             </label>
 
@@ -1342,12 +1369,13 @@ function ProgressLogs() {
       </PopUp>
 
 
+
       <Alert
         isOpen={alert}
         message={alertMsg}
         type={alertType}
         onClose={() => setShowAlert(false)} />
-    </div>
+    </div >
 
   );
 
