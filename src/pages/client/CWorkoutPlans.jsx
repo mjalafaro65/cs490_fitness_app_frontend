@@ -6,6 +6,7 @@ import BrowseExercises from "../Exercises";
 import { useNavigate } from "react-router-dom";
 import Alert from "../../components/Alert";
 import Confirm from "../../components/confirm";
+import { useAuth } from "../../AuthContext";
 
 
 function LargeModal({ open, onClose, children, width = "50vw", height = "70vh" }) {
@@ -35,9 +36,12 @@ function LargeModal({ open, onClose, children, width = "50vw", height = "70vh" }
 }
 
 function ClientWorkoutPlans() {
+
   const [isPopOpen, setPopOpen] = useState(null);
   const [currentDate, setCurrentDate] = useState(new Date());
   const navigate = useNavigate();
+
+  const { user } = useAuth()
 
   const [confirmState, setConfirmState] = useState({
     open: false,
@@ -195,6 +199,7 @@ function ClientWorkoutPlans() {
   function simplifyAssignments(data = []) {
     return data.map((assignment) => ({
       assignment_id: assignment.assignment_id,
+      assigned_by_user_id : assignment.assigned_by_user_id,
       plan_name: assignment.plan?.name,
       start_date: assignment.start_date,
       end_date: assignment.end_date,
@@ -730,6 +735,7 @@ function ClientWorkoutPlans() {
 
 
   };
+  console.log(user.user_id)
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -1075,6 +1081,11 @@ function ClientWorkoutPlans() {
                       <h2 className="font-semibold text-lg tracking-tight">
                         {plan.plan_name}
                       </h2>
+
+                      {user && Number(plan.assigned_by_user_id) !== Number(user.user_id) && (
+                        <p className="ext-xs opacity-60 mt-1">Assigned by Coach</p>
+                      )}
+
 
                       <p className="text-xs opacity-60 mt-1">
                         {plan.start_date && plan.end_date ? (
