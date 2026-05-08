@@ -823,7 +823,7 @@ function CoWorkoutPlans() {
                 return (
                   <button
                     key={c.relationship_id ?? id}
-                    className={`p-2 rounded text-left text-sm transition ${isSelected ? "bg-primary text-white" : "bg-base-100 hover:bg-base-300"
+                    className={`p-2 rounded text-left text-sm transition ${isSelected ? "bg-blue-800 text-white" : "bg-base-100 hover:bg-base-300"
                       }`}
                     onClick={() => setAssignPopupClient({ clientId: id, clientName: name })}
                   >
@@ -856,7 +856,7 @@ function CoWorkoutPlans() {
           </div> */}
 
           <button
-            className="btn btn-primary w-full"
+            className="btn btn-primary bg-blue-800 w-full"
             disabled={!assignPopupClient}
             onClick={() => handleAssignPlan(assigningPlan.plan_id, assignPopupClient)}
           >

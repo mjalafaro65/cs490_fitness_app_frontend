@@ -6,6 +6,8 @@ import { useLocation } from "react-router-dom";
 import { useRef } from "react";
 import { useMessaging } from "../MessagingContext";
 
+
+
 function Messages() {
   const { fetchUser, user } = useAuth();
   const location = useLocation();
@@ -23,6 +25,22 @@ function Messages() {
   const { fetchUnreadCount } = useMessaging()
 
 
+
+  const autoSelectedRef = useRef(false);
+
+  useEffect(() => {
+    if (!location.state?.userId || conversations.length === 0 || autoSelectedRef.current) return;
+
+    const conv = conversations.find(c =>
+      c.other_user?.user_id === location.state.userId
+    );
+
+    if (conv) {
+      autoSelectedRef.current = true;
+      handleSelectConversation(conv);
+      window.history.replaceState({}, document.title);
+    }
+  }, [conversations, location.state]);
 
 
   const fetchMessages = async (conversationId) => {

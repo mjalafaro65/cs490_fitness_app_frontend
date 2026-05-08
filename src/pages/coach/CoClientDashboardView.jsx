@@ -521,7 +521,7 @@ function CoClientDashboardView() {
                           <span className={`text-xs px-2 py-1 rounded-full ${
                             invoice.status === 'paid' ? 'bg-green-500/20 text-green-400' :
                             invoice.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
-                            'bg-gray-500/20 text-gray-400'
+                            'bg-blue-500/30 text-white'
                           }`}>
                             {invoice.status || 'unknown'}
                           </span>

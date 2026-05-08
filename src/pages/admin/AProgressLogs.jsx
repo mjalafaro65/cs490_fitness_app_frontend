@@ -296,7 +296,7 @@ function AProgressLogs() {
                 <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-5">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-semibold opacity-60 uppercase tracking-wide">Inactive Users</p>
+                      <p className="text-xs font-semibold opacity-60 uppercase tracking-wide">Deactivated Users</p>
                       <p className="text-3xl font-bold mt-2">{stats.inactive_users}</p>
                     </div>
                     <div className="w-10 h-10 rounded-full flex items-center justify-center">
@@ -375,7 +375,7 @@ function AProgressLogs() {
               const activeEndX = 100 + 80 * Math.cos((activeEnd - 90) * Math.PI / 180);
               const activeEndY = 100 + 80 * Math.sin((activeEnd - 90) * Math.PI / 180);
               
-              // Inactive users arc
+              // Deactivated users arc
               const inactiveStart = activeAngle;
               const inactiveEnd = 360;
               const inactiveLargeArc = inactiveAngle > 180 ? 1 : 0;
@@ -442,7 +442,7 @@ function AProgressLogs() {
 
           <div>
             <div className="flex justify-between text-sm mb-1">
-              <span className="opacity-60">Inactive Users</span>
+              <span className="opacity-60">Deactivated Users</span>
               <span className="font-semibold text-gray-500">{stats.inactive_users} / {stats.total_users}</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">

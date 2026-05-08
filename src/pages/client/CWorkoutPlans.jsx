@@ -735,7 +735,6 @@ function ClientWorkoutPlans() {
 
 
   };
-  console.log(user.user_id)
 
   const today = new Date().toISOString().split("T")[0];
 

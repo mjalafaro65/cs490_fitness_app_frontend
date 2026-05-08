@@ -25,6 +25,10 @@ function isSameDay(a, b) {
   );
 }
 
+
+
+
+
 const DAY_LABELS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
 function CoDashboard() {
@@ -44,14 +48,51 @@ function CoDashboard() {
   const [conversations, setConversations] = useState([]);
   const [selectedClient, setSelectedClient] = useState(null);
 
+
+
+  const [weekWorkouts, setWeekWorkouts] = useState([]);
+
+
+
+  const getClientsWorkoutsForDate = (date) => {
+    const seen = new Set();
+    return weekWorkouts
+      .filter(w => isSameDay(new Date(w.scheduled_start), date))
+      .map(w => ({
+        clientName: w.client_name || `User ${w.for_user_id}`,
+        workoutName: w.plan_day_name || "Workout",
+        status: w.status,
+        calendar_workout_id: w.calendar_workout_id,
+        for_user_id: w.for_user_id
+      }))
+      .filter(w => {
+        if (seen.has(w.for_user_id)) return false;
+        seen.add(w.for_user_id);
+        return true;
+      });
+  };
+
+  const fetchCoachWeekWorkouts = async (anchorDate) => {
+    const dateStr = anchorDate.toISOString().split('T')[0];
+    const res = await api.get(`/workouts/calendar-workouts-view?view=week`);
+    console.log(res.data)
+    setWeekWorkouts(res.data);
+  };
+
+
+
   const fetchCoachDashboardData = async () => {
     setIsLoadingDashboard(true);
 
     try {
       const clientsRes = await api.get("/coach/show-client-relationships");
       console.log(clientsRes)
-      setClients(clientsRes.data || []);
+      const activeClients = clientsRes.data.filter(
+        client => client.status !== "terminated"
+      );
+      console.log(activeClients)
 
+      setClients(activeClients);
       const requestsRes = await api.get("/coach/pending-requests");
 
       const requestsWithUsers = await Promise.all(
@@ -77,7 +118,7 @@ function CoDashboard() {
       setMessages(unread);
 
       // something like this for future backend:
-      // const workoutsRes = await api.get("/coach/workouts");
+      // const workoutsRes = await api.get("/coach-workouts");
       // setClientWorkouts(workoutsRes.data || []);
     } catch (err) {
       console.error("Failed to load coach dashboard data:", err);
@@ -96,6 +137,9 @@ function CoDashboard() {
 
   useEffect(() => {
     fetchCoachDashboardData();
+    const d = new Date(weekAnchor);
+    d.setDate(d.getDate() - 7);
+    fetchCoachWeekWorkouts(d);
   }, []);
 
   const selectedWorkouts = getWorkoutsForDate(selectedDay);
@@ -168,7 +212,7 @@ function CoDashboard() {
               {weekDays.map((date, i) => {
                 const isToday = isSameDay(date, today);
                 const isSelected = isSameDay(date, selectedDay);
-                const sessions = getWorkoutsForDate(date);
+                const sessions = getClientsWorkoutsForDate(date);
                 const hasSession = sessions.length > 0;
 
                 return (
@@ -199,20 +243,25 @@ function CoDashboard() {
                       </span>
                     </div>
 
+
                     {hasSession ? (
-                      sessions.map((s, si) => (
-                        <div
-                          key={`s-${si}`}
-                          className="bg-blue-400/20 text-blue-400 rounded px-1.5 py-0.5 text-[10px] font-semibold leading-tight truncate"
-                          title={`${s.clientName} — ${s.workoutName}`}
-                        >
-                          {s.clientName}
+                      <div className="relative group">
+                        <div className="bg-blue-400/20 text-blue-400 rounded px-1.5 py-0.5 text-[10px] font-semibold text-center">
+                          {sessions.length} client {sessions.length > 1 ? 's' : ''}
                         </div>
-                      ))
+
+                        {/* hover tooltip */}
+                        <div className="absolute z-50 left-1/2 -translate-x-1/2 top-full mt-1 hidden group-hover:block bg-base-100 border border-base-300 rounded-lg shadow-lg p-2 w-40 text-xs">
+                          {sessions.map((s, si) => (
+                            <div key={si} className="py-0.5 border-b border-base-200 last:border-0">
+                              <div className="font-semibold truncate">{s.clientName}</div>
+                              <div className="opacity-60 truncate">{s.workoutName}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     ) : (
-                      <span className="text-[10px] opacity-30 text-center mt-auto">
-                        No workouts
-                      </span>
+                      <span className="text-[10px] opacity-30 text-center mt-auto">—</span>
                     )}
                   </div>
                 );
@@ -386,14 +435,14 @@ function CoDashboard() {
 
                       <div className="flex gap-2">
                         <button
-                          className="btn btn-sm btn-success"
+                          className="btn btn-sm btn-primary bg-blue-800"
                           onClick={() => acceptRequest(request)}
                         >
                           Accept
                         </button>
 
                         <button
-                          className="btn btn-sm btn-error"
+                          className="btn btn-sm"
                           onClick={() =>
                             declineRequest(request.request_id)
                           }
@@ -437,20 +486,10 @@ function CoDashboard() {
                 Assign Workouts
               </button>
 
-              <button
-                className="btn btn-sm"
-                onClick={() =>
-                  navigate(
-                    `/coach/clients/${selectedClient.user?.user_id}`
-                  )
-                }
-              >
-                View Progress
-              </button>
 
               <button
                 className="btn btn-sm"
-                onClick={() => navigate("/messages")}
+                onClick={() => navigate("/messages", { state: { userId: selectedClient.user?.user_id } })}
               >
                 Message Client
               </button>
