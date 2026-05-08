@@ -437,7 +437,7 @@ function MyCoach() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
             {/* MY COACH */}
-            <div className="card bg-base-200 shadow-lg border border-base-300 p-6 flex flex-col">
+            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-6 flex flex-col">
               <h2 className="text-lg font-semibold mb-4">My Coach</h2>
 
               <div className="flex-1 space-y-4">
@@ -539,7 +539,7 @@ function MyCoach() {
             </div>
 
             {/* REQUESTS */}
-            <div className="card bg-base-200 shadow-lg border border-base-300 p-6 flex flex-col">
+            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-6 flex flex-col">
               <h2 className="text-lg font-semibold mb-4">My Requests</h2>
 
               <div className="flex-1 overflow-y-auto max-h-72 space-y-3">
@@ -597,7 +597,7 @@ function MyCoach() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
             {/* SAVED COACHES */}
-            <div className="card bg-base-200 shadow-lg border border-base-300 p-6 flex flex-col">
+            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-6 flex flex-col">
               <h2 className="text-lg font-semibold mb-4">Saved Coaches</h2>
 
               <div className="flex-1 overflow-y-auto max-h-72 space-y-3">
@@ -628,7 +628,7 @@ function MyCoach() {
             </div>
 
             {/* REVIEWS */}
-            <div className="card bg-base-200 shadow-lg border border-base-300 p-6 flex flex-col">
+            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-6 flex flex-col">
               <h2 className="text-lg font-semibold mb-4">My Reviews</h2>
               <div className="space-y-4">
                 {userReviews

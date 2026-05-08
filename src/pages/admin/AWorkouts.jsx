@@ -596,8 +596,7 @@ const handleViewExercise = async (exercise) => {
     </div>
   </div>
 </PopUp>
-
-{/* Edit Plan Popup - Enhanced */}
+{/*
 <PopUp isOpen={popOpen === "editPlan"} onClose={closePopUp}>
   <form onSubmit={handleUpdatePlan} className="card bg-base-200 border-base-300 border p-6 rounded-box w-full max-w-2xl max-h-[80vh] overflow-y-auto">
     <h2 className="text-xl font-bold mb-4">Edit Plan</h2>
@@ -633,7 +632,6 @@ const handleViewExercise = async (exercise) => {
           rows="3"
         />
       </div>
-{/*
       <div className="grid grid-cols-3 gap-3">
         <div>
           <label className="label font-semibold opacity-70 text-sm">Muscle Group</label>
@@ -687,7 +685,7 @@ const handleViewExercise = async (exercise) => {
           </select>
         </div>
       </div>
-*/}
+
       <div className="flex gap-2">
         <div className="flex-1">
           <label className="label font-semibold opacity-70 text-sm">Public Status</label>
@@ -721,7 +719,7 @@ const handleViewExercise = async (exercise) => {
     </div>
   </form>
 </PopUp>
-
+*/}
       {/* View Exercise Popup */}
 <PopUp isOpen={popOpen === "viewExercise"} onClose={closePopUp}>
   <div className="card bg-base-200 border-base-300 border p-6 rounded-box w-full max-w-md max-h-[80vh] overflow-y-auto">

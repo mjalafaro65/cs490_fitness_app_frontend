@@ -415,9 +415,14 @@ function ProgressLogs() {
       avg_energy: filteredSurvey.length > 0
         ? (filteredSurvey.reduce((sum, e) => sum + (e.energy_level || 0), 0) / filteredSurvey.length).toFixed(1)
         : 0,
-      weight_change_lbs: filteredSurvey.length >= 2
-        ? (filteredSurvey[filteredSurvey.length - 1]?.weight_lbs || 0) - (filteredSurvey[0]?.weight_lbs || 0)
-        : 0
+      weight_change_lbs: (() => {
+          if (filteredSurvey.length < 3) return 0;
+          
+          const firstValid = filteredSurvey.find(s => s?.weight_lbs > 0)?.weight_lbs;
+          const lastValid = [...filteredSurvey].reverse().find(s => s?.weight_lbs > 0)?.weight_lbs;
+          
+          return firstValid && lastValid ? lastValid - firstValid : 0;
+      })()
     };
 
     return {
@@ -822,7 +827,7 @@ function ProgressLogs() {
             )}
           </div>
           <div className="flex w-full h-80 gap-4 ">
-            <div className="card bg-base-300 rounded-box w-1/3 grow p-4">
+            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box w-1/3 grow p-4">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-bold">Goals Progress</h2>
                 <button className="btn btn-primary text-white bg-blue-800 btn-sm" onClick={() => setPopOpen("create")}>
@@ -839,7 +844,7 @@ function ProgressLogs() {
 
 
                   {goalsData.map((goal, idx) => (
-                    <div key={idx} className="p-3 bg-base-200 rounded-lg cursor-pointer hover:bg-base-300 transition-colors" onClick={() => fetchGoalHistory(goal)}>
+                    <div key={idx} className="p-3 bg-gray-300 rounded-lg cursor-pointer hover:bg-base-300 transition-colors" onClick={() => fetchGoalHistory(goal)}>
 
                       <div className="flex justify-between items-center mb-1">
                         <span className="font-medium text-sm truncate">{goal.title || 'Untitled Goal'}</span>
@@ -869,7 +874,7 @@ function ProgressLogs() {
               )}
             </div>
           </div>
-          <form className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full p-6 bg-white rounded-xl shadow-lg border border-base-500 dark:bg-gray-800">
+          <form className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full p-6 bg-base-200 rounded-xl shadow-lg border border-base-500 dark:bg-gray-800">
             <div className="form-control flex flex-col items-center">
               <label className="label font-semibold text-gray-600 dark:text-gray-300">Before Photo:</label>
               <div className="flex items-center gap-4">
@@ -923,7 +928,7 @@ function ProgressLogs() {
 
           </form>
 
-          <div className="card bg-base-300 rounded-box p-4 w-full">
+          <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-4 w-full">
             <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
               Workout Logs
               <span className="text-sm font-normal text-gray-500">
@@ -931,7 +936,7 @@ function ProgressLogs() {
               </span>
             </h2>
             <div className="flex justify-center">
-              <div className="bg-base-200 rounded-lg p-6 w-full max-w-lg">
+              <div className="bg-gray-200 rounded-lg p-6 w-full max-w-lg">
                 <div className="flex justify-between items-center mb-4">
                   <button className="btn btn-sm btn-ghost" onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1))}>←</button>
                   <span className="font-semibold text-base">

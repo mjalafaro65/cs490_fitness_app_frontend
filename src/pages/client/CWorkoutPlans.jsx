@@ -758,8 +758,8 @@ function ClientWorkoutPlans() {
 
             {/* Calendar top */}
             <div className="flex w-full gap-4">
-              <div className="card bg-base-300 rounded-box w-1/2 p-4">
-                <h2 className="text-lg font-bold mb-2">Calendar</h2>
+              <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box w-1/2 p-4">
+                {/* <h2 className="text-lg font-bold mb-2">Calendar</h2> */}
                 <div className="flex justify-between items-center mb-3">
                   <button
                     className="btn btn-sm"
@@ -787,7 +787,7 @@ function ClientWorkoutPlans() {
                 <div className="grid grid-cols-7 gap-1">
 
                   {Array.from({ length: firstDay }).map((_, i) => (
-                    <div key={`empty-${i}`} className="h-16 p-1 bg-base-200 rounded opacity-30"></div>
+                    <div key={`empty-${i}`} className="h-16 p-1 bg-gray-300 rounded opacity-30"></div>
                   ))}
                   {Array.from({ length: daysInMonth }).map((_, i) => {
 
@@ -809,11 +809,11 @@ function ClientWorkoutPlans() {
                           const date = new Date(year, month, i + 1);
                           fetchWorkoutsForDate(date)
                         }}
-                        className={`h-16 p-1 rounded-lg cursor-pointer transition-all relative
+                        className={`h-16 p-1 bg-base-100 rounded-lg cursor-pointer transition-all relative
         ${isSelected ? 'ring-2 ring-primary bg-primary/10' : ''}
         ${isToday && !isSelected ? 'border-2 border-blue-500' : ''}
         ${hasWorkout ? 'bg-blue-100 dark:bg-blue-900/30' : ''}
-        hover:bg-base-100
+        hover:bg-base-300
       `}
                       >
                         <div className={`text-right text-sm font-semibold p-0.5 rounded-full w-6 h-6 flex items-center justify-center ml-auto
@@ -848,7 +848,7 @@ function ClientWorkoutPlans() {
                 </div>
               </div>
 
-              <div className="card bg-base-300 rounded-box flex-1 p-4">
+              <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box flex-1 p-4">
                 <h2 className="text-lg font-bold mb-2">
                   {selectedDateC
                     ? `Workouts for ${selectedDateC.toLocaleDateString(undefined, {
@@ -872,7 +872,7 @@ function ClientWorkoutPlans() {
                     {selectedWorkouts.map((workout, idx) => (
                       <div
                         key={workout.occurrenceId || idx}
-                        className="p-3 border rounded bg-base-200 hover:bg-base-100 transition"
+                        className="p-3 border rounded bg-base-100 hover:bg-gray-200 transition"
                       >
                         <p className="font-semibold text-sm">
                           {workout.plan_day.plan.name} - {workout.plan_day.day_label}
@@ -1064,7 +1064,7 @@ function ClientWorkoutPlans() {
 
 
           {/* Active Plans  */}
-          <div className="bg-base-300 rounded-box p-4">
+          <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-4">
             <h2 className="text-lg font-bold mb-4">Active Plans</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1251,13 +1251,13 @@ function ClientWorkoutPlans() {
           )}
 
           <div className="flex w-full gap-4">
-            <div className="card bg-base-300 rounded-box flex-1 p-4">
+            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box flex-1 p-4">
               <div>
-                <h1 className="text-2xl font-bold">My Workout Plans</h1>
+                <h1 className="text-2xl font-bold mb-2">My Workout Plans</h1>
 
-                <p className="text-sm opacity-70 mt-1">
+                {/* <p className="text-sm opacity-70 mt-1">
                   Select a template plan below to assign.
-                </p>
+                </p> */}
               </div>
               {isLoading ? (
                 <div className="flex flex-col gap-2">
@@ -1282,7 +1282,7 @@ function ClientWorkoutPlans() {
                   {plans.map((plan) => (
                     <div
                       key={plan.plan_id}
-                      className="p-2 bg-base-200 rounded flex justify-between items-center cursor-pointer hover:bg-base-100 transition"
+                      className="p-2 bg-gray-200 rounded flex justify-between items-center cursor-pointer hover:bg-base-100 transition"
                       onClick={() => handleSelectPlan(plan.plan_id)}
                     >
                       <div>
@@ -1294,7 +1294,7 @@ function ClientWorkoutPlans() {
                           {plan.is_public ? "Public" : "Private"}
                         </span>
                         <button
-                          className="btn btn-xs bg-blue-800 btn-primary"
+                          className="btn btn-xs bg-blue-800 text-white btn-primary"
                           onClick={(e) => {
                             e.stopPropagation();
                             setAssignPlan(plan);
@@ -1316,7 +1316,7 @@ function ClientWorkoutPlans() {
               </div>
             </div>
             <div className="flex flex-col gap-4">
-              <div className="card bg-base-300 p-4 rounded-box w-64 flex flex-col items-center h-24">
+              <div className="card bg-base-200 shadow-lg border border-base-500 p-4 rounded-box w-64 flex flex-col items-center h-24">
                 <h2 className="text-lg font-bold mb-2">Create New Plan</h2>
                 <button className="btn btn-primary bg-blue-800 btn-sm" onClick={() => setPopOpen("create")}>
                   Create New
