@@ -66,27 +66,27 @@ function AWorkoutPlans() {
     }));
   };
 
-  const fetchPlans = async () => {
-    setPlansLoading(true);
-    try {
-      const params = {};
-      if (plansFilters.q) params.q = plansFilters.q;
-      if (plansFilters.muscle_group) params.muscle_group = plansFilters.muscle_group;
-      if (plansFilters.equipment) params.equipment = plansFilters.equipment;
-      if (plansFilters.training_type) params.training_type = plansFilters.training_type;
-      if (plansFilters.exercise_ids) params.exercise_ids = plansFilters.exercise_ids;
-      if (plansFilters.exercise_match) params.exercise_match = plansFilters.exercise_match;
+  // const fetchPlans = async () => {
+  //   setPlansLoading(true);
+  //   try {
+  //     const params = {};
+  //     if (plansFilters.q) params.q = plansFilters.q;
+  //     if (plansFilters.muscle_group) params.muscle_group = plansFilters.muscle_group;
+  //     if (plansFilters.equipment) params.equipment = plansFilters.equipment;
+  //     if (plansFilters.training_type) params.training_type = plansFilters.training_type;
+  //     if (plansFilters.exercise_ids) params.exercise_ids = plansFilters.exercise_ids;
+  //     if (plansFilters.exercise_match) params.exercise_match = plansFilters.exercise_match;
       
-      const response = await api.get("/workouts/plans/browse", { params });
-      console.log("Published Plans:", response.data);
-      setPlans(response.data.plans || response.data);
-    } catch (err) {
-      console.error("Failed to fetch plans:", err.response?.data || err);
-      showAlert(err.response?.data?.message || "Failed to fetch plans", "error");
-    } finally {
-  setPlansLoading(false);
-    }
-  };
+  //     const response = await api.get("/workouts/plans/browse", { params });
+  //     console.log("Published Plans:", response.data);
+  //     setPlans(response.data.plans || response.data);
+  //   } catch (err) {
+  //     console.error("Failed to fetch plans:", err.response?.data || err);
+  //     showAlert(err.response?.data?.message || "Failed to fetch plans", "error");
+  //   } finally {
+  // setPlansLoading(false);
+  //   }
+  // };
 
   const fetchExercises = async () => {
     setExercisesLoading(true);
@@ -139,34 +139,25 @@ function AWorkoutPlans() {
     }
   };
 
-  const fetchPlanDetails = async (plan_id) => {
-  setPlansLoading(true);
-  try {
-    const response = await api.get(`/workouts/plans/${plan_id}`);
-    console.log("Plan details response:", response.data);
+//   const fetchPlanDetails = async (plan_id) => {
+//   setPlansLoading(true);
+//   try {
+//     const response = await api.get(`/workouts/plans/${plan_id}`);
+//     console.log("Plan details response:", response.data);
     
-    return response.data;
-  } catch (err) {
-    console.error("Failed to fetch plan details:", err.response?.data || err);
-    showAlert(err.response?.data?.message || "Failed to fetch plan details", "error");
-    throw err;
-  } finally {
-    setPlansLoading(false);
-  }
-};
-
-
-  useEffect(() => {
-    if (activeTab === "plans") {
-      fetchPlans();
-    }
-  }, [activeTab, plansFilters]);
+//     return response.data;
+//   } catch (err) {
+//     console.error("Failed to fetch plan details:", err.response?.data || err);
+//     showAlert(err.response?.data?.message || "Failed to fetch plan details", "error");
+//     throw err;
+//   } finally {
+//     setPlansLoading(false);
+//   }
+// };
 
   useEffect(() => {
-    if (activeTab === "exercises") {
       fetchExercises();
-    }
-  }, [activeTab, exercisesFilters]);
+  }, [exercisesFilters]);
 
   const handlePlansFilterChange = (e) => {
     const { name, value } = e.target;
@@ -207,44 +198,44 @@ function AWorkoutPlans() {
     });
   };
 
-  const handleEditPlan = (plan) => {
-    setSelectedPlan(plan);
-    setEditPlanData({
-      name: plan.name || "",
-      description: plan.description || "",
-      is_public: plan.is_public ?? true
-    });
-    setIsEditing(true);
-    setPopOpen("editPlan");
-  };
+  // const handleEditPlan = (plan) => {
+  //   setSelectedPlan(plan);
+  //   setEditPlanData({
+  //     name: plan.name || "",
+  //     description: plan.description || "",
+  //     is_public: plan.is_public ?? true
+  //   });
+  //   setIsEditing(true);
+  //   setPopOpen("editPlan");
+  // };
 
-  const handleUpdatePlan = async (e) => {
-    e.preventDefault();
-    try {
-      await api.patch(`/workouts/plans/${selectedPlan.plan_id}`, editPlanData);
-      showAlert(`Plan "${editPlanData.name}" updated successfully`, "success");
-      setPopOpen(null);
-      fetchPlans();
-    } catch (err) {
-      console.error("Failed to update plan:", err);
-      const errorMsg = err.response?.data?.message || 
-                    err.response?.data?.error ||
-                    "Failed to update plan";
-      showAlert(err.response?.data?.message || "Failed to update plan", "error");
-    }
-  };
+  // const handleUpdatePlan = async (e) => {
+  //   e.preventDefault();
+  //   try {
+  //     await api.patch(`/workouts/plans/${selectedPlan.plan_id}`, editPlanData);
+  //     showAlert(`Plan "${editPlanData.name}" updated successfully`, "success");
+  //     setPopOpen(null);
+  //     fetchPlans();
+  //   } catch (err) {
+  //     console.error("Failed to update plan:", err);
+  //     const errorMsg = err.response?.data?.message || 
+  //                   err.response?.data?.error ||
+  //                   "Failed to update plan";
+  //     showAlert(err.response?.data?.message || "Failed to update plan", "error");
+  //   }
+  // };
 
-  const handleDeletePlan = async (planId, planName) => {
-      try {
-        await api.delete(`/workouts/plans/${planId}`);
-        showAlert(`Plan "${planName}" deleted successfully`, "success");
-        setPopOpen(null);
-        fetchPlans();
-      } catch (err) {
-        console.error("Failed to delete plan:", err);
-        showAlert(err.response?.data?.message || "Failed to delete plan", "error");
-      }
-  };
+  // const handleDeletePlan = async (planId, planName) => {
+  //     try {
+  //       await api.delete(`/workouts/plans/${planId}`);
+  //       showAlert(`Plan "${planName}" deleted successfully`, "success");
+  //       setPopOpen(null);
+  //       fetchPlans();
+  //     } catch (err) {
+  //       console.error("Failed to delete plan:", err);
+  //       showAlert(err.response?.data?.message || "Failed to delete plan", "error");
+  //     }
+  // };
 
 const handleViewExercise = async (exercise) => {
   try {
@@ -265,24 +256,24 @@ const handleViewExercise = async (exercise) => {
   }
 };
 
-const handleViewPlan = async (plan) => {
-  try {
-    const freshPlanData = await fetchPlanDetails(plan.plan_id);
-    setSelectedPlan(freshPlanData);
-    setEditPlanData({
-      name: freshPlanData.name || "",
-      description: freshPlanData.description || "",
-      muscle_group: freshPlanData.muscle_group || "",
-      equipment: freshPlanData.equipment || "",
-      training_type: freshPlanData.training_type || "",
-      is_public: freshPlanData.is_public ?? true
-    });
-    setIsEditing(false);
-    setPopOpen("viewPlan");
-  } catch (err) {
-    console.error("Failed to load plan details:", err);
-  }
-};
+// const handleViewPlan = async (plan) => {
+//   try {
+//     const freshPlanData = await fetchPlanDetails(plan.plan_id);
+//     setSelectedPlan(freshPlanData);
+//     setEditPlanData({
+//       name: freshPlanData.name || "",
+//       description: freshPlanData.description || "",
+//       muscle_group: freshPlanData.muscle_group || "",
+//       equipment: freshPlanData.equipment || "",
+//       training_type: freshPlanData.training_type || "",
+//       is_public: freshPlanData.is_public ?? true
+//     });
+//     setIsEditing(false);
+//     setPopOpen("viewPlan");
+//   } catch (err) {
+//     console.error("Failed to load plan details:", err);
+//   }
+// };
 
   const handleCreateExercise = async (e) => {
     e.preventDefault();
@@ -377,141 +368,9 @@ const handleViewPlan = async (plan) => {
       <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
       <div className="drawer-content">
         <section className="p-6 flex flex-col gap-6">
-          <div className="text-2xl font-bold mb-4">Workout Management</div>
+          <div className="text-2xl font-bold">Workout Management</div>
           
           <div className="flex gap-2">
-            <button
-              onClick={() => setActiveTab("plans")}
-              className={`btn btn-sm ${activeTab === "plans" ? "btn bg-blue-800 text-white" : "btn-ghost"}`}
-            >
-              Plans
-            </button>
-            <button
-              onClick={() => setActiveTab("exercises")}
-              className={`btn btn-sm ${activeTab === "exercises" ? "btn bg-blue-800 text-white" : "btn-ghost"}`}
-            >
-              Exercises
-            </button>
-          </div>
-          
-          <div className="mt-4">
-            {activeTab === "plans" && (
-              <div>
-                <div className="mb-4">
-                  <div className="flex gap-2 mb-2">
-                    <input
-                      type="text"
-                      name="q"
-                      placeholder="Search plans by name..."
-                      value={plansFilters.q}
-                      onChange={handlePlansFilterChange}
-                      className="input input-bordered flex-1"
-                    />
-                    <button
-                      onClick={clearPlansFilters}
-                      className="btn btn-ghost btn-sm"
-                    >
-                      Clear
-                    </button>
-                  </div>
-              {/*
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 p-3 bg-base-200 rounded-box">
-                    <select
-                      name="muscle_group"
-                      value={plansFilters.muscle_group}
-                      onChange={handlePlansFilterChange}
-                      className="select select-bordered select-sm"
-                    >
-                      <option value="">All Muscle Groups</option>
-                      <option value="chest">Chest</option>
-                      <option value="back">Back</option>
-                      <option value="shoulders">Shoulders</option>
-                      <option value="legs">Legs</option>
-                      <option value="arms">Arms</option>
-                      <option value="core">Core</option>
-                      <option value="cardio">Cardio</option>
-                    </select>
-                    
-                    <select
-                      name="equipment"
-                      value={plansFilters.equipment}
-                      onChange={handlePlansFilterChange}
-                      className="select select-bordered select-sm"
-                    >
-                      <option value="">All Equipment</option>
-                      <option value="barbell">Barbell</option>
-                      <option value="dumbbell">Dumbbell</option>
-                      <option value="machine">Machine</option>
-                      <option value="cables">Cables</option>
-                      <option value="bodyweight">Bodyweight</option>
-                      <option value="bands">Bands</option>
-                      <option value="kettlebell">Kettlebell</option>
-                    </select>
-                    
-                    <select
-                      name="training_type"
-                      value={plansFilters.training_type}
-                      onChange={handlePlansFilterChange}
-                      className="select select-bordered select-sm"
-                    >
-                      <option value="">All Training Types</option>
-                      <option value="strength">Strength</option>
-                      <option value="hypertrophy">Hypertrophy</option>
-                      <option value="endurance">Endurance</option>
-                      <option value="power">Power</option>
-                      <option value="cardio">Cardio</option>
-                    </select>
-                    
-                    <input
-                      type="text"
-                      name="exercise_ids"
-                      placeholder="Exercise IDs (comma-separated)"
-                      value={plansFilters.exercise_ids}
-                      onChange={handlePlansFilterChange}
-                      className="input input-bordered input-sm"
-                    />
-                    
-                    <select
-                      name="exercise_match"
-                      value={plansFilters.exercise_match}
-                      onChange={handlePlansFilterChange}
-                      className="select select-bordered select-sm"
-                    >
-                      <option value="any">Match Any Exercise</option>
-                      <option value="all">Match All Exercises</option>
-                    </select>
-                    
-                  </div>
-                  */}
-                </div>
-
-                {plansLoading ? (
-                  <div className="text-center py-8">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                    <p className="text-sm opacity-70 mt-2">Loading plans...</p>
-                  </div>
-                ) : plans.length === 0 ? (
-                  <div className="text-center py-8 opacity-50">No published plans found</div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {plans.map((plan) => (
-                      <div 
-                        key={plan.plan_id} 
-                        className="card bg-base-200 shadow-lg border border-gray-200 rounded-box p-4 hover:shadow-lg transition cursor-pointer"
-                        onClick={() => handleViewPlan(plan)}
-                      >
-                        <h3 className="font-bold text-lg mb-2">{plan.name}</h3>
-                        {plan.description && (
-                          <p className="text-sm opacity-70 mb-3 line-clamp-2">{plan.description}</p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {activeTab === "exercises" && (
               <div>
                 <div className="flex justify-between items-right mb-4">
                     <button className="btn btn-primary bg-blue-800 text-white btn-sm ml-auto"
@@ -620,7 +479,6 @@ const handleViewPlan = async (plan) => {
                   </div>
                 )}
               </div>
-            )}
           </div>
         </section>
       </div>
