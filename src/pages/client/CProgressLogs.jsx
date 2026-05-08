@@ -44,6 +44,7 @@ function ProgressLogs() {
 
   const [timeView, setTimeView] = useState('weekly');
   const [logs, setLogs] = useState([]);
+  const [progressIncrementMode, setProgressIncrementMode] = useState(false);
 
   const [isPopOpen, setPopOpen] = useState(null);
   const [daily, setData] = useState({
@@ -228,6 +229,34 @@ function ProgressLogs() {
     });
   };
 
+  const handleAddProgress = async (goalId, value) => {
+  try {
+    const goal = goalsData.find(g => g.goal_id === goalId);
+    
+    // For frequency and performance goals, add to existing progress
+    if (goal && (goal.goal_type === "frequency" || goal.goal_type === "performance")) {
+      const currentProgress = parseFloat(goal.current_value) || 0;
+      const valueToAdd = parseFloat(value);
+      const newProgress = currentProgress + valueToAdd;
+      
+      await api.post(`/client/goals/${goalId}/progress`, {
+        value: newProgress
+      });
+      showAlert(`Added ${valueToAdd} ${goal.unit}! New total: ${newProgress} ${goal.unit}`, "success");
+    } else {
+      // For other goal types (weight, strength, etc.), set the value directly
+      await api.post(`/client/goals/${goalId}/progress`, {
+        value: parseFloat(value)
+      });
+      showAlert("Progress updated!", "success");
+    }
+    
+    await fetchGoals();
+  } catch (err) {
+    showAlert("Failed to update progress", "error");
+  }
+};
+
   const handleCreateGoal = async (e) => {
     e.preventDefault();
 
@@ -326,17 +355,6 @@ function ProgressLogs() {
       ...prev,
       [name]: value
     }));
-  };
-  const handleAddProgress = async (goalId, value) => {
-    try {
-      await api.post(`/client/goals/${goalId}/progress`, {
-        value: parseFloat(value)
-      });
-      showAlert("Progress updated!", "success");
-      await fetchGoals();
-    } catch (err) {
-      showAlert("Failed to update progress", "error");
-    }
   };
 
 
@@ -909,8 +927,6 @@ function ProgressLogs() {
         const leftToGain = target - latestWeight;
         displayText = `${leftToGain.toFixed(1)} ${goal.unit} to gain`;
         
-        // DEBUG LOG
-        console.log(`  Weight Gain: totalToGain=${totalToGain}, gainedSoFar=${gainedSoFar}, progress=${calculatedProgress}%`);
         
       } else {
         calculatedProgress = 100;
@@ -1147,7 +1163,7 @@ function ProgressLogs() {
             <div className="fieldset bg-base-200 border-base-300 rounded-box w-full max-w-sm min-w-0 border p-4">
               <h2 className="font-bold text-lg mb-1">{selectedGoal.title}</h2>
               <p className="text-xs opacity-60 mb-4">Target: {selectedGoal.target_value} {selectedGoal.unit}</p>
-
+{/* 
               {goalType === "weight" ? (
                 chartData.length > 1 ? (
                   <ResponsiveContainer width="100%" height={200}>
@@ -1197,7 +1213,7 @@ function ProgressLogs() {
                 ) : (
                   <div className="text-center py-8 opacity-60 text-sm">No progress logged yet.</div>
                 )
-              )}
+              )} */}
 
               <div className="mt-4 flex justify-between items-center">
                 <div className="text-sm opacity-60">
@@ -1227,6 +1243,7 @@ function ProgressLogs() {
                       onClick={async (e) => {
                         e.stopPropagation();
                         setSelectedGoalId(selectedGoal.goal_id);
+                        setProgressIncrementMode(selectedGoal.goal_type === "frequency" || selectedGoal.goal_type === "performance");
                         setProgressModalOpen(true);
                       }}
                     >
@@ -1242,42 +1259,57 @@ function ProgressLogs() {
 
 
       {progressModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-base-100 p-6 rounded-lg w-80 shadow-xl">
-
-            <h3 className="text-lg font-bold mb-4">Update Progress</h3>
-
-            <input
-              type="number"
-              placeholder="Enter value"
-              className="input input-bordered w-full mb-4"
-              value={progressValue}
-              onChange={(e) => setProgressValue(e.target.value)}
-            />
-
-            <div className="flex justify-end gap-2">
-              <button
-                className="btn btn-ghost"
-                onClick={() => {
-                  setProgressModalOpen(false);
-                  setProgressValue("");
-                }}
-              >
-                Cancel
-              </button>
-
-              <button
-                className="btn bg-blue-800 btn-primary"
-                onClick={async () => {
-                  await handleAddProgress(selectedGoalId, progressValue);
-                  setProgressModalOpen(false);
-                  setProgressValue("");
-                }}
-              >
-                Save
-              </button>
-            </div>
-          </div>
+  <div className="fixed inset-0 flex items-center justify-center z-50">
+    <div className="bg-base-100 p-6 rounded-lg w-80 shadow-xl">
+      <h3 className="text-lg font-bold mb-4">Update Progress</h3>
+      
+      {progressIncrementMode ? (
+        <p className="text-sm text-gray-600 mb-3">
+          Add additional {(() => {
+            const goal = goalsData.find(g => g.goal_id === selectedGoalId);
+            return goal?.unit || 'units';
+          })()} to your progress
+        </p>
+      ) : (
+        <p className="text-sm text-gray-600 mb-3">
+          Set new progress value
+        </p>
+      )}
+      
+      <input
+        type="number"
+        step="any"
+        placeholder={progressIncrementMode ? "Amount to add" : "Enter value"}
+        className="input input-bordered w-full mb-4"
+        value={progressValue}
+        onChange={(e) => setProgressValue(e.target.value)}
+      />
+      
+      <div className="flex justify-end gap-2">
+        <button
+          className="btn btn-ghost"
+          onClick={() => {
+            setProgressModalOpen(false);
+            setProgressValue("");
+            setProgressIncrementMode(false);
+          }}
+        >
+          Cancel
+        </button>
+        
+        <button
+          className="btn bg-blue-800 text-white"
+          onClick={async () => {
+            await handleAddProgress(selectedGoalId, progressValue);
+            setProgressModalOpen(false);
+            setProgressValue("");
+            setProgressIncrementMode(false);
+          }}
+        >
+          {progressIncrementMode ? "Add" : "Save"}
+        </button>
+      </div>
+    </div>
 
           {/* 
           {goalType === "frequency" ? (
