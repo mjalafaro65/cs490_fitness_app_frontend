@@ -77,47 +77,40 @@ function AProgressLogs() {
         
         console.log(`Fetching active report for period: ${selectedPeriod}`);
 
-        // GET /admin/users/active-report?period=daily|weekly|monthly
-        
         const response = await api.get("/admin/users/active-report", {
           params: {
             period: selectedPeriod
           }
         });
         
-        console.log("Active report response:", response);
-        console.log("Active report data:", response.data);
+        console.log("Active report response:", response.data);
         
-        let reportData = response.data;
+        const reportData = response.data;
+        const transformedData = [];
         
-        if (reportData && reportData.data && Array.isArray(reportData.data)) {
-          reportData = reportData.data;
+        if (selectedPeriod === "daily") {
+          transformedData.push({ period: "Total Active", count: reportData.total_active_users });
+          transformedData.push({ period: "Clients", count: reportData.client_active_users });
+          transformedData.push({ period: "Coaches", count: reportData.coach_active_users });
+        } else if (selectedPeriod === "weekly") {
+          transformedData.push({ period: "Last 7 Days", count: reportData.total_active_users });
+          transformedData.push({ period: "Clients", count: reportData.client_active_users });
+          transformedData.push({ period: "Coaches", count: reportData.coach_active_users });
+        } else if (selectedPeriod === "monthly") {
+          transformedData.push({ period: "Last 30 Days", count: reportData.total_active_users });
+          transformedData.push({ period: "Clients", count: reportData.client_active_users });
+          transformedData.push({ period: "Coaches", count: reportData.coach_active_users });
         }
-        else if (Array.isArray(reportData)) {
-          reportData = reportData;
-        }
-        else if (reportData && reportData.results && Array.isArray(reportData.results)) {
-          reportData = reportData.results;
-        }
-        else if (!Array.isArray(reportData)) {
-          console.warn("Unexpected data format:", reportData);
-          reportData = [];
-        }
-        
-        setActiveReport(reportData);
+            
+        setActiveReport(transformedData);
         
       } catch (err) {
         console.error("Failed to fetch active report:", err);
-        console.error("Error response:", err.response?.data);
-        console.error("Error status:", err.response?.status);
-        console.error("Error headers:", err.response?.headers);
-        
         setReportError({
           message: err.response?.data?.message || err.message || "Failed to load activity report",
           status: err.response?.status,
           details: err.response?.data
         });
-        
         setActiveReport([]);
       } finally {
         setActiveReportLoading(false);
@@ -126,50 +119,6 @@ function AProgressLogs() {
 
     fetchActiveReport();
   }, [selectedPeriod]);
-  selectedPeriod
-
-const fetchActiveReport = async () => {
-  try {
-    setActiveReportLoading(true);
-    setReportError(null);
-    
-    console.log(`Fetching active report for period: ${selectedPeriod}`);
-    
-    const response = await api.get("/admin/users/active-report", {
-      params: {
-        period: selectedPeriod
-      }
-    });
-    
-    console.log("Active report response:", response.data);
-    
-    let reportData = response.data;
-    
-    const transformedData = [];
-    
-    if (selectedPeriod === "daily") {
-      transformedData.push({ period: "Total Active", count: reportData.total_active_users });
-      transformedData.push({ period: "Clients", count: reportData.client_active_users });
-      transformedData.push({ period: "Coaches", count: reportData.coach_active_users });
-    } else if (selectedPeriod === "weekly") {
-      transformedData.push({ period: "Last 7 Days", count: reportData.total_active_users });
-      transformedData.push({ period: "Clients", count: reportData.client_active_users });
-      transformedData.push({ period: "Coaches", count: reportData.coach_active_users });
-    } else if (selectedPeriod === "monthly") {
-      transformedData.push({ period: "Last 30 Days", count: reportData.total_active_users });
-      transformedData.push({ period: "Clients", count: reportData.client_active_users });
-      transformedData.push({ period: "Coaches", count: reportData.coach_active_users });
-    }
-        
-    setActiveReport(transformedData);
-    return;
-  } catch (err) {
-    console.error("Failed to fetch active report:", err);
-    setActiveReport([]);
-  } finally {
-    setActiveReportLoading(false);
-  }
-};
 
   const closePopUp = () => {
     setPopOpen(null);
@@ -276,7 +225,7 @@ const fetchActiveReport = async () => {
           let barColor = "bg-primary";
           if (label.toLowerCase().includes("client")) barColor = "bg-blue-300";
           else if (label.toLowerCase().includes("coach")) barColor = "bg-blue-500";
-          else if (label.toLowerCase().includes("total")) barColor = "bg-blue-800";
+          else if (label.toLowerCase().includes("total")) barColor = "bg-primary";
           
           return (
             <div key={index} className="flex flex-col items-center">
@@ -300,15 +249,7 @@ const fetchActiveReport = async () => {
           );
         })}
       </div>
-      
-      {process.env.NODE_ENV === 'development' && (
-        <details className="mt-4 text-xs opacity-50">
-          <summary>Debug: Data Structure</summary>
-          <pre className="mt-2 p-2 bg-base-200 rounded overflow-auto">
-            {JSON.stringify(activeReport, null, 2)}
-          </pre>
-        </details>
-      )}
+
     </div>
   );
 };
