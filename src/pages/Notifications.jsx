@@ -107,7 +107,7 @@ function Notifications() {
                     </svg>
                   </div>
 
-  {/* Content */}
+                {/* Content */}
                   <div className="flex-1">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">

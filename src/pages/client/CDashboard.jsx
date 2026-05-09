@@ -454,6 +454,17 @@ useEffect(() => {
   };
 }, [selectedDay, daily]); // Keep daily so today updates when daily changes
 
+//     useEffect(() => {
+//       if (selectedDay) {
+//         const today = new Date();
+//         const isToday = isSameDay(selectedDay, today);
+        
+//         if (!isToday) {
+//           fetchLogForDate(selectedDay);
+//         }
+//       }
+//     }, [selectedDay, daily]); 
+
   const filterDataForCurrentWeek = (data) => {
     if (!data.length) return [];
 

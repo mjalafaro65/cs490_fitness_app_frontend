@@ -5,7 +5,14 @@ import Alert from "../components/Alert.jsx";
 
 function BrowseExercises({ planId, dayId, weekday, onExerciseAdded, onClose }) {
   const [exercises, setExercises] = useState([]);
-  const [filteredExercises, setFilteredExercises] = useState([]);
+  const [exercisesLoading, setExercisesLoading] = useState(false);
+  const [exercisesFilters, setExercisesFilters] = useState({
+    q: "",
+    muscle_group: "",
+    equipment: "",
+    training_type: ""
+  });
+
   const [selectedEx, setSelectedEx] = useState(null);
   const [loading, setLoading] = useState(false);
   const [addingExercise, setAddingExercise] = useState(false);
@@ -53,31 +60,80 @@ function BrowseExercises({ planId, dayId, weekday, onExerciseAdded, onClose }) {
 
   console.log("BrowseExercises props:", { planId, dayId, weekday });
 
-  const fetchExercises = async (params = {}) => {
-    setLoading(true);
-    try {
-      const res = await api.get("/workouts/exercises", { params });
-      const exercisesList = res.data.exercises || [];
-      setExercises(exercisesList);
-      setFilteredExercises(exercisesList);
-    } catch (err) {
-      console.error("Failed to fetch exercises:", err.response?.data || err);
-    }
-    setLoading(false);
-  };
+  // const fetchExercises = async (params = {}) => {
+  //   setLoading(true);
+  //   try {
+  //     const res = await api.get("/workouts/exercises", { params });
+  //     const exercisesList = res.data.exercises || [];
+  //     setExercises(exercisesList);
+  //     setFilteredExercises(exercisesList);
+  //   } catch (err) {
+  //     console.error("Failed to fetch exercises:", err.response?.data || err);
+  //   }
+  //   setLoading(false);
+  // };
 
   useEffect(() => {
-    fetchExercises();
-  }, []);
+      fetchExercises();
+  }, [exercisesFilters]);
 
-  const handleFilterSubmit = (e) => {
-    e.preventDefault();
-    const params = {};
-    if (filters.q) params.q = filters.q;
-    if (filters.muscle_group) params.muscle_group = filters.muscle_group;
-    if (filters.equipment) params.equipment = filters.equipment;
-    if (filters.training_type) params.training_type = filters.training_type;
-    fetchExercises(params);
+  const handleExercisesFilterChange = (e) => {
+    const { name, value } = e.target;
+    setExercisesFilters(prev => ({ ...prev, [name]: value }));
+  };
+
+  const clearExercisesFilters = () => {
+    setExercisesFilters({
+      q: "",
+      muscle_group: "",
+      equipment: "",
+      training_type: ""
+    });
+  };
+
+  // const handleFilterSubmit = (e) => {
+  //   e.preventDefault();
+  //   const params = {};
+  //   if (filters.q) params.q = filters.q;
+  //   if (filters.muscle_group) params.muscle_group = filters.muscle_group;
+  //   if (filters.equipment) params.equipment = filters.equipment;
+  //   if (filters.training_type) params.training_type = filters.training_type;
+  //   fetchExercises(params);
+  // };
+
+  const fetchExercises = async () => {
+    setExercisesLoading(true);
+    try {
+      const params = {};
+      if (exercisesFilters.q) params.q = exercisesFilters.q;
+      if (exercisesFilters.muscle_group) params.muscle_group = exercisesFilters.muscle_group;
+      if (exercisesFilters.equipment) params.equipment = exercisesFilters.equipment;
+      if (exercisesFilters.training_type) params.training_type = exercisesFilters.training_type;
+      
+      const response = await api.get("/workouts/exercises", { params });
+      console.log("Exercises response:", response.data);
+      
+      let exercisesArray = [];
+      if (Array.isArray(response.data)) {
+        exercisesArray = response.data;
+      } else if (response.data.exercises && Array.isArray(response.data.exercises)) {
+        exercisesArray = response.data.exercises;
+      } else if (response.data.data && Array.isArray(response.data.data)) {
+        exercisesArray = response.data.data;
+      } else if (response.data.items && Array.isArray(response.data.items)) {
+        exercisesArray = response.data.items;
+      } else {
+        exercisesArray = [];
+      }
+      
+      setExercises(exercisesArray);
+    } catch (err) {
+      console.error("Failed to fetch exercises:", err.response?.data || err);
+      showAlert(err.response?.data?.message || "Failed to fetch exercises", "error");
+      setExercises([]);
+    } finally {
+      setExercisesLoading(false);
+    }
   };
 
   const fetchExerciseDetails = async (exerciseId) => {
@@ -254,7 +310,7 @@ function BrowseExercises({ planId, dayId, weekday, onExerciseAdded, onClose }) {
         <div className="flex gap-2">
           {view === "browse" && !showAddForm && (
             <button
-              className="btn btn-sm btn-primary bg-blue-800"
+              className="btn btn-sm btn-primary text-white bg-blue-800"
               onClick={() => setView("create")}
             >
               + New Exercise
@@ -271,67 +327,76 @@ function BrowseExercises({ planId, dayId, weekday, onExerciseAdded, onClose }) {
 
       {view === "browse" && !showAddForm && (
         <>
-          <form
-            onSubmit={handleFilterSubmit}
-            className="flex flex-wrap gap-2 bg-base-200 p-3 rounded-box"
-          >
-            <input
-              type="text"
-              name="q"
-              placeholder="Search..."
-              className="input input-sm input-bordered"
-              value={filters.q}
-              onChange={(e) => setFilters((p) => ({ ...p, q: e.target.value }))}
-            />
-            <input
-              type="text"
-              name="muscle_group"
-              placeholder="Muscle group"
-              className="input input-sm input-bordered"
-              value={filters.muscle_group}
-              onChange={(e) =>
-                setFilters((p) => ({ ...p, muscle_group: e.target.value }))
-              }
-            />
-            <input
-              type="text"
-              name="equipment"
-              placeholder="Equipment"
-              className="input input-sm input-bordered"
-              value={filters.equipment}
-              onChange={(e) =>
-                setFilters((p) => ({ ...p, equipment: e.target.value }))
-              }
-            />
-            <input
-              type="text"
-              name="training_type"
-              placeholder="Training type"
-              className="input input-sm input-bordered"
-              value={filters.training_type}
-              onChange={(e) =>
-                setFilters((p) => ({ ...p, training_type: e.target.value }))
-              }
-            />
+          <div className="mb-4">
+            <div className="flex gap-2 mb-2">
+              <input
+                type="text"
+                name="q"
+                placeholder="Search exercises..."
+                value={exercisesFilters.q}
+                onChange={handleExercisesFilterChange}
+                className="input input-bordered flex-1"
+              />
+              <button
+                onClick={clearExercisesFilters}
+                className="btn btn-ghost btn-sm"
+              >
+                Clear
+              </button>
+            </div>
             
-            <button type="submit" className="btn btn-sm btn-primary bg-blue-800">
-              Search
-            </button>
-            <button
-              type="button"
-              className="btn btn-sm btn-ghost"
-              onClick={() => {
-                setFilters({ q: "", muscle_group: "", equipment: "", training_type: "" });
-                fetchExercises();
-              }}
-            >
-              Clear
-            </button>
-          </form>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 bg-base-200 rounded-box">
+              <select
+                name="muscle_group"
+                value={exercisesFilters.muscle_group}
+                onChange={handleExercisesFilterChange}
+                className="select select-bordered select-sm"
+              >
+                <option value="">All Muscle Groups</option>
+                <option value="Chest">Chest</option>
+                <option value="Back">Back</option>
+                <option value="Shoulders">Shoulders</option>
+                <option value="Legs">Legs</option>
+                <option value="Arms">Arms</option>
+                <option value="Core">Core</option>
+                <option value="Quads/Glutes">Quads/Glutes</option>
+              </select>
+              
+              <select
+                name="equipment"
+                value={exercisesFilters.equipment}
+                onChange={handleExercisesFilterChange}
+                className="select select-bordered select-sm"
+              >
+                <option value="">All Equipment</option>
+                <option value="Barbell">Barbell</option>
+                <option value="Dumbbell">Dumbbell</option>
+                <option value="Machine">Machine</option>
+                <option value="Cables">Cables</option>
+                <option value="Bodyweight">Bodyweight</option>
+                <option value="Bands">Bands</option>
+                <option value="Kettlebell">Kettlebell</option>
+              </select>
+              
+              <select
+                name="training_type"
+                value={exercisesFilters.training_type}
+                onChange={handleExercisesFilterChange}
+                className="select select-bordered select-sm"
+              >
+                <option value="">All Training Types</option>
+                <option value="strength">Strength</option>
+                <option value="hypertrophy">Hypertrophy</option>
+                <option value="endurance">Endurance</option>
+                <option value="power">Power</option>
+                <option value="cardio">Cardio</option>
+              </select>
+            </div>
+          </div>
 
           {loading ? (
             <p className="text-sm opacity-70">Loading...</p>
-          ) : (filteredExercises.length === 0 && exercises.length === 0) ? (
+          ) : (exercises.length === 0) ? (
             <p className="text-sm opacity-70">No exercises found.</p>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 overflow-y-auto">
@@ -354,7 +419,7 @@ function BrowseExercises({ planId, dayId, weekday, onExerciseAdded, onClose }) {
                   </div>
                   
                   <button
-                    className="btn btn-xs btn-primary mt-2 w-full"
+                    className="btn btn-xs btn-primary bg-blue-800 text-white mt-2 w-full"
                     onClick={() => handleSelectExercise(ex)}
                     disabled={!planId || !dayId}
                     title={!planId || !dayId ? "Cannot add: Missing plan or day info" : "Select this exercise"}
