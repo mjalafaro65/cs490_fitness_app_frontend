@@ -9,7 +9,7 @@ function AReviews() {
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(7);
 
 
   const [filters, setFilters] = useState({
@@ -346,7 +346,7 @@ function AReviews() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                    {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th> */}
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Coach ID</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client ID</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
@@ -367,7 +367,7 @@ function AReviews() {
                   ) : (
                     currentItems.map(review => (
                       <tr key={review.review_id} className={!review.is_visible ? 'bg-blue-50' : 'hover:bg-gray-50'}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">{review.review_id}</td>
+                        {/* <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">{review.review_id}</td> */}
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{review.coach_profile_id}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{review.client_user_id}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

@@ -107,7 +107,7 @@ function Notifications() {
                     </svg>
                   </div>
 
-  {/* Content */}
+                {/* Content */}
                   <div className="flex-1">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -125,7 +125,7 @@ function Notifications() {
                           {formatTimeAgo(notification.created_at)}
                         </span>
                         
-                        {!notification.is_read && (
+                        {/* {!notification.is_read && (
                           <button 
                             className="btn btn-xs btn-primary bg-blue-800 text-white"
                             onClick={() => handleMarkAsRead(notification.notification_id)}
@@ -139,7 +139,7 @@ function Notifications() {
                           <span className="text-xs text-blue-800 font-medium">
                             Read
                           </span>
-                        )}
+                        )} */}
                       </div>
                     </div>
                   </div>
