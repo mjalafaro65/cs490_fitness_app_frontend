@@ -46,6 +46,12 @@ function CoClientDashboardView() {
   const [mealLogsLoading, setMealLogsLoading] = useState(false);
   const [mealLogsDays, setMealLogsDays] = useState(7);
 
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
+
+  const [logDayFilter, setLogDayFilter] = useState(7)
+  const [workoutLogs, setWorkoutLogs] = useState(null)
+
+
   const fetchClientDashboard = async () => {
     try {
       const res = await api.get(`/coach/dashboard/clients/${id}/progress`);
@@ -82,6 +88,24 @@ function CoClientDashboardView() {
     fetchInsights();
     fetchMealLogs();
   }, [id]);
+
+  useEffect(() => {
+    fetchWorkoutLogs();
+  }, [id, logDayFilter]);
+
+  const fetchWorkoutLogs = async () => {
+    console.log("entered fetching workoutslogs")
+
+    try {
+      const res = await api.get(`/workouts/workout-logs?client_id=${id}&days=${logDayFilter}`)
+      console.log(res.data)
+      setWorkoutLogs(res.data)
+    } catch (err) {
+      console.log("error fetching workout logs", err)
+    }
+
+
+  }
 
   const fetchInsights = async () => {
     setInsightsLoading(true);
@@ -121,10 +145,11 @@ function CoClientDashboardView() {
     const dataMap = new Map();
     insightsData.forEach(item => {
       if (item.date) {
-        const dateObj = new Date(item.date);
-        const dateStr = dateObj.toISOString().split('T')[0];
-        const monthDay = `${dateObj.getMonth() + 1}/${dateObj.getDate()}`;
-        
+        const dateParts = item.date.split('-');
+        const dateObj = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+        const dateStr = `${dateParts[0]}-${dateParts[1]}-${dateParts[2]}`;
+        const monthDay = `${parseInt(dateParts[1])}/${parseInt(dateParts[2])}`;
+
         if (!dataMap.has(dateStr)) {
           dataMap.set(dateStr, {
             date: monthDay,
@@ -140,7 +165,7 @@ function CoClientDashboardView() {
             isLogged: false
           });
         }
-        
+
         const dayData = dataMap.get(dateStr);
         if (item.sleep_hours) {
           dayData.sleep = item.sleep_hours;
@@ -169,15 +194,18 @@ function CoClientDashboardView() {
         }
       }
     });
-    
+
     // Fill in missing days for the last 7 days
     const chartData = [];
     for (let i = 6; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split('T')[0];
-      const monthDay = `${date.getMonth() + 1}/${date.getDate()}`;
-      
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+      const monthDay = `${parseInt(month)}/${parseInt(day)}`;
+
       if (dataMap.has(dateStr)) {
         chartData.push(dataMap.get(dateStr));
       } else {
@@ -196,7 +224,7 @@ function CoClientDashboardView() {
         });
       }
     }
-    
+
     return chartData;
   };
 
@@ -210,6 +238,20 @@ function CoClientDashboardView() {
 
   const client = dashboard.client_info || {};
 
+  const formatDateTime = (dateStr) => {
+    if (!dateStr) return "--";
+
+    return new Date(dateStr).toLocaleString([], {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true
+    });
+  };
+
+
   return (
     <div className="drawer lg:drawer-open">
       <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
@@ -219,63 +261,93 @@ function CoClientDashboardView() {
             <div>
               <div className="text-2xl font-bold mb-4">{client.first_name || "Client"}{client.last_name ? ` ${client.last_name}` : ""}'s Dashboard</div>
               <div className="flex items-center gap-4">
-                <button 
-                  className="cursor-pointer border flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200" 
-                  onClick={() => navigate(-1)} 
+                <button
+                  className="cursor-pointer border flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200"
+                  onClick={() => navigate(-1)}
                 >
                   Back
                 </button>
-              <div className="text-2xl font-bold mb-4">{client.first_name || "Client"}{client.last_name ? ` ${client.last_name}'` : "'s"} Dashboard</div>
-            </div>
+                <div className="text-2xl font-bold mb-4">{client.first_name || "Client"}{client.last_name ? ` ${client.last_name}'` : "'s"} Dashboard</div>
+              </div>
               <p className="text-sm opacity-70 mt-2">
-                Active since {client.relationship_start_date ? new Date(client.relationship_start_date).toLocaleDateString() : "--"} · {client.relationship_status || "--"} · {client.first_name} {client.last_name}
+                Subscribed since {client.relationship_start_date ? new Date(client.relationship_start_date).toLocaleDateString() : "--"} · {client.relationship_status || "--"} · {client.first_name} {client.last_name}
               </p>
-            </div> 
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Profile Card */}
             <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-6">
-              <h2 className="text-lg font-bold mb-4">Profile</h2>
+              <h2 className="text-lg font-bold mb-4">Client Info</h2>
+
               <div className="space-y-3">
                 {dashboard.profile ? (
+
                   <>
-                    {dashboard.profile.bio && (
-                      <div className="flex flex-col py-2 border-b border-base-content/10">
-                        <span className="text-sm opacity-70">Bio</span>
-                        <span className="font-semibold text-sm">{dashboard.profile.bio}</span>
-                      </div>
-                    )}
-                    {dashboard.profile.age && (
+
+                    <div className="flex justify-center">
+                      <img
+                        src={dashboard.profile.profile_photo || "/default-avatar.png"}
+                        alt="Profile"
+                        className="w-24 h-24 rounded-full object-cover border-2 border-base-300"
+                      />
+                    </div>
+                    {/* Bio */}
+                    <div className="flex justify-between items-center py-2 border-b border-base-content/10">
+                      <span className="text-sm opacity-70">Bio</span>
+                      <span className="font-semibold text-sm text-right max-w-[60%]">
+                        {dashboard.profile.bio || "No bio"}
+                      </span>
+                    </div>
+
+                    {/* DOB */}
+                    {dashboard.profile.date_of_birth && (
                       <div className="flex justify-between items-center py-2 border-b border-base-content/10">
-                        <span className="text-sm opacity-70">Age</span>
-                        <span className="font-semibold text-sm">{dashboard.profile.age}</span>
+                        <span className="text-sm opacity-70">Date of Birth</span>
+                        <span className="font-semibold text-sm">
+                          {new Date(dashboard.profile.date_of_birth).toLocaleDateString()}
+                        </span>
                       </div>
                     )}
+
+                    {/* Gender */}
+                    {dashboard.profile.gender && (
+                      <div className="flex justify-between items-center py-2 border-b border-base-content/10">
+                        <span className="text-sm opacity-70">Gender</span>
+                        <span className="font-semibold text-sm">
+                          {dashboard.profile.gender}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Height */}
                     {dashboard.profile.height && (
                       <div className="flex justify-between items-center py-2 border-b border-base-content/10">
                         <span className="text-sm opacity-70">Height</span>
-                        <span className="font-semibold text-sm">{dashboard.profile.height} cm</span>
+                        <span className="font-semibold text-sm">
+                          {dashboard.profile.height} cm
+                        </span>
                       </div>
                     )}
+
+                    {/* Weight */}
                     {dashboard.profile.weight && (
                       <div className="flex justify-between items-center py-2 border-b border-base-content/10">
                         <span className="text-sm opacity-70">Weight</span>
-                        <span className="font-semibold text-sm">{dashboard.profile.weight} kg</span>
+                        <span className="font-semibold text-sm">
+                          {dashboard.profile.weight} kg
+                        </span>
                       </div>
                     )}
-                    {dashboard.profile.fitness_goals && (
-                      <div className="flex flex-col py-2 border-b border-base-content/10">
-                        <span className="text-sm opacity-70">Fitness Goals</span>
-                        <span className="font-semibold text-sm">{dashboard.profile.fitness_goals}</span>
-                      </div>
-                    )}
-                    {dashboard.profile.activity_level && (
-                      <div className="flex justify-between items-center py-2 border-b border-base-content/10">
-                        <span className="text-sm opacity-70">Activity Level</span>
-                        <span className="font-semibold text-sm">{dashboard.profile.activity_level}</span>
-                      </div>
-                    )}
+                    {/* Since (created_at) */}
+                    <div className="flex justify-between items-center py-2 border-b border-base-content/10">
+                      <span className="text-sm opacity-70">User Since</span>
+                      <span className="font-semibold text-sm">
+                        {dashboard.profile.created_at
+                          ? new Date(dashboard.profile.created_at).toLocaleDateString()
+                          : "N/A"}
+                      </span>
+                    </div>
                   </>
                 ) : (
                   <p className="text-sm opacity-50">No profile data</p>
@@ -317,11 +389,10 @@ function CoClientDashboardView() {
                       {goal.progress_percentage !== undefined && (
                         <p className="text-xs opacity-60">Progress: {goal.progress_percentage}%</p>
                       )}
-                      <span className={`text-xs px-2 py-1 rounded-full inline-block mt-1 ${
-                        goal.status === 'completed' ? 'bg-green-500/20 text-green-400' :
+                      <span className={`text-xs px-2 py-1 rounded-full inline-block mt-1 ${goal.status === 'completed' ? 'bg-green-500/20 text-green-400' :
                         goal.status === 'in_progress' ? 'bg-blue-500/20 text-blue-400' :
-                        'bg-gray-500/20 text-gray-400'
-                      }`}>
+                          'bg-gray-500/20 text-gray-400'
+                        }`}>
                         {goal.status || 'unknown'}
                       </span>
                     </div>
@@ -333,16 +404,15 @@ function CoClientDashboardView() {
             </div>
 
             {/* Survey Status Card */}
-            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-6">
+            {/* <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-6">
               <h2 className="text-lg font-bold mb-4">Daily Survey Status</h2>
               <div className="space-y-3">
                 {dashboard.survey_status ? (
                   <>
                     <div className="flex justify-between items-center py-2 border-b border-base-content/10">
                       <span className="text-sm opacity-70">Today's Survey</span>
-                      <span className={`font-semibold text-sm px-2 py-1 rounded-full ${
-                        dashboard.survey_status.completed ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
-                      }`}>
+                      <span className={`font-semibold text-sm px-2 py-1 rounded-full ${dashboard.survey_status.completed ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                        }`}>
                         {dashboard.survey_status.completed ? 'Completed' : 'Not Completed'}
                       </span>
                     </div>
@@ -357,6 +427,107 @@ function CoClientDashboardView() {
                   <p className="text-sm opacity-50">No survey data</p>
                 )}
               </div>
+            </div> */}
+            {/* Survey Status Card */}
+            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-6">
+              <h2 className="text-lg font-bold mb-4">Daily Survey Status</h2>
+
+              <div className="space-y-3">
+
+                {dashboard.survey_status ? (
+                  <>
+                    {/* Completion Status */}
+                    <div className="flex justify-between items-center py-2 border-b border-base-content/10">
+                      <span className="text-sm opacity-70">Today's Survey</span>
+                      <span className={`font-semibold text-sm px-2 py-1 rounded-full ${dashboard.survey_status.completed
+                        ? 'bg-green-500/20 text-green-400'
+                        : 'bg-red-500/20 text-red-400'
+                        }`}>
+                        {dashboard.survey_status.completed ? 'Completed' : 'Not Completed'}
+                      </span>
+                    </div>
+
+                    {/* Last Completed */}
+                    {dashboard.survey_status.last_completed && (
+                      <div className="flex justify-between items-center py-2 border-b border-base-content/10">
+                        <span className="text-sm opacity-70">Last Completed</span>
+                        <span className="font-semibold text-sm">
+                          {new Date(dashboard.survey_status.last_completed).toLocaleString([], {
+                            year: 'numeric',
+                            month: 'short',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                      </div>
+                    )}
+
+                    {/*  FULL SURVEY DETAILS */}
+                    {dashboard.survey_status.survey && (
+                      <div className="mt-4 space-y-2">
+
+                        <div className="text-sm font-semibold opacity-70 mb-2">
+                          Today's Log Data
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+
+                          <div>
+                            <span className="opacity-60">Goal:</span>
+                            <p className="font-medium">{dashboard.survey_status.survey.daily_goal}</p>
+                          </div>
+
+                          <div>
+                            <span className="opacity-60">Focus:</span>
+                            <p className="font-medium">{dashboard.survey_status.survey.target_focus}</p>
+                          </div>
+
+                          <div>
+                            <span className="opacity-60">Energy:</span>
+                            <p className="font-medium">{dashboard.survey_status.survey.energy_level}/10</p>
+                          </div>
+
+                          <div>
+                            <span className="opacity-60">Mood:</span>
+                            <p className="font-medium">{dashboard.survey_status.survey.mood_score}/10</p>
+                          </div>
+
+                          <div>
+                            <span className="opacity-60">Sleep:</span>
+                            <p className="font-medium">{dashboard.survey_status.survey.sleep_hours} hrs</p>
+                          </div>
+
+                          <div>
+                            <span className="opacity-60">Water:</span>
+                            <p className="font-medium">{dashboard.survey_status.survey.water_oz} oz</p>
+                          </div>
+
+                          <div>
+                            <span className="opacity-60">Weight:</span>
+                            <p className="font-medium">{dashboard.survey_status.survey.weight_lbs} lbs</p>
+                          </div>
+
+                        </div>
+
+                        {/* Notes */}
+                        {dashboard.survey_status.survey.notes && (
+                          <div className="mt-3">
+                            <span className="opacity-60 text-sm">Notes:</span>
+                            <p className="text-sm font-medium">
+                              {dashboard.survey_status.survey.notes}
+                            </p>
+                          </div>
+                        )}
+
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-sm opacity-50">No survey data</p>
+                )}
+
+              </div>
             </div>
 
             {/* Recent Activity Card */}
@@ -369,15 +540,11 @@ function CoClientDashboardView() {
                       <div className="flex justify-between items-start">
                         <div>
                           <p className="font-medium">{activity.description || "Activity"}</p>
-                          <p className="text-xs opacity-60">Type: {activity.activity_type || 'unknown'}</p>
+                          {/* <p className="text-xs opacity-60">Type: {activity.activity_type || 'unknown'}</p> */}
                         </div>
                         <span className="text-xs opacity-60">{activity.date ? new Date(activity.date).toLocaleDateString() : '--'}</span>
                       </div>
-                      {activity.details && Object.keys(activity.details).length > 0 && (
-                        <div className="text-xs opacity-50 mt-1">
-                          {JSON.stringify(activity.details)}
-                        </div>
-                      )}
+                     
                     </div>
                   ))
                 ) : (
@@ -388,69 +555,13 @@ function CoClientDashboardView() {
           </div>
 
           {/* Workout & Meal Assignments */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Workout Assignments Card */}
-            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-6">
-              <h2 className="text-lg font-bold mb-4">Workout Assignments</h2>
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {dashboard.workout_assignments && dashboard.workout_assignments.length > 0 ? (
-                  dashboard.workout_assignments.map((assignment) => (
-                    <div key={assignment.assignment_id} className="text-sm py-2 border-b border-base-content/10">
-                      <p className="font-medium">{assignment.plan_name || "Workout Plan"}</p>
-                      <div className="flex justify-between items-center mt-1">
-                        <span className="text-xs opacity-60">
-                          {assignment.start_date ? new Date(assignment.start_date).toLocaleDateString() : '--'} - {assignment.end_date ? new Date(assignment.end_date).toLocaleDateString() : 'Ongoing'}
-                        </span>
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          assignment.status === 'active' ? 'bg-green-500/20 text-green-400' :
-                          assignment.status === 'completed' ? 'bg-blue-500/20 text-blue-400' :
-                          'bg-gray-500/20 text-gray-400'
-                        }`}>
-                          {assignment.status || 'unknown'}
-                        </span>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm opacity-50">No workout assignments</p>
-                )}
-              </div>
-            </div>
 
-            {/* Meal Assignments Card */}
-            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-6">
-              <h2 className="text-lg font-bold mb-4">Meal Assignments</h2>
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {dashboard.meal_assignments && dashboard.meal_assignments.length > 0 ? (
-                  dashboard.meal_assignments.map((assignment) => (
-                    <div key={assignment.meal_plan_assignment_id} className="text-sm py-2 border-b border-base-content/10">
-                      <p className="font-medium">{assignment.plan_name || "Meal Plan"}</p>
-                      <div className="flex justify-between items-center mt-1">
-                        <span className="text-xs opacity-60">
-                          {assignment.start_date ? new Date(assignment.start_date).toLocaleDateString() : '--'} - {assignment.end_date ? new Date(assignment.end_date).toLocaleDateString() : 'Ongoing'}
-                        </span>
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          assignment.status === 'active' ? 'bg-green-500/20 text-green-400' :
-                          assignment.status === 'completed' ? 'bg-blue-500/20 text-blue-400' :
-                          'bg-gray-500/20 text-gray-400'
-                        }`}>
-                          {assignment.status || 'unknown'}
-                        </span>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm opacity-50">No meal assignments</p>
-                )}
-              </div>
-            </div>
-          </div>
 
           {/* Meal Logs Section */}
           <div className="card bg-base-100 rounded-box border border-base-500 p-6 shadow-lg">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold">Client Meal Logs</h2>
-              <select 
+              <select
                 className="select select-sm select-bordered"
                 value={mealLogsDays}
                 onChange={handleMealLogsDaysChange}
@@ -469,10 +580,17 @@ function CoClientDashboardView() {
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="font-medium">
-                          {log.meal_type ? log.meal_type.charAt(0).toUpperCase() + log.meal_type.slice(1) : 'Meal'} 
+                          {log.meal_type ? log.meal_type.charAt(0).toUpperCase() + log.meal_type.slice(1) : 'Meal'}
                           <span className="text-xs opacity-60 ml-2">
-                            {log.logged_at ? new Date(log.logged_at).toLocaleDateString() : '--'} 
-                            {log.logged_at && new Date(log.logged_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                            {log.logged_at
+                              ? new Date(log.logged_at).toLocaleString([], {
+                                year: 'numeric',
+                                month: 'short',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })
+                              : '--'}
                           </span>
                         </p>
                         {log.food_items && log.food_items.length > 0 && (
@@ -486,7 +604,7 @@ function CoClientDashboardView() {
                         )}
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold text-sm">{log.total_calories || 0} kcal</p>
+                        <p className="font-semibold text-sm">{log.calories || 0} kcal</p>
                         {(log.total_protein || log.total_carbs || log.total_fat) && (
                           <p className="text-xs opacity-60">
                             P: {log.total_protein || 0}g · C: {log.total_carbs || 0}g · F: {log.total_fat || 0}g
@@ -499,6 +617,99 @@ function CoClientDashboardView() {
               ) : (
                 <p className="text-sm opacity-50">No meal logs found for the selected period</p>
               )}
+            </div>
+          </div>
+          <div className="card bg-base-100 rounded-box border border-base-500 p-6 shadow-lg">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold">Workout Logs</h2>
+
+              <select
+                className="select select-sm select-bordered"
+                value={logDayFilter}
+                onChange={(e) => setLogDayFilter(e.target.value)}
+              >
+                <option value={7}>Last 7 days</option>
+                <option value={14}>Last 14 days</option>
+                <option value={30}>Last 30 days</option>
+              </select>
+            </div>
+
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+
+              {workoutLogs.length > 0 ? (
+                workoutLogs.map((log) => (
+                  <div
+                    key={log.workout_log_id}
+                    className="border-b border-base-content/10 pb-4"
+                  >
+                    {/* Header */}
+                    <div className="flex justify-between items-center">
+                      <p className="font-semibold">
+                        From plan : {log.plan_name}
+                      </p>
+
+                      <span className="text-xs opacity-60">
+                        {formatDateTime(log.logged_at)}
+                      </span>
+                    </div>
+
+                    {log.notes && (
+                      <p className="text-xs opacity-60 italic mt-1">{log.notes}</p>
+                    )}
+
+                    {/* Entries */}
+                    <div className="mt-3 space-y-2">
+                      {log.entries.map((entry) => (
+                        <div
+                          key={entry.workout_log_entry_id}
+                          className="bg-base-200 p-3 rounded-md text-sm"
+                        >
+                          <div className="flex justify-between">
+                            <p className="font-medium">
+                              {entry.exercise?.name || "Exercise"}
+                            </p>
+
+
+                          </div>
+
+                          <div className="text-xs opacity-70 mt-1 flex gap-3 flex-wrap">
+
+                            {entry.weight > 0 && (
+                              <span>Weight: {entry.weight} kg</span>
+                            )}
+
+                            {entry.rpe > 0 && (
+                              <span>RPE: {entry.rpe}</span>
+                            )}
+
+                            {entry.duration_minutes > 0 && (
+                              <span>Duration: {entry.duration_minutes} min</span>
+                            )}
+
+                            {entry.reps > 0 && (
+                              <span>Reps: {entry.reps}</span>
+                            )}
+
+                            {entry.sets > 0 && (
+                              <span>Sets: {entry.sets}</span>
+                            )}
+
+                          </div>
+
+                          {entry.notes && (
+                            <p className="text-xs italic opacity-50 mt-1">
+                              {entry.notes}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm opacity-50">No workout logs found</p>
+              )}
+
             </div>
           </div>
 
@@ -518,11 +729,10 @@ function CoClientDashboardView() {
                         </div>
                         <div className="text-right">
                           <p className="font-semibold">${invoice.amount || '0.00'}</p>
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            invoice.status === 'paid' ? 'bg-green-500/20 text-green-400' :
+                          <span className={`text-xs px-2 py-1 rounded-full ${invoice.status === 'paid' ? 'bg-green-500/20 text-green-400' :
                             invoice.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
-                            'bg-blue-500/30 text-white'
-                          }`}>
+                              'bg-blue-500/30 text-white'
+                            }`}>
                             {invoice.status || 'unknown'}
                           </span>
                         </div>
@@ -534,6 +744,8 @@ function CoClientDashboardView() {
                 )}
               </div>
             </div>
+
+
 
             {/* Payments Card */}
             <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-6">
@@ -549,11 +761,10 @@ function CoClientDashboardView() {
                         </div>
                         <div className="text-right">
                           <p className="font-semibold">${payment.amount || '0.00'}</p>
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            payment.status === 'completed' ? 'bg-green-500/20 text-green-400' :
+                          <span className={`text-xs px-2 py-1 rounded-full ${payment.status === 'completed' ? 'bg-green-500/20 text-green-400' :
                             payment.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
-                            'bg-gray-500/20 text-gray-400'
-                          }`}>
+                              'bg-gray-500/20 text-gray-400'
+                            }`}>
                             {payment.status || 'unknown'}
                           </span>
                         </div>
@@ -567,60 +778,7 @@ function CoClientDashboardView() {
             </div>
           </div>
 
-          {/* Coaches & Progress Photos */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Coaches Card */}
-            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-6">
-              <h2 className="text-lg font-bold mb-4">Client's Coaches</h2>
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {dashboard.coaches && dashboard.coaches.length > 0 ? (
-                  dashboard.coaches.map((coach) => (
-                    <div key={coach.coach_profile_id} className="text-sm py-2 border-b border-base-content/10">
-                      <p className="font-medium">{coach.first_name} {coach.last_name}</p>
-                      <div className="flex justify-between items-center mt-1">
-                        <span className="text-xs opacity-60">
-                          Since: {coach.started_at ? new Date(coach.started_at).toLocaleDateString() : '--'}
-                        </span>
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          coach.relationship_status === 'active' ? 'bg-green-500/20 text-green-400' :
-                          'bg-gray-500/20 text-gray-400'
-                        }`}>
-                          {coach.relationship_status || 'unknown'}
-                        </span>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm opacity-50">No coaches assigned</p>
-                )}
-              </div>
-            </div>
-
-            {/* Progress Photos Card */}
-            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-6">
-              <h2 className="text-lg font-bold mb-4">Progress Photos</h2>
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {dashboard.progress_photos && dashboard.progress_photos.length > 0 ? (
-                  <div className="grid grid-cols-3 gap-2">
-                    {dashboard.progress_photos.map((photo) => (
-                      <div key={photo.photo_id} className="relative">
-                        <img 
-                          src={photo.photo_url} 
-                          alt="Progress photo" 
-                          className="w-full h-24 object-cover rounded-lg"
-                        />
-                        <p className="text-xs opacity-60 mt-1 text-center">
-                          {photo.upload_date ? new Date(photo.upload_date).toLocaleDateString() : '--'}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm opacity-50">No progress photos</p>
-                )}
-              </div>
-            </div>
-          </div>
+       
 
           {/* Wellness Charts Section */}
           <div className="w-full">
