@@ -403,13 +403,13 @@ const handleViewExercise = async (exercise) => {
                       className="select select-bordered select-sm"
                     >
                       <option value="">All Muscle Groups</option>
-                      <option value="chest">Chest</option>
-                      <option value="back">Back</option>
-                      <option value="shoulders">Shoulders</option>
-                      <option value="legs">Legs</option>
-                      <option value="arms">Arms</option>
-                      <option value="core">Core</option>
-                      <option value="cardio">Cardio</option>
+                      <option value="Chest">Chest</option>
+                      <option value="Back">Back</option>
+                      <option value="Shoulders">Shoulders</option>
+                      <option value="Legs">Legs</option>
+                      <option value="Arms">Arms</option>
+                      <option value="Core">Core</option>
+                      <option value="Quads/Glutes">Quads/Glutes</option>
                     </select>
                     
                     <select
@@ -419,13 +419,13 @@ const handleViewExercise = async (exercise) => {
                       className="select select-bordered select-sm"
                     >
                       <option value="">All Equipment</option>
-                      <option value="barbell">Barbell</option>
-                      <option value="dumbbell">Dumbbell</option>
-                      <option value="machine">Machine</option>
-                      <option value="cables">Cables</option>
-                      <option value="bodyweight">Bodyweight</option>
-                      <option value="bands">Bands</option>
-                      <option value="kettlebell">Kettlebell</option>
+                      <option value="Barbell">Barbell</option>
+                      <option value="Dumbbell">Dumbbell</option>
+                      <option value="Machine">Machine</option>
+                      <option value="Cables">Cables</option>
+                      <option value="Bodyweight">Bodyweight</option>
+                      <option value="Bands">Bands</option>
+                      <option value="Kettlebell">Kettlebell</option>
                     </select>
                     
                     <select
@@ -816,7 +816,6 @@ const handleViewExercise = async (exercise) => {
                 <option value="Legs">Legs</option>
                 <option value="Arms">Arms</option>
                 <option value="Core">Core</option>
-                <option value="Cardio">Cardio</option>
                 <option value="Quads/Glutes">Quads/Glutes</option>
               </select>
             </div>
@@ -831,7 +830,7 @@ const handleViewExercise = async (exercise) => {
                 <option value="Barbell">Barbell</option>
                 <option value="Dumbbell">Dumbbell</option>
                 <option value="Machine">Machine</option>
-                <option value="Cable Machine">Cable Machine</option>
+                <option value="Cables">Cables</option>
                 <option value="Bodyweight">Bodyweight</option>
                 <option value="Bands">Bands</option>
                 <option value="Kettlebell">Kettlebell</option>
@@ -900,7 +899,6 @@ const handleViewExercise = async (exercise) => {
                 <option value="Legs">Legs</option>
                 <option value="Arms">Arms</option>
                 <option value="Core">Core</option>
-                <option value="Cardio">Cardio</option>
                 <option value="Quads/Glutes">Quads/Glutes</option>
               </select>
             </div>
@@ -916,7 +914,7 @@ const handleViewExercise = async (exercise) => {
                 <option value="Barbell">Barbell</option>
                 <option value="Dumbbell">Dumbbell</option>
                 <option value="Machine">Machine</option>
-                <option value="Cable Machine">Cable Machine</option>
+                <option value="Cables">Cables</option>
                 <option value="Bodyweight">Bodyweight</option>
                 <option value="Bands">Bands</option>
                 <option value="Kettlebell">Kettlebell</option>

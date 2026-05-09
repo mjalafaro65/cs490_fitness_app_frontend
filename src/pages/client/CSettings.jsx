@@ -173,7 +173,7 @@ function CSettings() {
 
     const handleDeleteRecord = async () => {
         try {
-            const response = await api.patch("/client/delete-daily");
+            const response = await api.delete("/client/delete-daily");
             console.log("Daily record reset:", response.data);
             showAlert("Daily record reset", "success");
             setPopOpen(null);

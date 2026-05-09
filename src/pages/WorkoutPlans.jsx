@@ -152,7 +152,7 @@ function BrowsePlans() {
           value={filters.q}
           onChange={handleChange}
         />
-
+{/* 
         <input
           type="text"
           name="muscle_group"
@@ -178,18 +178,18 @@ function BrowsePlans() {
           className="input input-bordered"
           value={filters.training_type}
           onChange={handleChange}
-        />
+        /> */}
 
-        <input
+        {/* <input
           type="text"
           name="exercise_ids"
           placeholder="Exercise IDs (1,2,3)"
           className="input input-bordered"
           value={filters.exercise_ids}
           onChange={handleChange}
-        />
+        /> */}
 
-        <select
+        {/* <select
           name="exercise_match"
           className="select select-bordered"
           value={filters.exercise_match}
@@ -197,7 +197,7 @@ function BrowsePlans() {
         >
           <option value="any">Any</option>
           <option value="all">All</option>
-        </select>
+        </select> */}
 
         <button className="btn btn-primary bg-blue-800 text-white">Search</button>
       </form>

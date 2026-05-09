@@ -78,6 +78,9 @@ function CDashboard() {
 
   const weekDays = getWeekDays(weekAnchor);
 
+  const [selectedDayLog, setSelectedDayLog] = useState(null);
+  const [isLoadingLog, setIsLoadingLog] = useState(false);
+
   const [today] = useState(new Date());
 
   const [selectedDay, setSelectedDay] = useState(new Date());
@@ -179,6 +182,41 @@ function CDashboard() {
     }
   };
 
+  const fetchLogForDate = async (date) => {
+    if (!date) return;
+  
+    setIsLoadingLog(true);
+    try {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+      
+      const response = await api.get("/insights/survey");
+      const history = response.data?.history || [];
+    
+      const logEntry = history.find(entry => entry.date === dateStr);
+      
+      if (logEntry) {
+        setSelectedDayLog({
+          daily_goal: logEntry.daily_goal || "",
+          energy_level: logEntry.energy_level || "",
+          target_focus: logEntry.target_focus || "",
+          water_oz: logEntry.water_oz || "",
+          weight_lbs: logEntry.weight_lbs || "",
+          sleep_hours: logEntry.sleep_hours || "",
+          mood_score: logEntry.mood_score || ""
+        });
+      } else {
+        setSelectedDayLog(null);
+      }
+    } catch (err) {
+      console.error("Failed to fetch log for date:", err);
+      setSelectedDayLog(null);
+    } finally {
+    setIsLoadingLog(false);
+  }
+  };
 
   const formatLocalDate = (d) => {
     const year = d.getFullYear();
@@ -219,15 +257,28 @@ function CDashboard() {
     return workouts;
   };
 
-  // Single useEffect to handle both initial fetch and week changes
   useEffect(() => {
     fetchScheduledWorkouts(weekAnchor, "week");
-    // Update selected day to the start of the week when weekAnchor changes
-    const firstDayOfWeek = weekDays[0];
-    setSelectedDay(firstDayOfWeek);
+
+    const isSelectedInWeek = weekDays.some(day => isSameDay(day, selectedDay));
+  
+    if (!isSelectedInWeek) {
+      const today = new Date();
+      if (weekDays.some(day => isSameDay(day, today))) {
+        setSelectedDay(today);
+      } else {
+        setSelectedDay(weekDays[0]);
+      }
+    }
+
   }, [weekAnchor]);
 
-  // Separate useEffect for window focus event
+  // useEffect(() => {
+  //   if (!loading && daily && isSameDay(selectedDay, new Date())) {
+  //     setSelectedDayLog(daily);
+  //   }
+  // }, [loading, daily]);
+
   useEffect(() => {
     const handleFocus = () => {
       fetchScheduledWorkouts(weekAnchor, "week");
@@ -344,12 +395,86 @@ function CDashboard() {
 
     fetchAllInsights();
 
-
+ 
 
     fetchUser();
     fetchCoach();
 
   }, []);
+
+useEffect(() => {
+  let isMounted = true;
+  
+  if (selectedDay) {
+    const today = new Date();
+    const isToday = isSameDay(selectedDay, today);
+    
+    if (isToday) {
+      // For today, use the daily state directly
+      if (isMounted) {
+        setSelectedDayLog(daily);
+      }
+    } else {
+      // For other days, fetch from API
+      const fetchData = async () => {
+        setIsLoadingLog(true);
+        try {
+          const year = selectedDay.getFullYear();
+          const month = String(selectedDay.getMonth() + 1).padStart(2, '0');
+          const day = String(selectedDay.getDate()).padStart(2, '0');
+          const dateStr = `${year}-${month}-${day}`;
+          
+          const response = await api.get("/insights/survey");
+          // Only update if this date is still the selected one
+          if (!isMounted) return;
+          
+          const history = response.data?.history || [];
+          const logEntry = history.find(entry => entry.date === dateStr);
+          
+          if (logEntry) {
+            setSelectedDayLog({
+              daily_goal: logEntry.daily_goal || "",
+              energy_level: logEntry.energy_level || "",
+              target_focus: logEntry.target_focus || "",
+              water_oz: logEntry.water_oz || "",
+              weight_lbs: logEntry.weight_lbs || "",
+              sleep_hours: logEntry.sleep_hours || "",
+              mood_score: logEntry.mood_score || ""
+            });
+          } else {
+            setSelectedDayLog(null);
+          }
+        } catch (err) {
+          if (isMounted) {
+            console.error("Failed to fetch log for date:", err);
+            setSelectedDayLog(null);
+          }
+        } finally {
+          if (isMounted) {
+            setIsLoadingLog(false);
+          }
+        }
+      };
+      
+      fetchData();
+    }
+  }
+  
+  return () => {
+    isMounted = false;
+  };
+}, [selectedDay, daily]); // Keep daily so today updates when daily changes
+
+//     useEffect(() => {
+//       if (selectedDay) {
+//         const today = new Date();
+//         const isToday = isSameDay(selectedDay, today);
+        
+//         if (!isToday) {
+//           fetchLogForDate(selectedDay);
+//         }
+//       }
+//     }, [selectedDay, daily]); 
 
   const filterDataForCurrentWeek = (data) => {
     if (!data.length) return [];
@@ -372,9 +497,9 @@ function CDashboard() {
     return filtered;
   };
 
-  useEffect(() => {
-    fetchScheduledWorkouts(weekAnchor, "week");
-  }, [weekAnchor]);
+  // useEffect(() => {
+  //   fetchScheduledWorkouts(weekAnchor, "week");
+  // }, [weekAnchor]);
 
 
   useEffect(() => {
@@ -471,6 +596,19 @@ function CDashboard() {
 
       await api.post("/client/daily-survey", submitData);
 
+      const refreshResponse = await api.get("/client/daily-survey");
+      const freshData = refreshResponse.data;
+      setData({
+        daily_goal: freshData.daily_goal ?? "",
+        energy_level: freshData.energy_level ?? "",
+        target_focus: freshData.target_focus ?? "",
+        water_oz: freshData.water_oz ?? "",
+        weight_lbs: freshData.weight_lbs ?? "",
+        sleep_hours: freshData.sleep_hours ?? "",
+        mood_score: freshData.mood_score ?? ""
+      });
+
+
       setIsUpdated(true);
 
       setPopOpen(null);
@@ -564,7 +702,7 @@ function CDashboard() {
 
               <button
 
-                className="btn btn-sm btn-ghost"
+                className="btn btn-sm btn-ghost border-gray-200"
 
                 onClick={() => {
 
@@ -594,7 +732,7 @@ function CDashboard() {
 
               <button
 
-                className="btn btn-sm btn-ghost"
+                className="btn btn-sm btn-ghost border-gray-200"
 
                 onClick={() => {
 
@@ -845,94 +983,53 @@ function CDashboard() {
               </div>
 
               <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box w-60 p-4 shrink-0">
+  <h2 className="text-base font-bold mb-3">
+    Daily Log - {selectedDay.toLocaleDateString("default", { 
+      weekday: 'short', 
+      month: 'short', 
+      day: 'numeric' 
+    })}
+  </h2>
 
-                <h2 className="text-base font-bold mb-3">Daily Log</h2>
-
-                {isSameDay(selectedDay, today) && dayLog ? (
-
-                  <div className="flex flex-col gap-2 text-sm">
-
-                    {[
-
-                      { label: "Goal", value: dayLog.daily_goal || null },
-
-                      { label: "Focus", value: dayLog.target_focus || null },
-
-                      { label: "Mood", value: dayLog.mood_score ? `${dayLog.mood_score} / 5` : null },
-
-                      { label: "Weight", value: dayLog.weight_lbs ? `${dayLog.weight_lbs} lbs` : null },
-
-
-                      { label: "Energy", value: dayLog.energy_level ? `${dayLog.energy_level} / 5` : null },
-
-
-                      { label: "Sleep", value: dayLog.sleep_hours ? `${dayLog.sleep_hours} hrs` : null },
-
-                      { label: "Water", value: dayLog.water_oz ? `${dayLog.water_oz} oz` : null },
-
-                    ].map(({ label, value }) =>
-
-                      value ? (
-
-                        <div key={label} className="flex justify-between border-b border-base-content/10 pb-1">
-
-                          <span className="opacity-60">{label}</span>
-
-                          <span className="font-semibold">{value}</span>
-
-                        </div>
-
-                      ) : (
-                        <div key={label} className="flex justify-between border-b border-base-content/10 pb-1">
-
-                          <span className="opacity-60">{label}</span>
-
-                          <span className="font-semibold">---</span>
-
-                        </div>
-                      )
-
-                    )}
-
-                    {Object.values(dayLog).every((v) => !v) && (
-
-                      <p className="text-xs opacity-40">Nothing logged yet today.</p>
-
-                    )}
-
-                  </div>
-
-                ) : (
-
-                  <p className="text-xs opacity-40">
-
-                    {isSameDay(selectedDay, today)
-
-                      ? "Nothing logged yet today."
-
-                      : "Log history not available for today."}
-
-                  </p>
-
-                )}
-
-                {isSameDay(selectedDay, today) && (
-
-                  <button
-
-                    className="btn bg-blue-800 text-white btn-xs p-3 mt-4 w-full"
-
-                    onClick={() => setPopOpen("update")}
-
-                  >
-
-                    Update
-
-                  </button>
-
-                )}
-
-              </div>
+  {isLoadingLog ? (
+    <div className="flex justify-center py-4">
+      <span className="loading loading-spinner loading-sm"></span>
+    </div>
+  ) : selectedDayLog ? (
+    <div className="flex flex-col gap-2 text-sm">
+      {[
+        ...(isSameDay(selectedDay, new Date()) ? [
+          { label: "Goal", value: selectedDayLog.daily_goal || null },
+          { label: "Focus", value: selectedDayLog.target_focus || null },
+        ] : []),
+        { label: "Mood", value: selectedDayLog.mood_score ? `${selectedDayLog.mood_score} / 5` : null },
+        { label: "Weight", value: selectedDayLog.weight_lbs ? `${selectedDayLog.weight_lbs} lbs` : null },
+        { label: "Energy", value: selectedDayLog.energy_level ? `${selectedDayLog.energy_level} / 5` : null },
+        { label: "Sleep", value: selectedDayLog.sleep_hours ? `${selectedDayLog.sleep_hours} hrs` : null },
+        { label: "Water", value: selectedDayLog.water_oz ? `${selectedDayLog.water_oz} oz` : null },
+      ].map(({ label, value }) => (
+        <div key={label} className="flex justify-between border-b border-base-content/10 pb-1">
+          <span className="opacity-60">{label}</span>
+          <span className="font-semibold">{value || "---"}</span>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <p className="text-xs opacity-40">
+      No wellness log found for this day.
+    </p>
+  )}
+  
+  {/* Only show Update button for today */}
+  {isSameDay(selectedDay, new Date()) && (
+    <button
+      className="btn bg-blue-800 text-white btn-xs p-3 mt-4 w-full"
+      onClick={() => setPopOpen("update")}
+    >
+      Update Today's Log
+    </button>
+  )}
+</div>
 
 
 

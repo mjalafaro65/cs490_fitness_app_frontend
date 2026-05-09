@@ -7,13 +7,15 @@ import api from "../axios";
 function Notifications() {
   // const { user } = useAuth();
   const [notifications, setNotifications] = useState([]);
+  const [markingAsRead, setMarkingAsRead] = useState({});
 
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
         const res = await api.get("/notifications/all");
         setNotifications(res.data);
-        console.log(res);
+        console.log("notifications:",res);
+        console.log("notifi:",res.data);
       } catch (error) {
         console.log(error.response);
       }
@@ -23,6 +25,30 @@ function Notifications() {
     fetchNotifications();
 
   }, []);
+
+  const handleMarkAsRead = async (notificationId) => {
+    try {
+      setMarkingAsRead(prev => ({ ...prev, [notificationId]: true }));
+      
+      const response = await api.patch("/notifications/mark-read", {
+        notification_id: notificationId
+      });
+      
+      if (response.status === 200) {
+        setNotifications(prevNotifications =>
+          prevNotifications.map(notif =>
+            notif.notification_id === notificationId
+              ? { ...notif, is_read: true }
+              : notif
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Failed to mark as read:", error);
+      setMarkingAsRead(prev => ({ ...prev, [notificationId]: false }));
+    }
+  };
+
 
   const formatTimeAgo = (dateString) => {
     const now = new Date();
@@ -52,6 +78,8 @@ function Notifications() {
         acc[key].body = notif.body;
         acc[key].is_read = notif.is_read;
       }
+      
+      acc[key].all_read = acc[key].all_read && notif.is_read;
     }
 
     return acc;
@@ -79,32 +107,41 @@ function Notifications() {
                     </svg>
                   </div>
 
-                  {/* 2. Text Content */}
-                  <div className="flex items-start w-full">
-
-                    {/* LEFT SIDE (takes all space) */}
-                    <div className="flex-1">
-                      <h4 className="text-sm font-semibold text-base-content flex items-center gap-2">
-                        {notification.title || "New Notification"}
-
-                        {notification.count > 1 && (
-                          <span className="text-xs bg-primary text-white px-2 py-0.5 rounded-full">
-                            {notification.count}
+                {/* Content */}
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h4 className="text-sm font-semibold text-base-content">
+                          {notification.title || "New Notification"}
+                        </h4>
+                        <p className="text-sm opacity-70 leading-relaxed mt-0.5">
+                          {notification.body || ""}
+                        </p>
+                      </div>
+                      
+                      {/* Time and Button - pushed to the right */}
+                      <div className="flex flex-col items-end gap-2 ml-4">
+                        <span className="text-[10px] uppercase tracking-wider opacity-50 font-medium whitespace-nowrap">
+                          {formatTimeAgo(notification.created_at)}
+                        </span>
+                        
+                        {!notification.is_read && (
+                          <button 
+                            className="btn btn-xs btn-primary bg-blue-800 text-white"
+                            onClick={() => handleMarkAsRead(notification.notification_id)}
+                            disabled={markingAsRead[notification.notification_id]}
+                          >
+                            {markingAsRead[notification.notification_id] ? "..." : "Mark as read"}
+                          </button>
+                        )}
+                        
+                        {notification.is_read && (
+                          <span className="text-xs text-blue-800 font-medium">
+                            Read
                           </span>
                         )}
-                      </h4>
-                      <p className="text-sm opacity-70 leading-relaxed mt-0.5">
-                        {notification.body || ""}
-                      </p>
+                      </div>
                     </div>
-
-                    {/* RIGHT SIDE (FORCED ALL THE WAY RIGHT) */}
-                    <span className="ml-auto text-[10px] uppercase tracking-wider opacity-50 font-medium whitespace-nowrap">
-                      {notification.created_at
-                        ? formatTimeAgo(notification.created_at)
-                        : "Just now"}
-                    </span>
-
                   </div>
                 </div>
               ))
