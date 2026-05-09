@@ -229,11 +229,23 @@ function ProgressLogs() {
     });
   };
 
+  const handleDeleteGoal = async (goalId) => {
+      try {
+        await api.delete(`/client/goals/${goalId}`);
+        showAlert("Goal deleted successfully!", "success");
+        setPopOpen(null);
+        await fetchGoals(); 
+      } catch (err) {
+        console.error("Error deleting goal:", err.response?.data || err);
+        showAlert("Failed to delete goal", "error");
+      }
+  };
+
+
   const handleAddProgress = async (goalId, value) => {
   try {
     const goal = goalsData.find(g => g.goal_id === goalId);
     
-    // For frequency and performance goals, add to existing progress
     if (goal && (goal.goal_type === "frequency" || goal.goal_type === "performance")) {
       const currentProgress = parseFloat(goal.current_value) || 0;
       const valueToAdd = parseFloat(value);
@@ -244,7 +256,6 @@ function ProgressLogs() {
       });
       showAlert(`Added ${valueToAdd} ${goal.unit}! New total: ${newProgress} ${goal.unit}`, "success");
     } else {
-      // For other goal types (weight, strength, etc.), set the value directly
       await api.post(`/client/goals/${goalId}/progress`, {
         value: parseFloat(value)
       });
@@ -987,6 +998,7 @@ function ProgressLogs() {
   {calculatedProgress >= 100 && (
     <div className="mt-2 text-right">
       <span className="badge badge-success badge-sm">Completed</span>
+      <button>Delete</button>
     </div>
   )}
 </div>
@@ -1571,6 +1583,16 @@ function ProgressLogs() {
                 type="submit"
               >
                 Update Goal
+              </button>
+              <button
+                className="btn shadow-lg text-white bg-red-600 flex-1"
+                type="button"
+                onClick={() =>{
+                  e.preventDefault(); 
+                  e.stopPropagation();
+                  handleDeleteGoal(editGoalData.goal_id)}}
+              >
+                Delete Goal
               </button>
             </div>
           </form>
