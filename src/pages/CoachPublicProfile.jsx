@@ -1,11 +1,19 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, Link, useLocation } from "react-router-dom";
 import api from "../axios.jsx";
 import VisitorNavbar from "../components/VisitorNavbar.jsx";
 import { useAuth } from "../AuthContext.jsx";
 import Alert from "../components/Alert.jsx";
 
+
 const CoachPublicProfile = () => {
+
+    const location = useLocation();
+    const isRehire = location.state?.rehire || false;
+    const rehireRelationshipId = location.state?.relationship_id || null;
+
+
+
     const { user } = useAuth()
     const isLoggedIn = !!user;
 
@@ -38,7 +46,7 @@ const CoachPublicProfile = () => {
     const [isFavorite, setIsFavorite] = useState(false);
 
     // State for interactive features
-    const [activeTab, setActiveTab] = useState("about");
+    const [activeTab, setActiveTab] = useState(isRehire ? "pricing" : "about");
     const [availability, setAvailability] = useState([]);
     const [availabilityLoading, setAvailabilityLoading] = useState(true);
     const typeStyles = {
@@ -101,19 +109,21 @@ const CoachPublicProfile = () => {
             try {
                 const reviewsRes = await api.get(`/coach/${id}/reviews`);
 
-                const data = reviewsRes.data;
+                const sorted = reviewsRes.data.sort(
+                    (a, b) => new Date(b.created_at) - new Date(a.created_at)
+                );
 
-                setReviews(data);
+                setReviews(sorted);
 
-                const total = data.length;
+                const total = sorted.length;
                 const avg =
                     total > 0
-                        ? data.reduce((sum, r) => sum + r.rating, 0) / total
+                        ? sorted.reduce((sum, r) => sum + r.rating, 0) / total
                         : 0;
 
                 setReviewStats({
                     total,
-                    average:  Number(avg.toFixed(2))
+                    average: Number(avg.toFixed(2))
                 });
 
             } catch (err) {
@@ -131,6 +141,7 @@ const CoachPublicProfile = () => {
 
         const fetchPaymentPlans = async () => {
             try {
+                console.log(coach.coach_profile_id)
                 const response = await api.get(
                     `/client/coach-payment-plans/${coach.coach_profile_id}`
                 );
@@ -192,7 +203,7 @@ const CoachPublicProfile = () => {
                 await api.delete(`/client/favorites/coaches/${coach.coach_profile_id}`);
                 setIsFavorite(false);
                 showAlert("Coach unfavorited", "success");
-                
+
             } else {
                 await api.post(`/client/favorites/coaches/${coach.coach_profile_id}`);
                 setIsFavorite(true);
@@ -202,29 +213,66 @@ const CoachPublicProfile = () => {
             console.log(err.response?.data);
         }
     };
+    // const hireCoach = async () => {
+    //     try {
+    //         setHiring(true);
+
+    //         await api.post("/client/hire-request", {
+    //             coach_profile_id: coach.coach_profile_id,
+    //             payment_plan_id: selectedPlan.payment_plan_id,
+    //             auto_pay_enabled: autoPay
+
+    //         });
+
+    //         showAlert("Hire request sent!", "success");
+
+
+    //         setShowHireModal(false);
+
+    //     } catch (err) {
+    //         console.error(err.response?.data || err);
+    //         showAlert("Failed to send hire request", "error");
+    //     } finally {
+    //         setHiring(false);
+    //     }
+    // }
+
     const hireCoach = async () => {
         try {
             setHiring(true);
 
-            await api.post("/client/hire-request", {
-                coach_profile_id: coach.coach_profile_id,
-                payment_plan_id: selectedPlan.payment_plan_id,
-                auto_pay_enabled: autoPay
+            try {
 
-            });
+                if (isRehire && rehireRelationshipId) {
+                    await api.post("/client/rehire-coach", {
+                        relationship_id: rehireRelationshipId,
+                        payment_plan_id: selectedPlan.payment_plan_id,
+                        auto_pay_enabled: autoPay
+                    });
+                } else {
+                    await api.post("/client/hire-request", {
+                        coach_profile_id: coach.coach_profile_id,
+                        payment_plan_id: selectedPlan.payment_plan_id,
+                        auto_pay_enabled: autoPay
+                    });
+                }
 
-            showAlert("Hire request sent!", "success");
+            } catch(err) {
+                console.log(err)
+
+            }
 
 
+
+            showAlert("Request sent!", "success");
             setShowHireModal(false);
 
         } catch (err) {
-            console.error(err.response?.data || err);
-            showAlert("Failed to send hire request", "error");
+            showAlert(err.response?.data?.description || "Failed to send request", "error");
         } finally {
             setHiring(false);
         }
-    }
+    };
 
 
     const DAYS = [
@@ -299,8 +347,8 @@ const CoachPublicProfile = () => {
                                     <button
                                         onClick={toggleFavorite}
                                         className={`btn w-full transition-all hover:opacity-90 ${isFavorite
-                                                ? "bg-white text-black border border-black"
-                                                : "bg-white text-black border border-gray-300"
+                                            ? "bg-white text-black border border-black"
+                                            : "bg-white text-black border border-gray-300"
                                             }`}
                                     >
                                         {isFavorite ? "★ Favorited" : "☆ Add to Favorites"}
@@ -390,17 +438,12 @@ const CoachPublicProfile = () => {
                                                 <button
                                                     className="btn btn-sm btn-block bg-blue-800 btn-primary"
                                                     onClick={() => {
-                                                        if (!isLoggedIn) {
-                                                            navigate("/login");
-                                                            return;
-                                                        }
-
+                                                        if (!isLoggedIn) { navigate("/login"); return; }
                                                         setSelectedPlan(plan);
                                                         setShowHireModal(true);
                                                     }}
                                                 >
-                                                    {" Hire Coach"}
-
+                                                    {isRehire ? "Rehire with this plan" : "Hire Coach"}
                                                 </button>
                                             </div>
                                         ))}

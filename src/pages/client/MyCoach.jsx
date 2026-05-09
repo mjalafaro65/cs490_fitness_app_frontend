@@ -177,20 +177,14 @@ function MyCoach() {
     const fetchCoach = async () => {
       try {
         const res = await api.get("client/my-coaches");
-        console.log(res.data);
-
-        const all = res.data || [];
+        const all = res.data?.active_relationships || [];
 
         const active = all.filter(c => c.status === "active");
         const terminated = all.filter(c => c.status === "terminated");
 
-        if (active.length > 0) {
-          setHiredCoaches(active);
-          setFiredCoaches([]); // hide past
-        } else {
-          setHiredCoaches([]);
-          setFiredCoaches(terminated); // show past ONLY if no active
-        }
+        setHiredCoaches(active);
+        // only show past coaches if no active coach
+        setFiredCoaches(active.length === 0 ? terminated : []);
 
       } catch (err) {
         console.log(err);
@@ -301,28 +295,30 @@ function MyCoach() {
         reason: firingReason || "No reason provided"
       });
 
-      console.log("SUCCESS:", response.data);
       showAlert(`${pendingFireData.coachName} has been fired successfully`, "success");
 
+      // move from hired to fired
       const firedCoach = hiredCoaches.find(
         coach => coach.relationship_id === pendingFireData.relationshipId
       );
-      // if (firedCoach) {
-      //   setFiredCoaches(prev => [...prev, {
-      //     ...firedCoach,
-      //     coach_profile_id: pendingFireData.coachProfileId,
-      //     fired_date: new Date().toISOString(),
-      //     reason: firingReason
-      //   }]);
-      // }
+      if (firedCoach) {
+        setFiredCoaches(prev => [...prev, {
+          ...firedCoach,
+          fired_date: new Date().toISOString(),
+          reason: firingReason,
+          status: "terminated"
+        }]);
+      }
+      setHiredCoaches(prev =>
+        prev.filter(c => c.relationship_id !== pendingFireData.relationshipId)
+      );
 
       setShowConfirmModal(false);
       setFiringReason("");
       setPendingFireData(null);
 
     } catch (error) {
-      console.error("ERROR occurred:", error);
-      showAlert(error.response?.data?.message || "Failed to confirm firing", "error");
+      showAlert(error.response?.data?.description || "Failed to confirm firing", "error");
     } finally {
       setIsFiring(false);
     }
@@ -410,25 +406,41 @@ function MyCoach() {
   };
 
 
-  const rehireCoach = async (relationshipId, coachName) => {
-    const confirmed = window.confirm(`Would you like to rehire ${coachName}?`);
+  // const rehireCoach = async (relationshipId, coachName) => {
+  //   console.log("entered hire coach function")
 
-    if (!confirmed) return;
+  //   const ok = await confirm({
+  //     message: `Send a rehire request to ${coachName}?`,
+  //     type: "default"
+  //   });
+  //   if (!ok) return;
 
-    try {
-      const response = await api.post("/client/rehire-coach", {
-        relationship_id: relationshipId
-      });
+  //   try {
+  //     const response = await api.post("/client/rehire-coach", {
+  //       relationship_id: relationshipId
+  //     });
 
-      console.log("Rehire request sent:", response.data);
-      showAlert(`Rehire request sent to ${coachName}`, "success");
+  //     showAlert(`Rehire request sent to ${coachName}. Waiting for approval.`, "success");
 
-      setFiredCoaches(prev => prev.filter(coach => coach.relationship_id !== relationshipId));
+  //     // remove from past coaches — they'll appear in requests now
+  //     setFiredCoaches(prev =>
+  //       prev.filter(coach => coach.relationship_id !== relationshipId)
+  //     );
 
-    } catch (error) {
-      console.error("Error rehiring coach:", error);
-      showAlert(error.response?.data?.message || "Failed to send rehire request", "error");
-    }
+  //     // refresh requests to show the new pending rehire
+  //     const reqRes = await api.get("/client/hire-requests");
+  //     const pending = reqRes.data.filter(r => r.status === "pending");
+  //     setRequestsInfo(pending);
+
+  //   } catch (error) {
+  //     showAlert(error.response?.data?.description || "Failed to send rehire request", "error");
+  //   }
+  // };
+
+  const rehireCoach = (relationshipId, coachProfileId) => {
+    navigate(`/coach/${coachProfileId}`, {
+      state: { rehire: true, relationship_id: relationshipId }
+    });
   };
 
   const activeCoachId = hiredCoaches?.[0]?.coach_id;
@@ -501,7 +513,7 @@ function MyCoach() {
                     No coach assigned yet
                   </p>
                 )}
-                {firedCoaches && (
+                {firedCoaches?.length > 0 && (
                   <>
                     <h3 className="text-sm font-semibold text-base-content/70 mt-4">Past Coaches</h3>
                     {firedCoaches.map((rel) => (
@@ -529,8 +541,9 @@ function MyCoach() {
                             )}
                           </div>
                           <button
-                            className="btn btn-sm border-blue-800 text-gray-200 hover:bg-blue-800"
-                            onClick={() => rehireCoach(rel.relationshipId, rel.coach_name)}
+                            className="btn btn-sm border-blue-800 text-blue-800 hover:bg-blue-800 hover:text-white"
+                            onClick={() => rehireCoach(rel.relationship_id, rel.coach_profile_id)}
+
                           >
                             Rehire Coach
                           </button>
@@ -767,43 +780,7 @@ function MyCoach() {
           </div>
         </div>
       )}
-      {showConfirmModal && pendingFireData && (
-        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-base-100 rounded-lg p-6 w-96 max-w-md">
-            <h3 className="text-lg font-bold mb-4">Confirm Fire Coach</h3>
 
-            <p className="mb-4">
-              Are you sure you want to fire <span className="font-semibold">{pendingFireData.coachName}</span>?
-              This action cannot be undone.
-            </p>
-
-            <div className="form-control mb-4">
-              <label className="label">
-                <span className="label-text">Reason for firing (optional)</span>
-              </label>
-              <textarea
-                className="textarea textarea-bordered"
-                placeholder="Please provide a reason for firing this coach..."
-                value={firingReason}
-                onChange={(e) => setFiringReason(e.target.value)}
-                rows="3"
-              />
-            </div>
-
-            <div className="flex gap-2 justify-end">
-              <button className="btn btn-ghost" onClick={cancelFireCoach}>
-                Cancel
-              </button>
-              <button
-                className="btn bg-red-600 text-white hover:bg-red-700"
-                onClick={confirmFireCoach}
-              >
-                Confirm Fire
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
 
       {editingReview && (
@@ -850,6 +827,71 @@ function MyCoach() {
         </div>
       )
       }
+
+      {showConfirmModal && pendingFireData && (
+        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-base-100 rounded-lg p-6 w-96 max-w-md">
+            <h3 className="text-lg font-bold mb-4">Confirm Fire Coach</h3>
+
+            <p className="mb-4">
+              Are you sure you want to fire <span className="font-semibold">{pendingFireData.coachName}</span>?
+              This action cannot be undone.
+            </p>
+
+            <div className="form-control mb-4">
+              <label className="label">
+                <span className="label-text">Reason for firing (optional)</span>
+              </label>
+              <textarea
+                className="textarea textarea-bordered"
+                placeholder="Please provide a reason for firing this coach..."
+                value={firingReason}
+                onChange={(e) => setFiringReason(e.target.value)}
+                rows="3"
+              />
+            </div>
+
+            <div className="flex gap-2 justify-end">
+              <button className="btn btn-ghost" onClick={cancelFireCoach}>
+                Cancel
+              </button>
+              <button
+                className="btn bg-red-600 text-white hover:bg-red-700"
+                onClick={confirmFireCoach}
+              >
+                Confirm Fire
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {confirmState.open && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+          <div className="bg-base-100 rounded-xl shadow-xl p-6 w-96">
+            <p className="text-sm mb-6">{confirmState.message}</p>
+            <div className="flex justify-end gap-2">
+              <button
+                className="btn btn-sm btn-ghost"
+                onClick={() => {
+                  confirmState.onResolve(false);
+                  setConfirmState({ ...confirmState, open: false });
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-sm bg-blue-800 text-white hover:bg-blue-900"
+                onClick={() => {
+                  confirmState.onResolve(true);
+                  setConfirmState({ ...confirmState, open: false });
+                }}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <Alert
         isOpen={alert}
         message={alertMsg}
