@@ -48,6 +48,9 @@ function CoClientDashboardView() {
 
   const [selectedPhoto, setSelectedPhoto] = useState(null);
 
+  const [logDayFilter, setLogDayFilter] = useState(7)
+  const [workoutLogs, setWorkoutLogs] = useState(null)
+
 
   const fetchClientDashboard = async () => {
     try {
@@ -85,6 +88,24 @@ function CoClientDashboardView() {
     fetchInsights();
     fetchMealLogs();
   }, [id]);
+
+  useEffect(() => {
+    fetchWorkoutLogs();
+  }, [id, logDayFilter]);
+
+  const fetchWorkoutLogs = async () => {
+    console.log("entered fetching workoutslogs")
+
+    try {
+      const res = await api.get(`/workouts/workout-logs?client_id=${id}&days=${logDayFilter}`)
+      console.log(res.data)
+      setWorkoutLogs(res.data)
+    } catch (err) {
+      console.log("error fetching workout logs", err)
+    }
+
+
+  }
 
   const fetchInsights = async () => {
     setInsightsLoading(true);
@@ -212,6 +233,20 @@ function CoClientDashboardView() {
   }
 
   const client = dashboard.client_info || {};
+
+  const formatDateTime = (dateStr) => {
+    if (!dateStr) return "--";
+
+    return new Date(dateStr).toLocaleString([], {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true
+    });
+  };
+
 
   return (
     <div className="drawer lg:drawer-open">
@@ -614,6 +649,100 @@ function CoClientDashboardView() {
                 ) : (
                   <p className="text-sm opacity-50">No invoices</p>
                 )}
+              </div>
+            </div>
+
+            <div className="card bg-base-100 rounded-box border border-base-500 p-6 shadow-lg">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-bold">Workout Logs</h2>
+
+                <select
+                  className="select select-sm select-bordered"
+                  value={logDayFilter}
+                  onChange={(e) => setLogDayFilter(e.target.value)}
+                >
+                  <option value={7}>Last 7 days</option>
+                  <option value={14}>Last 14 days</option>
+                  <option value={30}>Last 30 days</option>
+                </select>
+              </div>
+
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+
+                {workoutLogs.length > 0 ? (
+                  workoutLogs.map((log) => (
+                    <div
+                      key={log.workout_log_id}
+                      className="border-b border-base-content/10 pb-4"
+                    >
+                      {/* Header */}
+                      <div className="flex justify-between items-center">
+                        <p className="font-semibold">
+                          Workout #{log.workout_log_id}
+                        </p>
+
+                        <span className="text-xs opacity-60">
+                          {formatDateTime(log.logged_at)}
+                        </span>
+                      </div>
+
+                      {log.notes && (
+                        <p className="text-xs opacity-60 italic mt-1">{log.notes}</p>
+                      )}
+
+                      {/* Entries */}
+                      <div className="mt-3 space-y-2">
+                        {log.entries.map((entry) => (
+                          <div
+                            key={entry.workout_log_entry_id}
+                            className="bg-base-200 p-3 rounded-md text-sm"
+                          >
+                            <div className="flex justify-between">
+                              <p className="font-medium">
+                                {entry.exercise?.name || "Exercise"}
+                              </p>
+
+
+                            </div>
+
+                            <div className="text-xs opacity-70 mt-1 flex gap-3 flex-wrap">
+
+                              {entry.weight > 0 && (
+                                <span>Weight: {entry.weight} kg</span>
+                              )}
+
+                              {entry.rpe > 0 && (
+                                <span>RPE: {entry.rpe}</span>
+                              )}
+
+                              {entry.duration_minutes > 0 && (
+                                <span>Duration: {entry.duration_minutes} min</span>
+                              )}
+
+                              {entry.reps > 0 && (
+                                <span>Reps: {entry.reps}</span>
+                              )}
+
+                              {entry.sets > 0 && (
+                                <span>Sets: {entry.sets}</span>
+                              )}
+
+                            </div>
+
+                            {entry.notes && (
+                              <p className="text-xs italic opacity-50 mt-1">
+                                {entry.notes}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm opacity-50">No workout logs found</p>
+                )}
+
               </div>
             </div>
 
