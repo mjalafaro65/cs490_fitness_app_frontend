@@ -86,7 +86,7 @@ function CDashboard() {
   const [selectedDay, setSelectedDay] = useState(new Date());
 
   const [daily, setData] = useState({
- 
+
     daily_goal: "",
 
     energy_level: "",
@@ -158,7 +158,7 @@ function CDashboard() {
         const [datePart] = workout.scheduled_start.split("T");
         const [year, month, day] = datePart.split("-").map(Number);
         const d = new Date(year, month - 1, day);
-        
+
         return {
           id: workout.calendar_workout_id,
           assignment_id: workout.assignment_id,
@@ -218,12 +218,19 @@ function CDashboard() {
   }
   };
 
+  const formatLocalDate = (d) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+  };
 
   const getWorkoutsForDate = (date) => {
     if (!date) return [];
-    
+
     // Use ISO date string (YYYY-MM-DD) for reliable comparison
-    const targetDateStr = date.toISOString().split('T')[0];
+    const targetDateStr = formatLocalDate(date);
     const workouts = [];
 
     scheduledWorkouts.forEach((workout) => {
@@ -375,7 +382,11 @@ function CDashboard() {
       try {
         const res = await api.get("client/my-coaches");
         console.log(res.data)
-        setHiredCoaches(res.data.active_relationships)
+        const activeCoaches = res.data.filter(
+          (coach) => coach.status !== "terminated"
+        );
+
+        setHiredCoaches(activeCoaches);
 
       } catch (err) {
         console.log(err);
@@ -671,6 +682,7 @@ useEffect(() => {
 
 
 
+  console.log(selectedDay, today, dayLog)
 
   return (
 
