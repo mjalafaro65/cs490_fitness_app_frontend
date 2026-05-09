@@ -615,7 +615,7 @@ function CDashboard() {
 
               <button
 
-                className="btn btn-sm btn-ghost"
+                className="btn btn-sm btn-ghost border-gray-200"
 
                 onClick={() => {
 
@@ -645,7 +645,7 @@ function CDashboard() {
 
               <button
 
-                className="btn btn-sm btn-ghost"
+                className="btn btn-sm btn-ghost border-gray-200"
 
                 onClick={() => {
 

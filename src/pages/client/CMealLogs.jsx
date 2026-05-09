@@ -98,6 +98,7 @@ function ClientMealLogs() {
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [selectedMealLog, setSelectedMealLog] = useState(null);
   const [editLogData, setEditLogData] = useState({
+    custom_meal_name: "",
     servings: "",
     notes: "",
     calories:""
@@ -142,7 +143,7 @@ function ClientMealLogs() {
 
   const fetchNutritionInsights = async () => {
     if (!user?.user_id) {
-      showAlert("Please log in to view nutrition insights", "error");
+      //showAlert("Please log in to view nutrition insights", "error");
       return;
     }
 
@@ -154,7 +155,7 @@ function ClientMealLogs() {
     } catch (err) {
       console.error("Failed to fetch nutrition insights:", err.response?.data || err);
       const errorMessage = err.response?.data?.message || err.response?.data?.status || "Failed to fetch nutrition insights";
-      showAlert(errorMessage, "error");
+      //showAlert(errorMessage, "error");
       setNutritionInsights(null);
     } finally {
       setIsLoadingInsights(false);
@@ -168,6 +169,7 @@ function ClientMealLogs() {
       setSelectedMealLog(response.data);
 
       setEditLogData({
+        custom_meal_name: response.data.custom_meal_name || "", 
         servings: response.data.servings || "",
         notes: response.data.notes || "",
         calories: response.data.calories || ""
@@ -229,6 +231,7 @@ function ClientMealLogs() {
 
     console.log(selectedMealLog.meal_log_id)
     const payload = {
+      custom_meal_name: editLogData.custom_meal_name,
       servings: editLogData.servings,
       notes: editLogData.notes,
       calories: editLogData.calories,
@@ -295,6 +298,10 @@ function ClientMealLogs() {
       notes: logData.notes || "",
       custom_meal_name: logData.custom_meal_name || null,
     };
+
+    if (logData.meal_id) {
+        requestData.meal_id = parseInt(logData.meal_id, 10);
+      }
 
     console.log("Sending request data:", requestData);
     try {
@@ -539,13 +546,13 @@ function ClientMealLogs() {
         <section className="p-6 flex flex-col gap-6">
           <div className="text-2xl font-bold mb-4">My Meal Plans</div>
 
-          {/* Nutrition Insights Section */}
+          {/* Nutrition Insights Section
           <div className="mb-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Nutrition Insights</h2>
             </div>
             {renderNutritionInsights()}
-          </div>
+          </div> */}
 
           <div className="flex w-full gap-4 items-start">
             <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box flex-1 p-4 min-w-0">
@@ -737,10 +744,17 @@ function ClientMealLogs() {
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold">Edit Meal Log</h2>
               </div>
-
-              <h3 className="text-md opacity-70 mb-4">
-                Meal Name: {selectedMealLog.custom_meal_name}
-              </h3>
+              <label className="label">
+                Meal Name:
+                <input
+                  className="input w-full"
+                  type="text"
+                  name="custom_meal_name"
+                  value={editLogData.custom_meal_name}
+                  onChange={(e) => setEditLogData({ ...editLogData, custom_meal_name: e.target.value })}
+                  required
+                />
+              </label>
 
               <label className="label">
                 Servings:
