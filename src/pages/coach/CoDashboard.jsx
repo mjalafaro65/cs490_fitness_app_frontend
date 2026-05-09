@@ -59,7 +59,7 @@ function CoDashboard() {
     return weekWorkouts
       .filter(w => isSameDay(new Date(w.scheduled_start), date))
       .map(w => ({
-        clientName: w.client_name || `User ${w.for_user_id}`,
+        clientName: w.user_name || `User ${w.for_user_id}`,
         workoutName: w.plan_day_name || "Workout",
         status: w.status,
         calendar_workout_id: w.calendar_workout_id,

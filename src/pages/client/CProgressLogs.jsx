@@ -44,6 +44,7 @@ function ProgressLogs() {
 
   const [timeView, setTimeView] = useState('weekly');
   const [logs, setLogs] = useState([]);
+  const [progressIncrementMode, setProgressIncrementMode] = useState(false);
 
   const [isPopOpen, setPopOpen] = useState(null);
   const [daily, setData] = useState({
@@ -228,6 +229,47 @@ function ProgressLogs() {
     });
   };
 
+  const handleDeleteGoal = async (goalId) => {
+      try {
+        await api.delete(`/client/goals/${goalId}`);
+        showAlert("Goal deleted successfully!", "success");
+        setPopOpen(null);
+        setProgressModalOpen(false);
+        setSelectedGoal(null);
+        await fetchGoals(); 
+      } catch (err) {
+        console.error("Error deleting goal:", err.response?.data || err);
+        showAlert("Failed to delete goal", "error");
+      }
+  };
+
+
+  const handleAddProgress = async (goalId, value) => {
+  try {
+    const goal = goalsData.find(g => g.goal_id === goalId);
+    
+    if (goal && (goal.goal_type === "frequency" || goal.goal_type === "performance")) {
+      const currentProgress = parseFloat(goal.current_value) || 0;
+      const valueToAdd = parseFloat(value);
+      const newProgress = currentProgress + valueToAdd;
+      
+      await api.post(`/client/goals/${goalId}/progress`, {
+        value: newProgress
+      });
+      showAlert(`Added ${valueToAdd} ${goal.unit}! New total: ${newProgress} ${goal.unit}`, "success");
+    } else {
+      await api.post(`/client/goals/${goalId}/progress`, {
+        value: parseFloat(value)
+      });
+      showAlert("Progress updated!", "success");
+    }
+    
+    await fetchGoals();
+  } catch (err) {
+    showAlert("Failed to update progress", "error");
+  }
+};
+
   const handleCreateGoal = async (e) => {
     e.preventDefault();
 
@@ -326,17 +368,6 @@ function ProgressLogs() {
       ...prev,
       [name]: value
     }));
-  };
-  const handleAddProgress = async (goalId, value) => {
-    try {
-      await api.post(`/client/goals/${goalId}/progress`, {
-        value: parseFloat(value)
-      });
-      showAlert("Progress updated!", "success");
-      await fetchGoals();
-    } catch (err) {
-      showAlert("Failed to update progress", "error");
-    }
   };
 
 
@@ -640,7 +671,34 @@ if (timeView === 'yearly') {
   }));
 
   const logDateSet = new Set(groupedArray.map(d => d.date));
+  
+    useEffect(() => {
+      async function fetchUser() {
+        try {
+          const response = await api.get("/client/daily-survey");
+          const response2 = await api.get("/client/survey-status");
+          const statusData = response2.data;
+  
+          const data = response.data;
+          console.log("GET response:", data, " ", statusData);
 
+          setData({
+            daily_goal: data.daily_goal ?? "",
+            energy_level: data.energy_level ?? "",
+            target_focus: data.target_focus ?? "",
+            water_oz: data.water_oz ?? "",
+            weight_lbs: data.weight_lbs ?? "",
+            sleep_hours: data.sleep_hours ?? "",
+            mood_score: data.mood_score ?? ""
+  
+          });
+          localStorage.setItem("dailyData", JSON.stringify(data));
+        } catch (err) {
+          console.error("Failed to fetch user:", err.response?.data || err);
+        }
+      }
+    fetchUser();
+  }, []);
 
   const getDaysInMonth = (date) => {
     const year = date.getFullYear();
@@ -1038,29 +1096,112 @@ if (timeView === 'yearly') {
                 <div className="space-y-3 overflow-y-auto max-h-64">
 
 
-                  {goalsData.map((goal, idx) => (
-                    <div key={idx} className="p-3 bg-gray-300 rounded-lg cursor-pointer hover:bg-base-300 transition-colors" onClick={() => fetchGoalHistory(goal)}>
-
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="font-medium text-sm truncate">{goal.title || 'Untitled Goal'}</span>
-                        <span className="text-xs text-blue-600 font-bold ml-2 whitespace-nowrap">{goal.progress || 0}%</span>
-                      </div>
-
-                      <div className="w-full bg-gray-300 rounded-full h-3 mb-1">
-                        <div
-                          className={`h-3 rounded-full transition-all duration-500 ${(goal.progress || 0) >= 100 ? 'bg-green-500' :
-                            (goal.progress || 0) >= 50 ? 'bg-blue-600' : 'bg-blue-400'
-                            }`}
-                          style={{ width: `${Math.min(goal.progress || 0, 100)}%` }}
-                        />
-                      </div>
-
-                      <div className="flex justify-between text-xs opacity-60">
-                        <span className="capitalize">{goal.goal_type}</span>
-                        <span>{goal.current_value ?? 0} / {Number(goal.target_value)} {goal.unit}</span>
-                      </div>
-                    </div>
-                  ))}
+{goalsData.map((goal, idx) => {
+  let calculatedProgress = 0;
+  let displayText = "";
+  
+  // SPECIAL HANDLING FOR WEIGHT GOALS - USE ONLY SURVEY DATA
+  if (goal.goal_type === "weight") {
+    const target = parseFloat(goal.target_value);
+    
+    // Get survey data sorted by date
+    const sortedSurvey = [...surveyData].sort((a, b) => new Date(b.date) - new Date(a.date));
+    const latestWeight = sortedSurvey.length > 0 ? parseFloat(sortedSurvey[0].weight_lbs) : null;
+    
+    if (latestWeight && latestWeight > 0) {
+      // Get starting weight (first survey entry ever)
+      // const earliestSurvey = [...surveyData].sort((a, b) => new Date(a.date) - new Date(b.date));
+      // const startingWeight = earliestSurvey.length > 0 ? parseFloat(earliestSurvey[0].weight_lbs) : latestWeight;
+      const startingWeight=latestWeight;
+      
+      // DEBUG LOG
+      console.log(`Goal: ${goal.title}`, {
+        target,
+        // startingWeight,
+        latestWeight,
+        isWeightLoss: target < startingWeight,
+        isWeightGain: target > startingWeight
+      });
+      
+      if (target < latestWeight) {
+        // WEIGHT LOSS GOAL
+        calculatedProgress = (target/latestWeight) * 100;
+        const leftToLose = latestWeight - target;
+        displayText = `${leftToLose.toFixed(1)} ${goal.unit} to lose`;
+        
+        
+      } else if (target > startingWeight) {
+        // WEIGHT GAIN GOAL
+        calculatedProgress = (latestWeight/target) * 100;
+        const leftToGain = target - latestWeight;
+        displayText = `${leftToGain.toFixed(1)} ${goal.unit} to gain`;
+        
+        
+      } else {
+        calculatedProgress = 100;
+        displayText = `Goal achieved! 🎉`;
+      }
+      
+      calculatedProgress = Math.min(100, Math.max(0, calculatedProgress));
+      
+    } else {
+      displayText = "📝 Log your weight in daily survey";
+      calculatedProgress = 0;
+    }
+    
+  } else {
+    calculatedProgress = goal.progress || 0;
+    displayText = `${goal.current_value ?? 0} / ${Number(goal.target_value)} ${goal.unit}`;
+  }
+  
+  return (
+    <div 
+  key={idx} 
+  className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-4 cursor-pointer hover:bg-base-300 transition-all duration-300"
+  onClick={() => fetchGoalHistory(goal)}
+>
+  <div className="flex justify-between items-start mb-3">
+    <div className="flex items-center gap-3">
+      <span className="text-2xl"></span>
+      <div>
+        <h3 className="font-bold text-sm">{goal.title}</h3>
+        <span className="text-xs opacity-60 capitalize">{goal.goal_type}</span>
+      </div>
+    </div>
+    <div className="text-right">
+      <div className="text-lg font-bold text-blue-900">
+        {calculatedProgress.toFixed(0)}%
+      </div>
+      <div className="text-xs opacity-60">
+        {displayText}
+      </div>
+    </div>
+  </div>
+  
+  <div className="flex justify-between text-xs opacity-50 mb-1">
+    <span>0%</span>
+    <span>25%</span>
+    <span>50%</span>
+    <span>75%</span>
+    <span>100%</span>
+  </div>
+  
+  <div className="w-full bg-gray-300 rounded h-6">
+    <div
+      className="h-full rounded transition-all duration-300 bg-gradient-to-r from-blue-300 to-blue-800"
+      style={{ width: `${Math.min(calculatedProgress, 100)}%` }}
+    />
+  </div>
+  
+  {calculatedProgress >= 100 && (
+    <div className="mt-2 text-right">
+      <span className="badge badge-success badge-sm">Completed</span>
+      <button className="btn btn-xs bg-red-600 text-white rounded-box ml-2">Delete</button>
+    </div>
+  )}
+</div>
+  );
+})}
                 </div>
               ) : (
                 <div className="flex items-center justify-center h-48">
@@ -1201,106 +1342,184 @@ if (timeView === 'yearly') {
 
       <PopUp isOpen={selectedGoal !== null} onClose={() => { setSelectedGoal(null); setGoalHistory([]); }}>
         {selectedGoal && (() => {
-
-
           const goalType = selectedGoal.goal_type;
-
+          
+          let chartData = [];
+          let chartYDomain = [0, parseFloat(selectedGoal.target_value) * 1.1];
+          
+          if (goalType === "weight") {
+            const goalStartDate = new Date(selectedGoal.start_date);
+            const filteredSurvey = [...surveyData]
+              .filter(entry => new Date(entry.date) >= goalStartDate && entry.weight_lbs > 0)
+              .sort((a, b) => new Date(a.date) - new Date(b.date))
+              .map(entry => ({
+                date: new Date(entry.date).toLocaleDateString(),
+                value: parseFloat(entry.weight_lbs),
+                type: 'survey'
+              }));
+            
+            chartData = filteredSurvey;
+            
+            const allValues = chartData.map(d => d.value);
+            const minValue = Math.min(...allValues, selectedGoal.target_value);
+            const maxValue = Math.max(...allValues, selectedGoal.target_value);
+            chartYDomain = [Math.floor(minValue * 0.95), Math.ceil(maxValue * 1.05)];
+          } else {
+            chartData = goalHistory;
+            chartYDomain = [0, parseFloat(selectedGoal.target_value) * 1.1];
+          }
+          
           return (
-            < div className="fieldset bg-base-200 border-base-300 rounded-box w-full max-w-sm min-w-0 border p-4">
+            <div className="fieldset bg-base-200 border-base-300 rounded-box w-full max-w-sm min-w-0 border p-4">
               <h2 className="font-bold text-lg mb-1">{selectedGoal.title}</h2>
               <p className="text-xs opacity-60 mb-4">Target: {selectedGoal.target_value} {selectedGoal.unit}</p>
-
-              {goalHistory.length > 1 ? (
-                <ResponsiveContainer width="100%" height={200}>
-                  <LineChart data={goalHistory}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                    <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-                    <YAxis tick={{ fontSize: 10 }} domain={[0, parseFloat(selectedGoal.target_value) * 1.1]} />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="value" stroke="#1d4ed8" strokeWidth={2} dot={{ r: 4 }} name="Progress" />
-                  </LineChart>
-                </ResponsiveContainer>
-              ) : goalHistory.length === 1 ? (
-                <div className="text-center py-8 opacity-60 text-sm">Only one entry — log more days to see your trend.</div>
+{/* 
+              {goalType === "weight" ? (
+                chartData.length > 1 ? (
+                  <ResponsiveContainer width="100%" height={200}>
+                    <LineChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                      <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                      <YAxis 
+                        tick={{ fontSize: 10 }} 
+                        domain={chartYDomain}
+                        label={{ value: selectedGoal.unit, angle: -90, position: 'insideLeft', style: { fontSize: 10 } }}
+                      />
+                      <Tooltip />
+                      <Line 
+                        type="monotone" 
+                        dataKey="value" 
+                        stroke="#1d4ed8" 
+                        strokeWidth={2} 
+                        dot={{ r: 4 }} 
+                        name="Weight" 
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : chartData.length === 1 ? (
+                  <div className="text-center py-8 opacity-60 text-sm">
+                    Only one weight logged. Log more weights in your daily survey to see your trend.
+                    <br />
+                    Current weight: <span className="font-bold text-blue-600">{chartData[0]?.value} {selectedGoal.unit}</span>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 opacity-60 text-sm">
+                    No weight data logged yet. Log your weight in the daily survey to track progress.
+                  </div>
+                )
               ) : (
-                <div className="text-center py-8 opacity-60 text-sm">No progress logged yet.</div>
-              )}
+                goalHistory.length > 1 ? (
+                  <ResponsiveContainer width="100%" height={200}>
+                    <LineChart data={goalHistory}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                      <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                      <YAxis tick={{ fontSize: 10 }} domain={chartYDomain} />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="value" stroke="#1d4ed8" strokeWidth={2} dot={{ r: 4 }} name="Progress" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : goalHistory.length === 1 ? (
+                  <div className="text-center py-8 opacity-60 text-sm">Only one entry — log more to see your trend.</div>
+                ) : (
+                  <div className="text-center py-8 opacity-60 text-sm">No progress logged yet.</div>
+                )
+              )} */}
 
               <div className="mt-4 flex justify-between items-center">
-                <span className="text-sm opacity-60">
-                  Current: <span className="font-bold text-blue-600">{selectedGoal.current_value ?? 0} {selectedGoal.unit}</span>
-                </span>
+                <div className="text-sm opacity-60">
+                  <div>Target: <span className="font-bold">{selectedGoal.target_value} {selectedGoal.unit}</span></div>
+                  
+                  {selectedGoal.goal_type === "weight" && (
+                    <div className="mt-1">
+                      Latest weight: 
+                      <span className="font-bold text-blue-600 ml-1">
+                        {(() => {
+                          const sortedSurvey = [...surveyData].sort((a, b) => new Date(b.date) - new Date(a.date));
+                          const latest = sortedSurvey[0]?.weight_lbs;
+                          return latest ? `${latest} ${selectedGoal.unit}` : 'Not logged yet';
+                        })()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                
                 <div className="flex gap-2">
-                  <button className="btn btn-sm btn-ghost" onClick={() => handleEditGoal(selectedGoal)}>Edit Goal</button>
-                  {selectedGoal.status == "active" &&
-                    < button
+                  <button className="btn btn-sm btn-ghost" onClick={() => handleEditGoal(selectedGoal)}>
+                    Edit Goal
+                  </button>
+                  {selectedGoal.status == "active" && selectedGoal.goal_type !== "weight" && (
+                    <button
                       className="btn btn-sm bg-blue-800 text-white"
                       onClick={async (e) => {
                         e.stopPropagation();
-
-                        const goal = selectedGoal;
-
-                        if (goal.goal_type === "frequency") {
-                          // instant complete (no modal)
-                          await handleAddProgress(goal.goal_id, selectedGoal.current_value + 1);
-
-                        } else {
-                          // normal goals use modal
-                          setSelectedGoalId(goal.goal_id);
-                          setProgressModalOpen(true);
-                        }
+                        setSelectedGoalId(selectedGoal.goal_id);
+                        setProgressIncrementMode(selectedGoal.goal_type === "frequency" || selectedGoal.goal_type === "performance");
+                        setProgressModalOpen(true);
                       }}
                     >
                       Update Progress
                     </button>
-                  }
-
+                  )}
                 </div>
               </div>
             </div>
           );
-
         })()}
-      </PopUp >
+      </PopUp>
 
 
       {progressModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-base-100 p-6 rounded-lg w-80 shadow-xl">
-
-            <h3 className="text-lg font-bold mb-4">Update Progress</h3>
-
-            <input
-              type="number"
-              placeholder="Enter value"
-              className="input input-bordered w-full mb-4"
-              value={progressValue}
-              onChange={(e) => setProgressValue(e.target.value)}
-            />
-
-            <div className="flex justify-end gap-2">
-              <button
-                className="btn btn-ghost"
-                onClick={() => {
-                  setProgressModalOpen(false);
-                  setProgressValue("");
-                }}
-              >
-                Cancel
-              </button>
-
-              <button
-                className="btn bg-blue-800 btn-primary"
-                onClick={async () => {
-                  await handleAddProgress(selectedGoalId, progressValue);
-                  setProgressModalOpen(false);
-                  setProgressValue("");
-                }}
-              >
-                Save
-              </button>
-            </div>
-          </div>
+  <div className="fixed inset-0 flex items-center justify-center z-50">
+    <div className="bg-base-100 p-6 rounded-lg w-80 shadow-xl">
+      <h3 className="text-lg font-bold mb-4">Update Progress</h3>
+      
+      {progressIncrementMode ? (
+        <p className="text-sm text-gray-600 mb-3">
+          Add additional {(() => {
+            const goal = goalsData.find(g => g.goal_id === selectedGoalId);
+            return goal?.unit || 'units';
+          })()} to your progress
+        </p>
+      ) : (
+        <p className="text-sm text-gray-600 mb-3">
+          Set new progress value
+        </p>
+      )}
+      
+      <input
+        type="number"
+        step="any"
+        placeholder={progressIncrementMode ? "Amount to add" : "Enter value"}
+        className="input input-bordered w-full mb-4"
+        value={progressValue}
+        onChange={(e) => setProgressValue(e.target.value)}
+      />
+      
+      <div className="flex justify-end gap-2">
+        <button
+          className="btn btn-ghost"
+          onClick={() => {
+            setProgressModalOpen(false);
+            setProgressValue("");
+            setProgressIncrementMode(false);
+          }}
+        >
+          Cancel
+        </button>
+        
+        <button
+          className="btn bg-blue-800 text-white"
+          onClick={async () => {
+            await handleAddProgress(selectedGoalId, progressValue);
+            setProgressModalOpen(false);
+            setProgressValue("");
+            setProgressIncrementMode(false);
+          }}
+        >
+          {progressIncrementMode ? "Add" : "Save"}
+        </button>
+      </div>
+    </div>
 
           {/* 
           {goalType === "frequency" ? (
@@ -1562,6 +1781,16 @@ if (timeView === 'yearly') {
                 type="submit"
               >
                 Update Goal
+              </button>
+              <button
+                className="btn shadow-lg text-white bg-red-600 flex-1"
+                type="button"
+                onClick={(e) =>{
+                  e.preventDefault(); 
+                  e.stopPropagation();
+                  handleDeleteGoal(editGoalData.goal_id)}}
+              >
+                Delete Goal
               </button>
             </div>
           </form>

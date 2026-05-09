@@ -307,7 +307,7 @@ const CoachPublicProfile = () => {
                                     </button>
                                 )}
 
-                                {isLoggedIn && <button
+                                {/* {isLoggedIn && <button
                                     onClick={() => {
                                         // Navigate to messages page with coach info to start conversation
                                         navigate("/messages", {
@@ -324,7 +324,7 @@ const CoachPublicProfile = () => {
                                     className="btn w-full bg-blue-800 text-white hover:bg-blue-700 mt-2"
                                 >
                                     Message
-                                </button>}
+                                </button>} */}
                             </div>
                         </div>
                     </div>
