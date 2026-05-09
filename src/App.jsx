@@ -11,7 +11,7 @@ import Initial_Survey from "./pages/InitialSurvey";
 import Coaches from "./pages/Coaches";
 import LandingExercises from "./pages/LandingExercises";
 import Messages from "./pages/Messages";
-// import Notifications from "./pages/Notifications";
+import Notifications from "./pages/Notifications";
 import SetupPage from "./pages/SetupPage";
 import Plans from "./pages/WorkoutPlans";
 
@@ -65,7 +65,7 @@ function App() {
       <Route element={<Layout />}>
         <Route element={<ProtectedRoute />}>
           <Route path="messages" element={<Messages />} />
-          {/* <Route path="notifications" element={<Notifications />} /> */}
+          <Route path="notifications" element={<Notifications />} />
         </Route>
 
         {/* client Routes */}

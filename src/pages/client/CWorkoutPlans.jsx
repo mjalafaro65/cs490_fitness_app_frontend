@@ -913,7 +913,7 @@ function ClientWorkoutPlans() {
                             workout.status != "completed" ? (
                               <div className="flex flex-wrap gap-2">
                                 <button
-                                  className="btn btn-xs bg-blue-700 text-white"
+                                  className="btn btn-xs btn-primary bg-blue-800 text-white"
                                   onClick={async () => {
                                     const ok = await confirm({
                                       message: "Mark this workout as completed?",
@@ -935,7 +935,7 @@ function ClientWorkoutPlans() {
                                 </button>
 
                                 <button
-                                  className="btn btn-xs bg-blue-700 text-white"
+                                  className="btn btn-xs btn-primary bg-blue-800 text-white"
                                   onClick={() => {
                                     const exercises = workout.plan_day?.exercises || [];
 
@@ -986,7 +986,7 @@ function ClientWorkoutPlans() {
                                   Log Workout
                                 </button>
                                 <button
-                                  className="btn btn-xs bg-red-600 text-white hover:bg-red-700"
+                                  className="btn btn-xs bg-red-600 shadow-lg text-white hover:bg-red-700"
                                   onClick={async () => {
                                     const ok = await confirm({
                                       message: "Cancel this workout?",
@@ -1317,7 +1317,7 @@ function ClientWorkoutPlans() {
             <div className="flex flex-col gap-4">
               <div className="card bg-base-200 shadow-lg border border-base-500 p-4 rounded-box w-64 flex flex-col items-center h-24">
                 <h2 className="text-lg font-bold mb-2">Create New Plan</h2>
-                <button className="btn btn-primary bg-blue-800 btn-sm" onClick={() => setPopOpen("create")}>
+                <button className="btn btn-primary bg-blue-800 text-white btn-sm" onClick={() => setPopOpen("create")}>
                   Create New
                 </button>
               </div>
@@ -1621,7 +1621,7 @@ function ClientWorkoutPlans() {
             />
           </label>
 
-          <button className="btn btn-primary bg-blue-800 w-full" type="submit">
+          <button className="btn btn-primary bg-blue-800 text-white w-full" type="submit">
             Submit Log
           </button>
 

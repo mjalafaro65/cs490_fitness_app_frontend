@@ -529,72 +529,77 @@ function ProgressLogs() {
     }));
   }
 
-  const workoutByDate = {};
-  workoutData.forEach(workout => {
-    let date = workout.date;
-    if (!date && workout.scheduled_start) {
-      date = workout.scheduled_start.split('T')[0];
-    }
+  // Replace this entire section from where you create workoutByDate
+const workoutByDate = {};
+workoutData.forEach(workout => {
+  let date = workout.date;
+  if (!date && workout.scheduled_start) {
+    date = workout.scheduled_start.split('T')[0];
+  }
+  // Also check for completed_at or logged_at
+  if (!date && workout.completed_at) {
+    date = workout.completed_at.split('T')[0];
+  }
+  if (!date && workout.logged_at) {
+    date = workout.logged_at.split('T')[0];
+  }
 
-    if (date) {
-      if (!workoutByDate[date]) {
-        workoutByDate[date] = { total: 0, completed: 0, scheduled: 0, dateObj: new Date(date) };
+  if (date) {
+    if (!workoutByDate[date]) {
+      workoutByDate[date] = { 
+        total: 0, 
+        completed: 0, 
+        scheduled: 0, 
+        dateObj: new Date(date),
+        workouts: [] // Store workout details for debugging
+      };
+    }
+    workoutByDate[date].total++;
+    
+    // Check for different status fields
+    const status = workout.status || workout.workout_status;
+    if (status === 'completed' || workout.completed === true || workout.is_completed === true) {
+      workoutByDate[date].completed++;
+    } else if (status === 'scheduled' || workout.scheduled === true) {
+      workoutByDate[date].scheduled++;
+    }
+    
+    workoutByDate[date].workouts.push(workout);
+  }
+});
+
+console.log("Workout by date:", workoutByDate); // Debug log
+
+let workoutChartDataRaw = Object.keys(workoutByDate)
+  .sort((a, b) => new Date(a) - new Date(b))
+  .map(date => ({
+    date: date,
+    dateObj: workoutByDate[date].dateObj,
+    total: workoutByDate[date].total,
+    completed: workoutByDate[date].completed,
+    scheduled: workoutByDate[date].scheduled
+  }));
+
+// Add this after workoutChartDataRaw definition
+let workoutChartData;
+if (timeView === 'yearly') {
+  const monthlyWorkoutAggregated = {};
+  workoutChartDataRaw.forEach(workout => {
+    const date = new Date(workout.date);
+    if (date.getFullYear() === new Date().getFullYear()) {
+      const monthKey = date.toLocaleDateString('default', { month: 'short' });
+      if (!monthlyWorkoutAggregated[monthKey]) {
+        monthlyWorkoutAggregated[monthKey] = { period: monthKey, total: 0, completed: 0, scheduled: 0 };
       }
-      workoutByDate[date].total++;
-      if (workout.status === 'completed') {
-        workoutByDate[date].completed++;
-      } else if (workout.status === 'scheduled') {
-        workoutByDate[date].scheduled++;
-      }
+      monthlyWorkoutAggregated[monthKey].total += workout.total;
+      monthlyWorkoutAggregated[monthKey].completed += workout.completed;
+      monthlyWorkoutAggregated[monthKey].scheduled += workout.scheduled;
     }
   });
-
-  let workoutChartDataRaw = Object.keys(workoutByDate)
-    .sort((a, b) => new Date(a) - new Date(b))
-    .map(date => ({
-      date: date,
-      dateObj: workoutByDate[date].dateObj,
-      total: workoutByDate[date].total,
-      completed: workoutByDate[date].completed,
-      scheduled: workoutByDate[date].scheduled
-    }));
-
-  let filteredWorkoutDataForChart = filterDataByPeriod(
-    workoutChartDataRaw.map(d => ({ ...d, date: d.dateObj })),
-    timeView
-  );
-
-  let workoutChartData;
-  if (timeView === 'weekly') {
-    workoutChartData = filteredWorkoutDataForChart.map(d => ({
-      date: d.date.toLocaleDateString('default', { month: 'short', day: 'numeric' }),
-      total: d.total,
-      completed: d.completed,
-      scheduled: d.scheduled
-    }));
-  } else if (timeView === 'monthly') {
-    workoutChartData = filteredWorkoutDataForChart.map(d => ({
-      date: d.date.toLocaleDateString('default', { month: 'short', day: 'numeric' }),
-      total: d.total,
-      completed: d.completed,
-      scheduled: d.scheduled
-    }));
-  } else {
-    const monthlyWorkoutAggregated = {};
-    workoutChartDataRaw.forEach(workout => {
-      const date = new Date(workout.date);
-      if (date.getFullYear() === new Date().getFullYear()) {
-        const monthKey = date.toLocaleDateString('default', { month: 'short' });
-        if (!monthlyWorkoutAggregated[monthKey]) {
-          monthlyWorkoutAggregated[monthKey] = { period: monthKey, total: 0, completed: 0, scheduled: 0 };
-        }
-        monthlyWorkoutAggregated[monthKey].total += workout.total;
-        monthlyWorkoutAggregated[monthKey].completed += workout.completed;
-        monthlyWorkoutAggregated[monthKey].scheduled += workout.scheduled;
-      }
-    });
-    workoutChartData = Object.values(monthlyWorkoutAggregated);
-  }
+  workoutChartData = Object.values(monthlyWorkoutAggregated);
+} else {
+  workoutChartData = [];
+}
 
 
 
@@ -859,28 +864,219 @@ function ProgressLogs() {
             </div>
           </div>
 
-          <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-4">
+           <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-4">
             <h2 className="text-lg font-bold mb-4">Workout Schedule Overview ({timeView === 'weekly' ? 'Last 7 Days' : timeView === 'monthly' ? 'This Month' : 'By Month'})</h2>
             {loadingInsights ? (
               <div className="flex items-center justify-center h-64">
                 <p className="text-sm opacity-50">Loading...</p>
               </div>
-            ) : workoutChartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={workoutChartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis dataKey={timeView === 'yearly' ? 'period' : 'date'} tick={{ fontSize: 10, fill: '#9CA3AF' }} />
-                  <YAxis tick={{ fontSize: 10, fill: '#9CA3AF' }} />
-                  <Tooltip contentStyle={{ backgroundColor: '#ffffff', border: 'none', borderRadius: '8px' }} />
-                  <Legend />
-                  <Bar dataKey="scheduled" fill="#3b82f6" name="Scheduled" />
-                  <Bar dataKey="completed" fill="#002664" name="Completed" />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-64">
-                <p className="text-sm opacity-50">No workout data available</p>
+            ) : timeView === 'weekly' ? (
+              // Weekly Heatmap View
+              <div>
+                <div className="grid grid-cols-7 gap-2 mb-4">
+                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                    <div key={day} className="text-xs text-center font-semibold opacity-70">
+                      {day}
+                    </div>
+                  ))}
+                  
+                  {(() => {
+                    const last7Days = [];
+                    for (let i = 6; i >= 0; i--) {
+                      const date = new Date();
+                      date.setDate(date.getDate() - i);
+                      date.setHours(0, 0, 0, 0);
+                      const dateStr = date.toISOString().split('T')[0];
+                      
+                      let dayData = workoutChartDataRaw.find(d => d.date === dateStr);
+                      
+                      if (!dayData) {
+                        dayData = {
+                          date: dateStr,
+                          dateObj: date,
+                          total: 0,
+                          completed: 0,
+                          scheduled: 0
+                        };
+                      }
+                      
+                      last7Days.push({ date, dateStr, dayData });
+                    }
+                    
+                    return last7Days.map((day, idx) => {
+                      const hasWorkout = day.dayData.total > 0 || day.dayData.scheduled > 0;
+                      const completionRate = hasWorkout && (day.dayData.scheduled > 0 || day.dayData.total > 0)
+                        ? (day.dayData.completed / Math.max(day.dayData.scheduled, day.dayData.total)) * 100 
+                        : 0;
+                      
+                      let bgColor = 'bg-gray-200';
+                      let textColor = 'text-gray-600';
+                      
+                      if (hasWorkout) {
+                        if (completionRate === 100) {
+                          bgColor = 'bg-gray-800';
+                          textColor = 'text-white';
+                        } else if (completionRate >= 75) {
+                          bgColor = 'bg-gray-600';
+                          textColor = 'text-white';
+                        } else if (completionRate >= 50) {
+                          bgColor = 'bg-gray-400';
+                          textColor = 'text-gray-400';
+                        } else if (completionRate > 0) {
+                          bgColor = 'bg-gray-300';
+                          textColor = 'text-white';
+                        }
+                      } else {
+                        bgColor = 'bg-gray-100';
+                        textColor = 'text-gray-400';
+                      }
+                      
+                      const completedCount = day.dayData.completed;
+                      const scheduledCount = day.dayData.scheduled || day.dayData.total;
+                      
+                      return (
+                        <div
+                          key={idx}
+                          className={`aspect-square rounded-lg ${bgColor} flex flex-col items-center justify-center p-1 transition-all hover:scale-105 cursor-pointer`}
+                          title={`${day.date.toLocaleDateString('default', { weekday: 'long', month: 'short', day: 'numeric' })}: ${completedCount}/${scheduledCount} workouts completed (${Math.round(completionRate)}%)`}
+                        >
+                          <span className={`text-xs font-bold ${textColor}`}>
+                            {day.date.getDate()}
+                          </span>
+                          {completedCount > 0 && (
+                            <span className={`text-[10px] ${textColor}`}>
+                              ✓{completedCount}
+                            </span>
+                          )}
+                          {scheduledCount > 0 && completedCount === 0 && (
+                            <span className={`text-[10px] ${textColor}`}>
+                              ○{scheduledCount}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+                
+                <div className="flex justify-center gap-4 mt-4 text-xs flex-wrap">
+                  <div className="flex items-center gap-1"><div className="w-3 h-3 bg-gray-100 rounded"></div><span>No workout</span></div>
+                  <div className="flex items-center gap-1"><div className="w-3 h-3 bg-gray-300 rounded"></div><span>&lt;50%</span></div>
+                  <div className="flex items-center gap-1"><div className="w-3 h-3 bg-gray-400 rounded"></div><span>50-74%</span></div>
+                  <div className="flex items-center gap-1"><div className="w-3 h-3 bg-gray-600 rounded"></div><span>75-99%</span></div>
+                  <div className="flex items-center gap-1"><div className="w-3 h-3 bg-gray-800 rounded"></div><span>100%</span></div>
+                </div>
               </div>
+            ) : timeView === 'monthly' ? (
+              // Monthly Calendar Heatmap View
+              <div>
+                <div className="grid grid-cols-7 gap-1 mb-4">
+                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                    <div key={day} className="text-xs text-center font-semibold opacity-70">
+                      {day}
+                    </div>
+                  ))}
+                  
+                  {(() => {
+                    const now = new Date();
+                    const year = now.getFullYear();
+                    const month = now.getMonth();
+                    const firstDay = new Date(year, month, 1).getDay();
+                    const daysInMonth = new Date(year, month + 1, 0).getDate();
+                    
+                    const calendarDays = [];
+                    for (let i = 0; i < firstDay; i++) {
+                      calendarDays.push(null);
+                    }
+                    for (let i = 1; i <= daysInMonth; i++) {
+                      const date = new Date(year, month, i);
+                      const dateStr = date.toISOString().split('T')[0];
+                      let dayData = workoutChartDataRaw.find(d => d.date === dateStr);
+                      
+                      if (!dayData) {
+                        dayData = {
+                          date: dateStr,
+                          dateObj: date,
+                          total: 0,
+                          completed: 0,
+                          scheduled: 0
+                        };
+                      }
+                      
+                      calendarDays.push({ date, dateStr, dayData, dayNum: i });
+                    }
+                    
+                    return calendarDays.map((day, idx) => {
+                      if (!day) {
+                        return <div key={`empty-${idx}`} className="aspect-square rounded-lg bg-gray-100" />;
+                      }
+                      
+                      const hasWorkout = day.dayData.total > 0 || day.dayData.scheduled > 0;
+                      const completionRate = hasWorkout && (day.dayData.scheduled > 0 || day.dayData.total > 0)
+                        ? (day.dayData.completed / Math.max(day.dayData.scheduled, day.dayData.total)) * 100 
+                        : 0;
+                      
+                      let bgColor = 'bg-gray-100';
+                      let textColor = 'text-gray-600';
+                      
+                      if (hasWorkout) {
+                        if (completionRate === 100) {
+                          bgColor = 'bg-gray-800';
+                          textColor = 'text-white';
+                        } else if (completionRate >= 75) {
+                          bgColor = 'bg-gray-600';
+                          textColor = 'text-white';
+                        } else if (completionRate >= 50) {
+                          bgColor = 'bg-gray-400';
+                          textColor = 'text-gray-800';
+                        } else if (completionRate > 0) {
+                          bgColor = 'bg-gray-300';
+                          textColor = 'text-white';
+                        }
+                      }
+                      
+                      return (
+                        <div
+                          key={idx}
+                          className={`aspect-square rounded-lg ${bgColor} flex items-center justify-center text-xs font-medium transition-all hover:scale-105 cursor-pointer relative`}
+                          title={`${day.date.toLocaleDateString()}: ${day.dayData.completed}/${day.dayData.scheduled || day.dayData.total} workouts completed (${Math.round(completionRate)}%)`}
+                        >
+                          <span className={textColor}>{day.dayNum}</span>
+                          {day.dayData.completed > 0 && (
+                            <span className="absolute bottom-0 right-0 text-[8px] text-green-600">✓</span>
+                          )}
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+                <div className="flex justify-center gap-4 mt-4 text-xs flex-wrap">
+                  <div className="flex items-center gap-1"><div className="w-3 h-3 bg-gray-100 rounded"></div><span>No workout</span></div>
+                  <div className="flex items-center gap-1"><div className="w-3 h-3 bg-gray-300 rounded"></div><span>&lt;50%</span></div>
+                  <div className="flex items-center gap-1"><div className="w-3 h-3 bg-gray-400 rounded"></div><span>50-74%</span></div>
+                  <div className="flex items-center gap-1"><div className="w-3 h-3 bg-gray-600 rounded"></div><span>75-99%</span></div>
+                  <div className="flex items-center gap-1"><div className="w-3 h-3 bg-gray-800 rounded"></div><span>100%</span></div>
+                </div>
+              </div>
+            ) : (
+              // Yearly Bar Chart View
+              workoutChartData && workoutChartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={workoutChartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis dataKey="period" tick={{ fontSize: 10, fill: '#9CA3AF' }} />
+                    <YAxis tick={{ fontSize: 10, fill: '#9CA3AF' }} />
+                    <Tooltip contentStyle={{ backgroundColor: '#ffffff', border: 'none', borderRadius: '8px' }} />
+                    <Legend />
+                    <Bar dataKey="scheduled" fill="#697a97" name="Scheduled" />
+                    <Bar dataKey="completed" fill="#002664" name="Completed" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-64">
+                  <p className="text-sm opacity-50">No workout data available</p>
+                </div>
+              )
             )}
           </div>
           <div className="flex w-full h-80 gap-4 ">
