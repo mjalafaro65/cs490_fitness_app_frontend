@@ -25,10 +25,10 @@ function BrowseExercises({ planId, dayId, weekday, onExerciseAdded, onClose }) {
   const [alertType, setAlertType] = useState('success');
 
   const showAlert = (message, type = 'success') => {
-      console.log("ALERT FUNCTION CALLED with:", message, type);
-      setAlertMsg(message);
-      setAlertType(type);
-      setShowAlert(true);
+    console.log("ALERT FUNCTION CALLED with:", message, type);
+    setAlertMsg(message);
+    setAlertType(type);
+    setShowAlert(true);
   };
 
   const [filters, setFilters] = useState({
@@ -74,7 +74,7 @@ function BrowseExercises({ planId, dayId, weekday, onExerciseAdded, onClose }) {
   // };
 
   useEffect(() => {
-      fetchExercises();
+    fetchExercises();
   }, [exercisesFilters]);
 
   const handleExercisesFilterChange = (e) => {
@@ -109,10 +109,10 @@ function BrowseExercises({ planId, dayId, weekday, onExerciseAdded, onClose }) {
       if (exercisesFilters.muscle_group) params.muscle_group = exercisesFilters.muscle_group;
       if (exercisesFilters.equipment) params.equipment = exercisesFilters.equipment;
       if (exercisesFilters.training_type) params.training_type = exercisesFilters.training_type;
-      
+
       const response = await api.get("/workouts/exercises", { params });
       console.log("Exercises response:", response.data);
-      
+
       let exercisesArray = [];
       if (Array.isArray(response.data)) {
         exercisesArray = response.data;
@@ -125,7 +125,7 @@ function BrowseExercises({ planId, dayId, weekday, onExerciseAdded, onClose }) {
       } else {
         exercisesArray = [];
       }
-      
+
       setExercises(exercisesArray);
     } catch (err) {
       console.error("Failed to fetch exercises:", err.response?.data || err);
@@ -209,12 +209,13 @@ function BrowseExercises({ planId, dayId, weekday, onExerciseAdded, onClose }) {
   const handleAddExercise = async () => {
     if (!planId || !dayId || !selectedEx) {
       console.error("Missing required data:", { planId, dayId, selectedEx });
-      alert("Cannot add exercise: Missing required information");
+      showAlert("Cannot add exercise: Missing required information", "error");
       return;
     }
-    
+
+
     setAddingExercise(true);
-    
+
     try {
       const payload = {
         exercise_id: selectedEx.exercise_id,
@@ -225,17 +226,17 @@ function BrowseExercises({ planId, dayId, weekday, onExerciseAdded, onClose }) {
         notes: addForm.notes,
         sort_order: Number(addForm.sort_order),
       };
-      
+
       console.log("Adding exercise to plan:", planId, "day:", dayId);
       console.log("Payload:", payload);
-      
+
       const res = await api.post(
         `/workouts/plans/${planId}/days/${dayId}/exercises`,
         payload
       );
-      
+
       console.log("Exercise added successfully:", res.data);
-      
+
       setAddForm({
         sets: 3,
         reps: 10,
@@ -244,18 +245,18 @@ function BrowseExercises({ planId, dayId, weekday, onExerciseAdded, onClose }) {
         notes: "",
         sort_order: 0,
       });
-      
+
       if (onExerciseAdded) {
         await onExerciseAdded(res.data);
       }
-      
+
       if (onClose) {
         onClose();
       }
-      
+
     } catch (err) {
       console.error("Add exercise to day failed:", err.response?.data || err);
-      alert(`Failed to add exercise: ${err.response?.data?.message || "Unknown error"}`);
+      showAlert(`Failed to add exercise: ${err.response?.data?.message || "Unknown error"}`, "error");
     } finally {
       setAddingExercise(false);
     }
@@ -344,7 +345,7 @@ function BrowseExercises({ planId, dayId, weekday, onExerciseAdded, onClose }) {
                 Clear
               </button>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 bg-base-200 rounded-box">
               <select
                 name="muscle_group"
@@ -361,7 +362,7 @@ function BrowseExercises({ planId, dayId, weekday, onExerciseAdded, onClose }) {
                 <option value="Core">Core</option>
                 <option value="Quads/Glutes">Quads/Glutes</option>
               </select>
-              
+
               <select
                 name="equipment"
                 value={exercisesFilters.equipment}
@@ -377,7 +378,7 @@ function BrowseExercises({ planId, dayId, weekday, onExerciseAdded, onClose }) {
                 <option value="Bands">Bands</option>
                 <option value="Kettlebell">Kettlebell</option>
               </select>
-              
+
               <select
                 name="training_type"
                 value={exercisesFilters.training_type}
@@ -405,7 +406,7 @@ function BrowseExercises({ planId, dayId, weekday, onExerciseAdded, onClose }) {
                   key={ex.exercise_id}
                   className="p-3 bg-base-200 rounded hover:bg-base-300 transition group"
                 >
-                  <div 
+                  <div
                     className="cursor-pointer"
                     onClick={() => fetchExerciseDetails(ex.exercise_id)}
                   >
@@ -417,7 +418,7 @@ function BrowseExercises({ planId, dayId, weekday, onExerciseAdded, onClose }) {
                       <p className="text-xs opacity-50">{ex.equipment}</p>
                     )}
                   </div>
-                  
+
                   <button
                     className="btn btn-xs btn-primary bg-blue-800 text-white mt-2 w-full"
                     onClick={() => handleSelectExercise(ex)}
@@ -704,36 +705,38 @@ function BrowseExercises({ planId, dayId, weekday, onExerciseAdded, onClose }) {
         </div>
       )}
       <PopUp isOpen={popOpen === "deactivate"} onClose={() => setPopOpen(null)}>
-          <fieldset className="fieldset bg-base-200 border-gray-500 rounded-box w-s border p-4">
-              <legend className="fieldset-legend px-2 text-xl bg-base-200 rounded-box">
-                  Confirm Deactivation
-              </legend>
-              <p className="text-gray-700 font-semibold my-2">
-                  Are you sure you want to deactivate this workout?
-              </p>
-              <div className="flex gap-4 mt-4">
-                  <button
-                      className="btn bg-red-600 btn-neutral ml-auto"
-                      type="button"
-                      onClick={() => handleDeleteExercise()}
-                  >
-                      Yes, confirm
-                  </button>
-                  <button
-                      className="btn bg-blue-800 btn-neutral"
-                      type="button"
-                      onClick={() => setPopOpen(null)}
-                  >
-                      Cancel
-                  </button>
-              </div>
-          </fieldset>
+        <fieldset className="fieldset bg-base-200 border-gray-500 rounded-box w-s border p-4">
+          <legend className="fieldset-legend px-2 text-xl bg-base-200 rounded-box">
+            Confirm Deactivation
+          </legend>
+          <p className="text-gray-700 font-semibold my-2">
+            Are you sure you want to deactivate this workout?
+          </p>
+          <div className="flex gap-4 mt-4">
+            <button
+              className="btn bg-red-600 btn-neutral ml-auto"
+              type="button"
+              onClick={() => handleDeleteExercise()}
+            >
+              Yes, confirm
+            </button>
+            <button
+              className="btn bg-blue-800 btn-neutral"
+              type="button"
+              onClick={() => setPopOpen(null)}
+            >
+              Cancel
+            </button>
+          </div>
+        </fieldset>
       </PopUp>
-      <Alert 
-        isOpen={alert} 
+
+
+      <Alert
+        isOpen={alert}
         message={alertMsg}
         type={alertType}
-        onClose={() => setShowAlert(false)}/>
+        onClose={() => setShowAlert(false)} />
     </div>
   );
 }

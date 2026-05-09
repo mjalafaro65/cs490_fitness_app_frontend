@@ -660,6 +660,8 @@ const CoachPublicProfile = () => {
                                     </div>
                                 </div>
                             )}
+                            
+                            
                             <Alert
                                 isOpen={alert}
                                 message={alertMsg}

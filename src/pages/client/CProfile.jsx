@@ -82,7 +82,7 @@ function CProfile() {
     e.preventDefault();
 
     if (bioData.height <= 0 || bioData.weight <= 0) {
-      alert("Height and weight must be greater than 0");
+      showAlert("Height and weight must be greater than 0");
       return;
     }
 

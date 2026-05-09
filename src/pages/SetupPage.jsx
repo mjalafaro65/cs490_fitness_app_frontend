@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../axios.jsx";
 import { useAuth } from "../AuthContext.jsx";
+import Alert from "../components/Alert.jsx";
 
 function SetupPage() {
     const { fetchUser } = useAuth()
@@ -50,8 +51,8 @@ function SetupPage() {
                 ...profileData,
                 profile_photo:
                     profileData.profile_photo === null
-                        && DEFAULT_PHOTO
-                      
+                    && DEFAULT_PHOTO
+
             };
 
             console.log(payload);
@@ -64,7 +65,7 @@ function SetupPage() {
         } catch (error) {
             console.error("Upload failed:", error);
 
-            alert("Error saving profile");
+            showAlert("Error saving profile", "error");
         }
     };
 
@@ -218,6 +219,12 @@ function SetupPage() {
                     <button className="btn btn-primary md:col-span-2 mt-6">Save and Continue</button>
                 </form>
             </div>
+
+            <Alert
+                isOpen={alert}
+                message={alertMsg}
+                type={alertType}
+                onClose={() => setShowAlert(false)} />
         </div>
     );
 }

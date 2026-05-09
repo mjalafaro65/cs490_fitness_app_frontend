@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { useState, useEffect } from "react"
 import { openCloudinaryWidget } from "../../cloudinary";
 import { useAuth } from "../../AuthContext";
+import Alert from "../../components/Alert";
 
 
 function CoachApply() {
@@ -21,7 +22,17 @@ function CoachApply() {
     const [documentData, setDocumentData] = useState([
         { "document_type": "", "document_url": "" }
     ]);
+    const [alert, setShowAlert] = useState(false);
+    const [alertMsg, setAlertMsg] = useState('');
+    const [alertType, setAlertType] = useState('success');
 
+    const showAlert = (message, type = 'success') => {
+        console.log("ALERT FUNCTION CALLED with:", message, type);
+        setAlertMsg(message);
+        setAlertType(type);
+        setShowAlert(true);
+    };
+ 
 
     useEffect(() => {
         const fetchSpecialties = async () => {
@@ -82,7 +93,7 @@ function CoachApply() {
         if (e) e.preventDefault();
         // setLoading(true);
         if (profileData.specialty_id === 0) {
-            alert("Please select a specialty.");
+            showAlert("Please select a specialty.");
             return;
         }
         try {
@@ -291,6 +302,13 @@ function CoachApply() {
                     </div>
                 </div>
             )}
+
+
+            <Alert
+                isOpen={alert}
+                message={alertMsg}
+                type={alertType}
+                onClose={() => setShowAlert(false)} />
         </div>
 
 

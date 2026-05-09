@@ -255,10 +255,10 @@ function CoMealLogs() {
         end_date: null,
       });
   
-      alert(`Assigned ${selectedPlan.name} to ${selectedClient.clientName}`);
+      showAlert(`Assigned ${selectedPlan.name} to ${selectedClient.clientName}`, "success");
     } catch (err) {
       console.error("Assign workout failed:", err.response?.data || err);
-      alert("Failed to assign workout plan.");
+      showAlert("Failed to assign workout plan.", "error");
     }
   };
 

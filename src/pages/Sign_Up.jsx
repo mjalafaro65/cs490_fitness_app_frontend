@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import "../App.css";
 import api from "../axios.jsx";
+import Alert from "../components/Alert.jsx";
 
 /*add input validation here */
 
@@ -24,7 +25,7 @@ function Sign_Up() {
         e.preventDefault();
         const termsAndCond = document.getElementById("terms");
         if (!termsAndCond.checked) {
-            alert("Please agree to the Terms & Conditions to proceed");
+            showAlert("Please agree to the Terms & Conditions to proceed", "error");
             return;
         }
         try {
@@ -48,7 +49,7 @@ function Sign_Up() {
         }
         catch (error) {
             console.error("Signup failed:", error.response?.data);
-            alert("Signup failed, please try again");
+            showAlert("Signup failed, please try again", "error");
         }
     };
 
@@ -88,15 +89,22 @@ function Sign_Up() {
                             <span className="text-sm">Agree to Terms & Conditions</span>
                         </label>
                         <button className="btn btn-neutral mt-4" type="submit">Register</button>
-                       
+
                         <div className="text-center mt-4">
-                        <Link to="/login" className="text-sm text-blue-600 hover:text-blue-800 hover:underline">
-                            Have an account? Log In
-                        </Link>
+                            <Link to="/login" className="text-sm text-blue-600 hover:text-blue-800 hover:underline">
+                                Have an account? Log In
+                            </Link>
                         </div>
                     </form>
                 </fieldset>
             </div>
+
+
+            <Alert
+                isOpen={alert}
+                message={alertMsg}
+                type={alertType}
+                onClose={() => setShowAlert(false)} />
         </div>
 
     );

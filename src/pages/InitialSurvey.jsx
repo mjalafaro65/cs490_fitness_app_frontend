@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../App.css";
 import api from "../axios.jsx";
+import Alert from "../components/Alert.jsx";
 
 /*add input validation here */
 
@@ -105,7 +106,7 @@ function Initial_Survey() {
         }
         catch (error) {
             console.error("Survey failed:", error.response?.data);
-            alert("Survey failed, please try again");
+            showAlert("Survey failed, please try again", "error");
         }
     };
 
@@ -184,7 +185,7 @@ function Initial_Survey() {
                                 className="range  border-blue-800  w-full  range-sm"
                                 step="1"
                                 onChange={handleChange}
-                                
+
                             />
                             <div className="flex w-full  justify-between px-2 text-[10px] font-bold opacity-50 mt-1">
                                 <span>LOW</span>
@@ -295,6 +296,13 @@ function Initial_Survey() {
                     </form>
                 </div>
             </div>
+
+
+            <Alert
+                isOpen={alert}
+                message={alertMsg}
+                type={alertType}
+                onClose={() => setShowAlert(false)} />
         </div>
     );
 }

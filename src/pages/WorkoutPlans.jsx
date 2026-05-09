@@ -3,6 +3,7 @@ import api from "../axios";
 import "../App.css";
 import PopUp from "../components/PopUp";
 import { useNavigate } from "react-router-dom";
+import Alert from "../components/Alert";
 
 function BrowsePlans() {
   const [plans, setPlans] = useState([]);
@@ -10,8 +11,19 @@ function BrowsePlans() {
   const [loadingPlans, setLoadingPlans] = useState(false);
   const [pop, setPopOpen] = useState(null);
   const [selectedPlan, setSelectedPlan] = useState(null);
-  const [copyingPlanId, setCopyingPlanId] = useState(null); 
+  const [copyingPlanId, setCopyingPlanId] = useState(null);
   const navigate = useNavigate();
+
+  const [alert, setShowAlert] = useState(false);
+  const [alertMsg, setAlertMsg] = useState('');
+  const [alertType, setAlertType] = useState('success');
+
+  const showAlert = (message, type = 'success') => {
+    console.log("ALERT FUNCTION CALLED with:", message, type);
+    setAlertMsg(message);
+    setAlertType(type);
+    setShowAlert(true);
+  };
 
 
   const [filters, setFilters] = useState({
@@ -35,28 +47,28 @@ function BrowsePlans() {
     }
     setLoadingPlans(false);
   };
-    const handleCopyPlan = async (planId, planName) => {
-      setCopyingPlanId(planId);
+  const handleCopyPlan = async (planId, planName) => {
+    setCopyingPlanId(planId);
     try {
       const customName = prompt("Enter a name for your copy (or leave blank to use default):", `${planName} (Copy)`);
-      
+
 
       if (customName === null) {
-        setCopyingPlanId(null); 
+        setCopyingPlanId(null);
         return;
       }
-      
+
       const response = await api.post(`/workouts/plans/${planId}/copy`, {
         name: customName || `${planName} (Copy)`
       });
-      
+
       console.log("Plan copied:", response.data);
-      
+
       navigate("/client/workoutplans");
-      
+
     } catch (err) {
       console.error("Error copying plan:", err.response?.data || err);
-      alert(`Failed to copy plan: ${err.response?.data?.message || "Unknown error"}`);
+      showAlert(`Failed to copy plan: ${err.response?.data?.message || "Unknown error"}`, "error");
     } finally {
       setCopyingPlanId(null);
     }
@@ -99,7 +111,7 @@ function BrowsePlans() {
     });
   };
 
-    useEffect(() => {
+  useEffect(() => {
     async function fetchUser() {
       try {
         const response = await api.get("/client/profile", {
@@ -128,16 +140,16 @@ function BrowsePlans() {
   return (
     <div className="p-6 flex flex-col gap-6">
       <div className="p-2 border-b border-base-300 flex items-center">
-          <button
-            onClick={() => navigate(-1)}
-            className="btn btn-ghost btn-sm normal-case"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Back to Plans
-          </button>
-        </div>
+        <button
+          onClick={() => navigate(-1)}
+          className="btn btn-ghost btn-sm normal-case"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back to Plans
+        </button>
+      </div>
       <h1 className="text-2xl font-bold">Browse Workout Plans</h1>
 
       <form
@@ -152,7 +164,7 @@ function BrowsePlans() {
           value={filters.q}
           onChange={handleChange}
         />
-{/* 
+        {/* 
         <input
           type="text"
           name="muscle_group"
@@ -206,7 +218,7 @@ function BrowsePlans() {
         <p>Loading...</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {!Array.isArray(plans) || plans.length === 0 ?  (
+          {!Array.isArray(plans) || plans.length === 0 ? (
             <p>No plans found.</p>
           ) : (
             plans.map((plan) => (
@@ -223,15 +235,15 @@ function BrowsePlans() {
                 </p>
 
                 <button onClick={async () => {
-                                setPopOpen(plan.plan_id);
-                                setSelectedPlan(null);
-                                await fetchPlanDetails(plan.plan_id);
-          }} className="btn btn-sm btn-primary bg-blue-800 text-white mt-3">
+                  setPopOpen(plan.plan_id);
+                  setSelectedPlan(null);
+                  await fetchPlanDetails(plan.plan_id);
+                }} className="btn btn-sm btn-primary bg-blue-800 text-white mt-3">
                   View Plan
                 </button>
 
-                <button 
-                  onClick={() => handleCopyPlan(plan.plan_id, plan.name)} 
+                <button
+                  onClick={() => handleCopyPlan(plan.plan_id, plan.name)}
                   className="btn btn-sm border-gray-400 mt-3"
                   disabled={copyingPlanId === plan.plan_id}
                 >
@@ -255,66 +267,73 @@ function BrowsePlans() {
         setSelectedPlan(null);
       }}>
         {loadingPlans ? (
-        <p>Loading plan...</p>
-      ) : selectedPlan ? (
-        <div className="p-4 max-h-[70vh] overflow-y-auto">
-          <h2 className="text-xl font-bold mb-1">
-            {selectedPlan.name}
-          </h2>
+          <p>Loading plan...</p>
+        ) : selectedPlan ? (
+          <div className="p-4 max-h-[70vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-1">
+              {selectedPlan.name}
+            </h2>
 
-          <p className="text-sm opacity-60 mb-2">
-            By {selectedPlan.owner_name || "Unknown"}
-          </p>
+            <p className="text-sm opacity-60 mb-2">
+              By {selectedPlan.owner_name || "Unknown"}
+            </p>
 
-          <p className="mb-4 opacity-70">
-            {selectedPlan.description || "No description"}
-          </p>
+            <p className="mb-4 opacity-70">
+              {selectedPlan.description || "No description"}
+            </p>
 
-          {selectedPlan.days?.length > 0 ? (
-            selectedPlan.days.map((day, index) => (
-              <div key={index} className="mb-4 p-3 bg-base-200 rounded">
-                <h3 className="font-bold mb-2">
-                  {day.day_label || `Day ${index + 1}`}
-                </h3>
+            {selectedPlan.days?.length > 0 ? (
+              selectedPlan.days.map((day, index) => (
+                <div key={index} className="mb-4 p-3 bg-base-200 rounded">
+                  <h3 className="font-bold mb-2">
+                    {day.day_label || `Day ${index + 1}`}
+                  </h3>
 
-                {day.session_time && (
-                  <p className="text-xs opacity-60 mb-2">
-                    Time: {day.session_time}
-                  </p>
-                )}
+                  {day.session_time && (
+                    <p className="text-xs opacity-60 mb-2">
+                      Time: {day.session_time}
+                    </p>
+                  )}
 
-                {day.exercises?.length > 0 ? (
-        <ul className="space-y-2 text-sm">
-          {day.exercises.map((ex, i) => (
-            <li key={i} className="flex justify-between items-center">
-              
-              <span className="font-medium">
-                {ex.exercise?.name || "Unknown Exercise"}
-              </span>
+                  {day.exercises?.length > 0 ? (
+                    <ul className="space-y-2 text-sm">
+                      {day.exercises.map((ex, i) => (
+                        <li key={i} className="flex justify-between items-center">
 
-              <div className="text-right opacity-70">
-                <div>{ex.sets || "-"} x {ex.reps || "-"}</div>
-                <div className="text-xs">
-                  {ex.duration_minutes ? `${ex.duration_minutes} min` : ""}
+                          <span className="font-medium">
+                            {ex.exercise?.name || "Unknown Exercise"}
+                          </span>
+
+                          <div className="text-right opacity-70">
+                            <div>{ex.sets || "-"} x {ex.reps || "-"}</div>
+                            <div className="text-xs">
+                              {ex.duration_minutes ? `${ex.duration_minutes} min` : ""}
+                            </div>
+                          </div>
+
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm opacity-50">No exercises</p>
+                  )}
                 </div>
-              </div>
-
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-sm opacity-50">No exercises</p>
-      )}
-              </div>
-            ))
-          ) : (
-            <p>No days in this plan.</p>
-          )}
-        </div>
-      ) : (
-        <p>No plan selected.</p>
-      )}
+              ))
+            ) : (
+              <p>No days in this plan.</p>
+            )}
+          </div>
+        ) : (
+          <p>No plan selected.</p>
+        )}
       </PopUp>
+
+
+      <Alert
+        isOpen={alert}
+        message={alertMsg}
+        type={alertType}
+        onClose={() => setShowAlert(false)} />
     </div>
   );
 }

@@ -38,6 +38,8 @@ function Spinner() {
   );
 }
 
+
+
 /* ── Availability ── */
 const DAYS = [
   { label: "Monday", value: 0 },
@@ -52,20 +54,39 @@ const DAYS = [
 
 
 function AvailabilitySection() {
+
+
+
+
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [alert, setAlert] = useState({
-    open: false,
-    message: "",
-    type: "success",
-  });
+  // const [alert, setAlert] = useState({
+  //   open: false,
+  //   message: "",
+  //   type: "success",
+  // });
   const [form, setForm] = useState({
     day_of_week: 0,
     start_time: "09:00",
     end_time: "17:00",
   });
+
+  const [alert, setAlert] = useState({
+    open: false,
+    message: "",
+    type: "success",
+  });
+
+  const showAlert = (message, type = "success") => {
+    setAlert({
+      open: true,
+      message,
+      type,
+    });
+  };
+
 
   const load = async () => {
     setLoading(true);
@@ -179,13 +200,13 @@ function AvailabilitySection() {
           </button>
         </form>
       )}
-
+      {/* 
       <Alert
         isOpen={alert.open}
         message={alert.message}
         type={alert.type}
         onClose={() => setAlert((prev) => ({ ...prev, open: false }))}
-      />
+      /> */}
 
       {/* content */}
       {loading ? (
@@ -246,7 +267,7 @@ function PaymentPlansSection({ coachId }) {
       const response = await api.get(`/client/coach-payment-plans/${coachId}`);
       console.log(response.data)
       setPlans(response.data || []);
-    }catch (err){
+    } catch (err) {
       console.log(err)
     } finally {
       setLoading(false);
@@ -437,7 +458,7 @@ function DocumentsSection() {
       setForm({ doc_type: "certification", doc_url: "", notes: "" });
       await load();
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to upload.");
+      showAlert(err.response?.data?.message || "Failed to upload.", "error");
     } finally {
       setUploading(false);
     }
@@ -598,7 +619,7 @@ function InvoicesSection() {
   const load = async () => {
     setLoading(true);
     try {
-      const r = await api.get("/coach/invoices"); 
+      const r = await api.get("/coach/invoices");
       setInvoices(r.data.invoices || r.data || []);
       console.log(r.data)
     }
@@ -612,7 +633,7 @@ function InvoicesSection() {
   const handlePay = async (id) => {
     setPayingId(id);
     try { await api.post("/client/pay-invoice", { invoice_id: id }); await load(); }
-    catch (err) { alert(err.response?.data?.message || "Failed to pay invoice."); }
+    catch (err) { showAlert(err.response?.data?.message || "Failed to pay invoice.", "error"); }
     finally { setPayingId(null); }
   };
 
@@ -654,7 +675,7 @@ function InvoicesSection() {
               <div className="flex flex-col items-end gap-2">
                 <Badge status={inv.status} />
 
-                {inv.status?.toLowerCase() === "issued" && (
+                {/* {inv.status?.toLowerCase() === "issued" && (
                   <button
                     className="btn btn-xs bg-blue-800 text-white"
                     disabled={payingId === inv.invoice_id}
@@ -662,7 +683,7 @@ function InvoicesSection() {
                   >
                     {payingId === inv.invoice_id ? "Paying…" : "Pay now"}
                   </button>
-                )}
+                )} */}
               </div>
             </div>
           ))}
@@ -822,10 +843,22 @@ function Profile() {
 
 
 
+
+
+
         </section>
 
 
       </div>
+      <Alert
+        isOpen={alert.open}
+        message={alert.message}
+        type={alert.type}
+        onClose={() =>
+          setAlert((prev) => ({ ...prev, open: false }))
+        }
+      />
+
     </div>
   );
 

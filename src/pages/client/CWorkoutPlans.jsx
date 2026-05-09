@@ -472,13 +472,13 @@ function ClientWorkoutPlans() {
   const handleShowScheduleCalendar = () => {
     console.log("[DEBUG] handleShowScheduleCalendar called");
     if (!assignData.start_date || !assignData.end_date) {
-      alert("Please select start and end dates first.");
+      showAlert("Please select start and end dates first.", "warning");
       return;
     }
     const start = parseLocalDate(assignData.start_date);
     const end = parseLocalDate(assignData.end_date);
     if (start > end) {
-      alert("Start date must be before end date.");
+      showAlert("Start date must be before end date.", "error");
       return;
     }
     setShowScheduleCalendar(true);

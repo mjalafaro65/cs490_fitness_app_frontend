@@ -5,6 +5,7 @@ import { useAuth } from "../AuthContext";
 import { useLocation } from "react-router-dom";
 import { useRef } from "react";
 import { useMessaging } from "../MessagingContext";
+import Alert from "../components/Alert";
 
 
 
@@ -18,6 +19,16 @@ function Messages() {
   const [newMessage, setNewMessage] = useState("");
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [relationships, setRelationships] = useState([]);
+  const [alert, setShowAlert] = useState(false);
+  const [alertMsg, setAlertMsg] = useState('');
+  const [alertType, setAlertType] = useState('success');
+
+  const showAlert = (message, type = 'success') => {
+    console.log("ALERT FUNCTION CALLED with:", message, type);
+    setAlertMsg(message);
+    setAlertType(type);
+    setShowAlert(true);
+  };
 
 
   const messagesEndRef = useRef(null);
@@ -196,15 +207,15 @@ function Messages() {
           setConversations(prev => [newConversation, ...prev]);
         } else {
           // No relationship exists - show message to user
-          alert("You need to have an active coaching relationship with this coach to send messages. Please hire the coach first.");
+          showAlert("You need to have an active coaching relationship with this coach to send messages. Please hire the coach first.", "warning");
         }
       } catch (relError) {
         console.error("Error checking relationships:", relError);
-        alert("Failed to check coaching relationship. Please try again.");
+        showAlert("Failed to check coaching relationship. Please try again.", "error");
       }
     } catch (error) {
-      console.error("Error starting conversation with coach:", error);
-      alert("Failed to start conversation with coach");
+      console.error("Error starting conversation with coach:", "error");
+      showAlert("Failed to start conversation with coach", "error");
     }
   };
 
@@ -369,6 +380,12 @@ function Messages() {
           </div>
         </div>
       </div>
+
+      <Alert
+        isOpen={alert}
+        message={alertMsg}
+        type={alertType}
+        onClose={() => setShowAlert(false)} />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../../axios";
+import Alert from "../../components/Alert";
 
 function CoInvoices() {
   const [invoices, setInvoices] = useState([]);
@@ -8,6 +9,18 @@ function CoInvoices() {
 
   const [amount, setAmount] = useState("");
   const [selectedClient, setSelectedClient] = useState(null);
+
+  const [alert, setShowAlert] = useState(false);
+  const [alertMsg, setAlertMsg] = useState('');
+  const [alertType, setAlertType] = useState('success');
+
+  const showAlert = (message, type = 'success') => {
+    console.log("ALERT FUNCTION CALLED with:", message, type);
+    setAlertMsg(message);
+    setAlertType(type);
+    setShowAlert(true);
+  };
+
 
   const fetchInvoices = async () => {
     setLoading(true);
@@ -33,7 +46,7 @@ function CoInvoices() {
 
   const handleCreateInvoice = async () => {
     if (!selectedClient || !amount) {
-      alert("Please select a client and enter an amount.");
+      showAlert("Please select a client and enter an amount.", "error");
       return;
     }
 
@@ -43,7 +56,7 @@ function CoInvoices() {
         amount: Number(amount),
       });
 
-      alert("Invoice created.");
+      showAlert("Invoice created.", "success");
 
       setAmount("");
       setSelectedClient(null);
@@ -51,11 +64,11 @@ function CoInvoices() {
       await fetchInvoices();
     } catch (err) {
       console.error("Failed to create invoice:", err.response?.data || err);
-      alert(
+      showAlert(
         err.response?.data?.message ||
-          err.response?.data?.description ||
-          "Failed to create invoice."
-      );
+        err.response?.data?.description ||
+        "Failed to create invoice."
+        , "error");
     }
   };
 
@@ -78,9 +91,8 @@ function CoInvoices() {
         ) : (
           <div className="flex flex-col gap-2 mb-4 max-h-48 overflow-y-auto">
             {clients.map((client) => {
-              const clientName = `${client.user?.first_name || ""} ${
-                client.user?.last_name || ""
-              }`.trim();
+              const clientName = `${client.user?.first_name || ""} ${client.user?.last_name || ""
+                }`.trim();
 
               const isSelected =
                 selectedClient?.relationship_id === client.relationship_id;
@@ -88,11 +100,10 @@ function CoInvoices() {
               return (
                 <button
                   key={client.relationship_id}
-                  className={`p-3 rounded-box text-left cursor-pointer ${
-                    isSelected
-                      ? "bg-blue-800 text-white"
-                      : "bg-base-100 hover:bg-base-200"
-                  }`}
+                  className={`p-3 rounded-box text-left cursor-pointer ${isSelected
+                    ? "bg-blue-800 text-white"
+                    : "bg-base-100 hover:bg-base-200"
+                    }`}
                   onClick={() => setSelectedClient(client)}
                 >
                   <p className="font-semibold">{clientName || "Unnamed Client"}</p>
@@ -162,6 +173,12 @@ function CoInvoices() {
           </div>
         )}
       </div>
+
+      <Alert
+        isOpen={alert}
+        message={alertMsg}
+        type={alertType}
+        onClose={() => setShowAlert(false)} />
     </div>
   );
 }
