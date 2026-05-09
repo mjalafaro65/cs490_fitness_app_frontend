@@ -8,6 +8,9 @@ function AReviews() {
   const [error, setError] = useState(null);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
 
   const [filters, setFilters] = useState({
     isFlagged: 'all',
@@ -20,11 +23,31 @@ function AReviews() {
 
   useEffect(() => {
     applyFilters();
+    setCurrentPage(1);
   }, [reviews, filters]);
 
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
     setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
+  };
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredReviews.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredReviews.length / itemsPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  const nextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const prevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
   };
 
   const fetchReviews = async () => {
@@ -255,6 +278,68 @@ function AReviews() {
             </div>
           </div>
 
+          <div className="flex justify-between items-center mb-6">
+            <div className="text-sm text-gray-600">
+              Page {currentPage} of {totalPages || 1}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={prevPage}
+                disabled={currentPage === 1}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  currentPage === 1
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-blue-800 text-white hover:bg-blue-500 cursor-pointer'
+                }`}
+              >
+                Previous
+              </button>
+    
+                {/* Page numbers */}
+                <div className="flex gap-1">
+                  {(() => {
+                    const pageNumbers = [];
+                    const maxPageButtons = 5;
+                    let startPage = Math.max(1, currentPage - Math.floor(maxPageButtons / 2));
+                    let endPage = Math.min(totalPages, startPage + maxPageButtons - 1);
+                    
+                    if (endPage - startPage + 1 < maxPageButtons) {
+                      startPage = Math.max(1, endPage - maxPageButtons + 1);
+                    }
+                    
+                    for (let i = startPage; i <= endPage; i++) {
+                      pageNumbers.push(
+                        <button
+                          key={i}
+                          onClick={() => paginate(i)}
+                          className={`px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer ${
+                            currentPage === i
+                              ? 'bg-blue-800 text-white'
+                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          }`}
+                        >
+                          {i}
+                        </button>
+                      );
+                    }
+                    return pageNumbers;
+                  })()}
+                </div>
+                
+                <button
+                  onClick={nextPage}
+                  disabled={currentPage === totalPages}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    currentPage === totalPages
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-blue-800 text-white hover:bg-blue-500 cursor-pointer'
+                  }`}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+
           {/* Reviews Table */}
           <div className="rounded-lg card bg-base-200 shadow-lg border border-base-500 overflow-hidden">
             <div className="overflow-x-auto">
@@ -271,7 +356,7 @@ function AReviews() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredReviews.length === 0 ? (
+                  {currentItems.length === 0 ? (
                     <tr>
                       <td colSpan="8" className="px-6 py-12 text-center">
                         <div className="flex flex-col items-center gap-2">
@@ -280,7 +365,7 @@ function AReviews() {
                       </td>
                     </tr>
                   ) : (
-                    filteredReviews.map(review => (
+                    currentItems.map(review => (
                       <tr key={review.review_id} className={!review.is_visible ? 'bg-blue-50' : 'hover:bg-gray-50'}>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">{review.review_id}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{review.coach_profile_id}</td>
