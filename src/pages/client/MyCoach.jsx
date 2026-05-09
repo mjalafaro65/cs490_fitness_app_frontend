@@ -177,14 +177,25 @@ function MyCoach() {
     const fetchCoach = async () => {
       try {
         const res = await api.get("client/my-coaches");
-        console.log(res.data)
-        setHiredCoaches(res.data.active_relationships)
+        console.log(res.data);
 
+        const all = res.data || [];
+
+        const active = all.filter(c => c.status === "active");
+        const terminated = all.filter(c => c.status === "terminated");
+
+        if (active.length > 0) {
+          setHiredCoaches(active);
+          setFiredCoaches([]); // hide past
+        } else {
+          setHiredCoaches([]);
+          setFiredCoaches(terminated); // show past ONLY if no active
+        }
 
       } catch (err) {
         console.log(err);
       }
-    }
+    };
 
 
     fetchRequests()
@@ -296,14 +307,14 @@ function MyCoach() {
       const firedCoach = hiredCoaches.find(
         coach => coach.relationship_id === pendingFireData.relationshipId
       );
-      if (firedCoach) {
-        setFiredCoaches(prev => [...prev, {
-          ...firedCoach,
-          coach_profile_id: pendingFireData.coachProfileId,
-          fired_date: new Date().toISOString(),
-          reason: firingReason
-        }]);
-      }
+      // if (firedCoach) {
+      //   setFiredCoaches(prev => [...prev, {
+      //     ...firedCoach,
+      //     coach_profile_id: pendingFireData.coachProfileId,
+      //     fired_date: new Date().toISOString(),
+      //     reason: firingReason
+      //   }]);
+      // }
 
       setShowConfirmModal(false);
       setFiringReason("");
@@ -490,7 +501,7 @@ function MyCoach() {
                     No coach assigned yet
                   </p>
                 )}
-                {firedCoaches?.length > 0 && (
+                {firedCoaches && (
                   <>
                     <h3 className="text-sm font-semibold text-base-content/70 mt-4">Past Coaches</h3>
                     {firedCoaches.map((rel) => (

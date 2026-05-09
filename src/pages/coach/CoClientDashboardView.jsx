@@ -536,15 +536,11 @@ function CoClientDashboardView() {
                       <div className="flex justify-between items-start">
                         <div>
                           <p className="font-medium">{activity.description || "Activity"}</p>
-                          <p className="text-xs opacity-60">Type: {activity.activity_type || 'unknown'}</p>
+                          {/* <p className="text-xs opacity-60">Type: {activity.activity_type || 'unknown'}</p> */}
                         </div>
                         <span className="text-xs opacity-60">{activity.date ? new Date(activity.date).toLocaleDateString() : '--'}</span>
                       </div>
-                      {activity.details && Object.keys(activity.details).length > 0 && (
-                        <div className="text-xs opacity-50 mt-1">
-                          {JSON.stringify(activity.details)}
-                        </div>
-                      )}
+                     
                     </div>
                   ))
                 ) : (
@@ -619,6 +615,99 @@ function CoClientDashboardView() {
               )}
             </div>
           </div>
+          <div className="card bg-base-100 rounded-box border border-base-500 p-6 shadow-lg">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold">Workout Logs</h2>
+
+              <select
+                className="select select-sm select-bordered"
+                value={logDayFilter}
+                onChange={(e) => setLogDayFilter(e.target.value)}
+              >
+                <option value={7}>Last 7 days</option>
+                <option value={14}>Last 14 days</option>
+                <option value={30}>Last 30 days</option>
+              </select>
+            </div>
+
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+
+              {workoutLogs.length > 0 ? (
+                workoutLogs.map((log) => (
+                  <div
+                    key={log.workout_log_id}
+                    className="border-b border-base-content/10 pb-4"
+                  >
+                    {/* Header */}
+                    <div className="flex justify-between items-center">
+                      <p className="font-semibold">
+                        From plan : {log.plan_name}
+                      </p>
+
+                      <span className="text-xs opacity-60">
+                        {formatDateTime(log.logged_at)}
+                      </span>
+                    </div>
+
+                    {log.notes && (
+                      <p className="text-xs opacity-60 italic mt-1">{log.notes}</p>
+                    )}
+
+                    {/* Entries */}
+                    <div className="mt-3 space-y-2">
+                      {log.entries.map((entry) => (
+                        <div
+                          key={entry.workout_log_entry_id}
+                          className="bg-base-200 p-3 rounded-md text-sm"
+                        >
+                          <div className="flex justify-between">
+                            <p className="font-medium">
+                              {entry.exercise?.name || "Exercise"}
+                            </p>
+
+
+                          </div>
+
+                          <div className="text-xs opacity-70 mt-1 flex gap-3 flex-wrap">
+
+                            {entry.weight > 0 && (
+                              <span>Weight: {entry.weight} kg</span>
+                            )}
+
+                            {entry.rpe > 0 && (
+                              <span>RPE: {entry.rpe}</span>
+                            )}
+
+                            {entry.duration_minutes > 0 && (
+                              <span>Duration: {entry.duration_minutes} min</span>
+                            )}
+
+                            {entry.reps > 0 && (
+                              <span>Reps: {entry.reps}</span>
+                            )}
+
+                            {entry.sets > 0 && (
+                              <span>Sets: {entry.sets}</span>
+                            )}
+
+                          </div>
+
+                          {entry.notes && (
+                            <p className="text-xs italic opacity-50 mt-1">
+                              {entry.notes}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm opacity-50">No workout logs found</p>
+              )}
+
+            </div>
+          </div>
 
           {/* Invoices & Payments */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -652,99 +741,7 @@ function CoClientDashboardView() {
               </div>
             </div>
 
-            <div className="card bg-base-100 rounded-box border border-base-500 p-6 shadow-lg">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-bold">Workout Logs</h2>
 
-                <select
-                  className="select select-sm select-bordered"
-                  value={logDayFilter}
-                  onChange={(e) => setLogDayFilter(e.target.value)}
-                >
-                  <option value={7}>Last 7 days</option>
-                  <option value={14}>Last 14 days</option>
-                  <option value={30}>Last 30 days</option>
-                </select>
-              </div>
-
-              <div className="space-y-4 max-h-96 overflow-y-auto">
-
-                {workoutLogs.length > 0 ? (
-                  workoutLogs.map((log) => (
-                    <div
-                      key={log.workout_log_id}
-                      className="border-b border-base-content/10 pb-4"
-                    >
-                      {/* Header */}
-                      <div className="flex justify-between items-center">
-                        <p className="font-semibold">
-                          Workout #{log.workout_log_id}
-                        </p>
-
-                        <span className="text-xs opacity-60">
-                          {formatDateTime(log.logged_at)}
-                        </span>
-                      </div>
-
-                      {log.notes && (
-                        <p className="text-xs opacity-60 italic mt-1">{log.notes}</p>
-                      )}
-
-                      {/* Entries */}
-                      <div className="mt-3 space-y-2">
-                        {log.entries.map((entry) => (
-                          <div
-                            key={entry.workout_log_entry_id}
-                            className="bg-base-200 p-3 rounded-md text-sm"
-                          >
-                            <div className="flex justify-between">
-                              <p className="font-medium">
-                                {entry.exercise?.name || "Exercise"}
-                              </p>
-
-
-                            </div>
-
-                            <div className="text-xs opacity-70 mt-1 flex gap-3 flex-wrap">
-
-                              {entry.weight > 0 && (
-                                <span>Weight: {entry.weight} kg</span>
-                              )}
-
-                              {entry.rpe > 0 && (
-                                <span>RPE: {entry.rpe}</span>
-                              )}
-
-                              {entry.duration_minutes > 0 && (
-                                <span>Duration: {entry.duration_minutes} min</span>
-                              )}
-
-                              {entry.reps > 0 && (
-                                <span>Reps: {entry.reps}</span>
-                              )}
-
-                              {entry.sets > 0 && (
-                                <span>Sets: {entry.sets}</span>
-                              )}
-
-                            </div>
-
-                            {entry.notes && (
-                              <p className="text-xs italic opacity-50 mt-1">
-                                {entry.notes}
-                              </p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm opacity-50">No workout logs found</p>
-                )}
-
-              </div>
-            </div>
 
             {/* Payments Card */}
             <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-6">
@@ -777,136 +774,7 @@ function CoClientDashboardView() {
             </div>
           </div>
 
-          {/* Coaches & Progress Photos */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Coaches Card */}
-            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-6">
-              <h2 className="text-lg font-bold mb-4">Client's Coaches</h2>
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {dashboard.coaches && dashboard.coaches.length > 0 ? (
-                  dashboard.coaches.map((coach) => (
-                    <div key={coach.coach_profile_id} className="text-sm py-2 border-b border-base-content/10">
-                      <p className="font-medium">{coach.first_name} {coach.last_name}</p>
-                      <div className="flex justify-between items-center mt-1">
-                        <span className="text-xs opacity-60">
-                          Since: {coach.started_at ? new Date(coach.started_at).toLocaleDateString() : '--'}
-                        </span>
-                        <span className={`text-xs px-2 py-1 rounded-full ${coach.relationship_status === 'active' ? 'bg-green-500/20 text-green-400' :
-                          'bg-gray-500/20 text-gray-400'
-                          }`}>
-                          {coach.relationship_status || 'unknown'}
-                        </span>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm opacity-50">No coaches assigned</p>
-                )}
-              </div>
-            </div>
-
-
-            {/* Progress Photos Card */}
-            <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-6">
-              <div className="flex justify-between items-center mb-5">
-                <div>
-                  <h2 className="text-xl font-bold">Progress Photos</h2>
-                  <p className="text-sm opacity-60">
-                    Click to view transformation details
-                  </p>
-                </div>
-
-                <div className="badge badge-primary bg-blue-800">
-                  {dashboard.progress_photos?.length || 0}
-                </div>
-              </div>
-
-              {dashboard.progress_photos?.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-h-[32rem] overflow-y-auto">
-                  {dashboard.progress_photos.map((photo) => (
-                    <div
-                      key={photo.photo_id}
-                      onClick={() => setSelectedPhoto(photo)}
-                      className="cursor-pointer bg-base-100 rounded-xl overflow-hidden shadow hover:scale-[1.03] hover:shadow-xl transition-all"
-                    >
-                      <div className="grid grid-cols-2">
-                        <img
-                          src={photo.before_photo_url}
-                          alt="Before"
-                          className="w-full h-32 object-cover"
-                        />
-                        <img
-                          src={photo.after_photo_url}
-                          alt="After"
-                          className="w-full h-32 object-cover"
-                        />
-                      </div>
-
-                      <div className="p-2 text-center">
-                        <p className="text-xs opacity-70">
-                          {photo.upload_date
-                            ? new Date(photo.upload_date).toLocaleDateString()
-                            : "--"}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12 opacity-50">
-                  No progress photos yet
-                </div>
-              )}
-            </div>
-
-            {/* Modal */}
-            {selectedPhoto && (
-              <dialog className="modal modal-open">
-                <div className="modal-box max-w-6xl bg-base-100">
-                  <div className="flex justify-between items-center mb-5">
-                    <h3 className="text-2xl font-bold">Transformation Comparison</h3>
-
-                    <button
-                      className="btn btn-sm btn-circle"
-                      onClick={() => setSelectedPhoto(null)}
-                    >
-                      ✕
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-                    {/* Before */}
-                    <div>
-                      <h4 className="font-bold mb-3 text-blue-800">Before</h4>
-                      <img
-                        src={selectedPhoto.before_photo_url}
-                        alt="Before"
-                        className="w-full rounded-2xl max-h-[75vh] object-contain"
-                      />
-                    </div>
-
-                    {/* After */}
-                    <div>
-                      <h4 className="font-bold mb-3 text-blue-900">After</h4>
-                      <img
-                        src={selectedPhoto.after_photo_url}
-                        alt="After"
-                        className="w-full rounded-2xl max-h-[75vh] object-contain"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="text-center mt-6 opacity-70">
-                    {selectedPhoto.upload_date
-                      ? new Date(selectedPhoto.upload_date).toLocaleDateString()
-                      : "--"}
-                  </div>
-                </div>
-              </dialog>
-            )}
-
-          </div>
+       
 
           {/* Wellness Charts Section */}
           <div className="w-full">
