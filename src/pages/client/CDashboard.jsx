@@ -266,11 +266,11 @@ function CDashboard() {
 
   }, [weekAnchor]);
 
-  useEffect(() => {
-    if (!loading && daily && isSameDay(selectedDay, new Date())) {
-      setSelectedDayLog(daily);
-    }
-  }, [loading, daily]);
+  // useEffect(() => {
+  //   if (!loading && daily && isSameDay(selectedDay, new Date())) {
+  //     setSelectedDayLog(daily);
+  //   }
+  // }, [loading, daily]);
 
   useEffect(() => {
     const handleFocus = () => {
@@ -391,17 +391,68 @@ function CDashboard() {
 
   }, []);
 
-
-    useEffect(() => {
-      if (selectedDay) {
-        const today = new Date();
-        const isToday = isSameDay(selectedDay, today);
-        
-        if (!isToday) {
-          fetchLogForDate(selectedDay);
-        }
+useEffect(() => {
+  let isMounted = true;
+  
+  if (selectedDay) {
+    const today = new Date();
+    const isToday = isSameDay(selectedDay, today);
+    
+    if (isToday) {
+      // For today, use the daily state directly
+      if (isMounted) {
+        setSelectedDayLog(daily);
       }
-    }, [selectedDay, daily]); 
+    } else {
+      // For other days, fetch from API
+      const fetchData = async () => {
+        setIsLoadingLog(true);
+        try {
+          const year = selectedDay.getFullYear();
+          const month = String(selectedDay.getMonth() + 1).padStart(2, '0');
+          const day = String(selectedDay.getDate()).padStart(2, '0');
+          const dateStr = `${year}-${month}-${day}`;
+          
+          const response = await api.get("/insights/survey");
+          // Only update if this date is still the selected one
+          if (!isMounted) return;
+          
+          const history = response.data?.history || [];
+          const logEntry = history.find(entry => entry.date === dateStr);
+          
+          if (logEntry) {
+            setSelectedDayLog({
+              daily_goal: logEntry.daily_goal || "",
+              energy_level: logEntry.energy_level || "",
+              target_focus: logEntry.target_focus || "",
+              water_oz: logEntry.water_oz || "",
+              weight_lbs: logEntry.weight_lbs || "",
+              sleep_hours: logEntry.sleep_hours || "",
+              mood_score: logEntry.mood_score || ""
+            });
+          } else {
+            setSelectedDayLog(null);
+          }
+        } catch (err) {
+          if (isMounted) {
+            console.error("Failed to fetch log for date:", err);
+            setSelectedDayLog(null);
+          }
+        } finally {
+          if (isMounted) {
+            setIsLoadingLog(false);
+          }
+        }
+      };
+      
+      fetchData();
+    }
+  }
+  
+  return () => {
+    isMounted = false;
+  };
+}, [selectedDay, daily]); // Keep daily so today updates when daily changes
 
   const filterDataForCurrentWeek = (data) => {
     if (!data.length) return [];
@@ -522,6 +573,19 @@ function CDashboard() {
       console.log("Sending:", submitData);
 
       await api.post("/client/daily-survey", submitData);
+
+      const refreshResponse = await api.get("/client/daily-survey");
+      const freshData = refreshResponse.data;
+      setData({
+        daily_goal: freshData.daily_goal ?? "",
+        energy_level: freshData.energy_level ?? "",
+        target_focus: freshData.target_focus ?? "",
+        water_oz: freshData.water_oz ?? "",
+        weight_lbs: freshData.weight_lbs ?? "",
+        sleep_hours: freshData.sleep_hours ?? "",
+        mood_score: freshData.mood_score ?? ""
+      });
+
 
       setIsUpdated(true);
 
@@ -911,8 +975,10 @@ function CDashboard() {
   ) : selectedDayLog ? (
     <div className="flex flex-col gap-2 text-sm">
       {[
-        { label: "Goal", value: selectedDayLog.daily_goal || null },
-        { label: "Focus", value: selectedDayLog.target_focus || null },
+        ...(isSameDay(selectedDay, new Date()) ? [
+          { label: "Goal", value: selectedDayLog.daily_goal || null },
+          { label: "Focus", value: selectedDayLog.target_focus || null },
+        ] : []),
         { label: "Mood", value: selectedDayLog.mood_score ? `${selectedDayLog.mood_score} / 5` : null },
         { label: "Weight", value: selectedDayLog.weight_lbs ? `${selectedDayLog.weight_lbs} lbs` : null },
         { label: "Energy", value: selectedDayLog.energy_level ? `${selectedDayLog.energy_level} / 5` : null },
