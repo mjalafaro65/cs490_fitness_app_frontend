@@ -14,8 +14,8 @@ function Notifications() {
       try {
         const res = await api.get("/notifications/all");
         setNotifications(res.data);
-        console.log("notifications:",res);
-        console.log("notifi:",res.data);
+        console.log("notifications:", res);
+        console.log("notifi:", res.data);
       } catch (error) {
         console.log(error.response);
       }
@@ -29,11 +29,11 @@ function Notifications() {
   const handleMarkAsRead = async (notificationId) => {
     try {
       setMarkingAsRead(prev => ({ ...prev, [notificationId]: true }));
-      
+
       const response = await api.patch("/notifications/mark-read", {
         notification_id: notificationId
       });
-      
+
       if (response.status === 200) {
         setNotifications(prevNotifications =>
           prevNotifications.map(notif =>
@@ -61,30 +61,33 @@ function Notifications() {
 
     return past.toLocaleDateString();
   };
-  const groupedNotifications = notifications.reduce((acc, notif) => {
-    const key = notif.title; // your group key
+
+  const grouped = notifications.reduce((acc, notif) => {
+    const key = `${notif.title}||${notif.body}`; // fallback = single
 
     if (!acc[key]) {
       acc[key] = {
-        ...notif,
-        count: 1,
+        key,
+        type: notif.type_slug ? "group" : "single",
+        title: notif.title,
+        ids: notif.type_slug ? [notif.notification_id] : null,
+        notification_id: notif.notification_id,
+        is_read: notif.is_read,
+        created_at: notif.created_at
       };
     } else {
-      acc[key].count += 1;
+      acc[key].ids.push(notif.notification_id);
 
-      // keep the most recent timestamp
+      acc[key].is_read = acc[key].is_read && notif.is_read;
+
       if (new Date(notif.created_at) > new Date(acc[key].created_at)) {
         acc[key].created_at = notif.created_at;
-        acc[key].body = notif.body;
-        acc[key].is_read = notif.is_read;
       }
-      
-      acc[key].all_read = acc[key].all_read && notif.is_read;
     }
 
     return acc;
   }, {});
-  const groupedList = Object.values(groupedNotifications);
+  const groupedList = Object.values(grouped);
 
 
   return (
@@ -107,7 +110,7 @@ function Notifications() {
                     </svg>
                   </div>
 
-                {/* Content */}
+                  {/* Content */}
                   <div className="flex-1">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -118,23 +121,29 @@ function Notifications() {
                           {notification.body || ""}
                         </p>
                       </div>
-                      
+
                       {/* Time and Button - pushed to the right */}
                       <div className="flex flex-col items-end gap-2 ml-4">
                         <span className="text-[10px] uppercase tracking-wider opacity-50 font-medium whitespace-nowrap">
                           {formatTimeAgo(notification.created_at)}
                         </span>
-                        
+
                         {!notification.is_read && (
-                          <button 
+                          <button
                             className="btn btn-xs btn-primary bg-blue-800 text-white"
-                            onClick={() => handleMarkAsRead(notification.notification_id)}
+                            onClick={() => {
+                              if (notification.type === "group") {
+                                handleMarkAsReadGroup(notification.ids);
+                              } else {
+                                handleMarkAsRead(notification.notification_id);
+                              }
+                            }}
                             disabled={markingAsRead[notification.notification_id]}
                           >
                             {markingAsRead[notification.notification_id] ? "..." : "Mark as read"}
                           </button>
                         )}
-                        
+
                         {notification.is_read && (
                           <span className="text-xs text-blue-800 font-medium">
                             Read

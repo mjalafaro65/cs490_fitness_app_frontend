@@ -682,7 +682,6 @@ useEffect(() => {
 
 
 
-  console.log(selectedDay, today, dayLog)
 
   return (
 

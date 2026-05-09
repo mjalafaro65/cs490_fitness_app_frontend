@@ -624,7 +624,7 @@ const CoachPublicProfile = () => {
                                                 onClick={async () => {
                                                     try {
                                                         setSubmitting(true);
-
+                                                    
                                                         // Use 1-5 star rating directly for backend
                                                         await api.post(`/client/review-coach/${coach.coach_profile_id}`, {
                                                             rating: newRating,
@@ -644,6 +644,9 @@ const CoachPublicProfile = () => {
                                                         console.error("Error response:", err.response);
                                                         console.error("Error status:", err.response?.status);
                                                         console.error("Error data:", err.response?.data);
+                                                        showAlert("Can't Review", "error");
+
+                                                        
 
                                                     } finally {
                                                         setSubmitting(false);
