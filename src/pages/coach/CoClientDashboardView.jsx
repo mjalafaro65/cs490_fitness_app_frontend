@@ -145,9 +145,10 @@ function CoClientDashboardView() {
     const dataMap = new Map();
     insightsData.forEach(item => {
       if (item.date) {
-        const dateObj = new Date(item.date);
-        const dateStr = dateObj.toISOString().split('T')[0];
-        const monthDay = `${dateObj.getMonth() + 1}/${dateObj.getDate()}`;
+        const dateParts = item.date.split('-');
+        const dateObj = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+        const dateStr = `${dateParts[0]}-${dateParts[1]}-${dateParts[2]}`;
+        const monthDay = `${parseInt(dateParts[1])}/${parseInt(dateParts[2])}`;
 
         if (!dataMap.has(dateStr)) {
           dataMap.set(dateStr, {
@@ -199,8 +200,11 @@ function CoClientDashboardView() {
     for (let i = 6; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split('T')[0];
-      const monthDay = `${date.getMonth() + 1}/${date.getDate()}`;
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+      const monthDay = `${parseInt(month)}/${parseInt(day)}`;
 
       if (dataMap.has(dateStr)) {
         chartData.push(dataMap.get(dateStr));
