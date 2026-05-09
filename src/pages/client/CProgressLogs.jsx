@@ -234,6 +234,8 @@ function ProgressLogs() {
         await api.delete(`/client/goals/${goalId}`);
         showAlert("Goal deleted successfully!", "success");
         setPopOpen(null);
+        setProgressModalOpen(false);
+        setSelectedGoal(null);
         await fetchGoals(); 
       } catch (err) {
         console.error("Error deleting goal:", err.response?.data || err);
@@ -998,7 +1000,7 @@ function ProgressLogs() {
   {calculatedProgress >= 100 && (
     <div className="mt-2 text-right">
       <span className="badge badge-success badge-sm">Completed</span>
-      <button>Delete</button>
+      <button className="btn btn-xs bg-red-600 text-white rounded-box ml-2">Delete</button>
     </div>
   )}
 </div>
@@ -1587,7 +1589,7 @@ function ProgressLogs() {
               <button
                 className="btn shadow-lg text-white bg-red-600 flex-1"
                 type="button"
-                onClick={() =>{
+                onClick={(e) =>{
                   e.preventDefault(); 
                   e.stopPropagation();
                   handleDeleteGoal(editGoalData.goal_id)}}
