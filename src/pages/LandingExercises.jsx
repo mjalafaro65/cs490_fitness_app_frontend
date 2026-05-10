@@ -147,9 +147,12 @@ function LandingExercises() {
                     {exercise.equipment}
                   </span>
 
-                  <span className="badge badge-outline">
-                    {exercise.training_type}
-                  </span>
+                  {exercise.training_type &&
+                    <span className="badge badge-outline">
+                      {exercise.training_type}
+                    </span>
+                  }
+
                 </div>
 
                 <p className="text-sm text-gray-600 line-clamp-3">
