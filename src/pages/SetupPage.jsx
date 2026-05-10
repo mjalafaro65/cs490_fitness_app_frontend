@@ -5,7 +5,20 @@ import { useAuth } from "../AuthContext.jsx";
 import Alert from "../components/Alert.jsx";
 
 function SetupPage() {
+
+
     const { fetchUser } = useAuth()
+
+    const [alert, setShowAlert] = useState(false);
+    const [alertMsg, setAlertMsg] = useState('');
+    const [alertType, setAlertType] = useState('success');
+
+    const showAlert = (message, type = 'success') => {
+        console.log("ALERT FUNCTION CALLED with:", message, type);
+        setAlertMsg(message);
+        setAlertType(type);
+        setShowAlert(true);
+    };
     const DEFAULT_PHOTO = "https://res.cloudinary.com/dh1rjok0f/image/upload/v1777335485/unknown_pfp_adcb09_zzqxwp.png";
 
     const [profileData, setProfileData] = useState({
@@ -29,7 +42,11 @@ function SetupPage() {
 
         if (value === "") {
             finalValue = null;
-        } else {
+        }
+        else if (name === "phone_number") {
+            finalValue = formatPhoneNumber(value);
+        }
+        else {
             const numericFields = ["height", "weight"];
             if (numericFields.includes(name)) {
                 finalValue = Number(value);
@@ -40,6 +57,22 @@ function SetupPage() {
             ...profileData,
             [name]: finalValue
         });
+    };
+    const formatPhoneNumber = (value) => {
+        const cleaned = value.replace(/\D/g, "");
+
+        const match = cleaned.match(/^(\d{0,3})(\d{0,3})(\d{0,4})$/);
+
+        if (!match) return value;
+
+        let formatted = "";
+
+        if (match[1]) formatted += `(${match[1]}`;
+        if (match[1] && match[1].length === 3) formatted += ") ";
+        if (match[2]) formatted += match[2];
+        if (match[3]) formatted += `-${match[3]}`;
+
+        return formatted;
     };
 
 
@@ -106,14 +139,19 @@ function SetupPage() {
         widget.open();
     };
 
+    const today = new Date().toISOString().split("T")[0];
+
     return (
         <div className="min-h-screen bg-blue-600 p-8">
             <div className="max-w-2xl mx-auto bg-base-100 p-8 rounded-box shadow-xl">
-                <h1 className="text-2xl font-bold mb-6">Complete Your Profile</h1>
-                <p>Before you get started on your fitness journey, tell us about youself!</p>
+                <h1 className="text-2xl font-bold mb-2">Complete Your Profile</h1>
+                <p className="text-gray-500 mb-6">
+                    Help us personalize your workouts and nutrition plan in under 2 minutes.
+                </p>
 
                 <form onSubmit={handleFinish} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* First Name */}
+                    <div className="md:col-span-2 text-lg font-semibold mt-4">Personal Info</div>
                     <div className="form-control">
                         <label className="label font-semibold">First Name</label>
                         <input name="first_name" onChange={handleChange} className="input input-bordered" required />
@@ -131,6 +169,7 @@ function SetupPage() {
                             type="tel"
                             name="phone_number"
                             onChange={handleChange}
+
                             className="input input-bordered"
                             placeholder="234-567-8900"
                         />
@@ -143,6 +182,7 @@ function SetupPage() {
                             type="date"
                             name="date_of_birth"
                             onChange={handleChange}
+                            max={today}
                             className="input input-bordered"
                         />
                     </div>
@@ -165,6 +205,7 @@ function SetupPage() {
                         </select>
                     </div>
 
+                    <div className="md:col-span-2 text-lg font-semibold mt-4">Body Metrics</div>
                     {/* Height */}
                     <div className="form-control">
                         <label className="label font-semibold">Height (cm)</label>
@@ -173,16 +214,17 @@ function SetupPage() {
                             name="height"
                             onChange={handleChange}
                             className="input input-bordered"
-                            placeholder="180"
+                            placeholder="cm (e.g. 175)"
                         />
                     </div>
 
                     {/* Weight */}
                     <div className="form-control">
                         <label className="label font-semibold">Weight (lb)</label>
-                        <input type="number" name="weight" onChange={handleChange} className="input input-bordered" />
+                        <input type="number" name="weight" onChange={handleChange} placeholder="lb (e.g. 160)" className="input input-bordered" />
                     </div>
 
+                    <div className="md:col-span-2 text-lg font-semibold mt-4">Profile</div>
                     {/* Upload profile pic */}
                     <div className="form-control md:col-span-2">
                         <label className="label font-semibold text-white">Profile Photo</label>
@@ -210,7 +252,7 @@ function SetupPage() {
                             name="bio"
                             onChange={handleChange}
                             className="textarea textarea-bordered h-24 w-full"
-                            placeholder="Tell us about your fitness journey..."
+                            placeholder="Example: I’m trying to lose weight, build strength, and stay consistent 3x/week."
                         ></textarea>
                     </div>
 

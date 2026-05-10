@@ -39,6 +39,7 @@ function CoInvoices() {
     try {
       const res = await api.get("/coach/show-client-relationships");
       setClients(res.data || []);
+      console.log(res.data)
     } catch (err) {
       console.error("Failed to fetch clients:", err.response?.data || err);
     }
@@ -109,9 +110,17 @@ function CoInvoices() {
                   <p className="font-semibold">{clientName || "Unnamed Client"}</p>
                   <p className="text-xs opacity-70">
                     Plan: {client.plan?.name || "No plan"}{" "}
-                    {client.plan?.billing_type
-                      ? `(${client.plan.billing_type})`
-                      : ""}
+                    {client.plan?.billing_type || client.plan?.amount ? (
+                      <span>
+                        (
+                        {client.plan?.billing_type || ""}
+                        {client.plan?.billing_type && client.plan?.amount ? " " : ""}
+                        {client.plan?.amount ? `$${client.plan.amount}` : ""}
+                        )
+                      </span>
+                    ) : (
+                      ""
+                    )}
                   </p>
                 </button>
               );

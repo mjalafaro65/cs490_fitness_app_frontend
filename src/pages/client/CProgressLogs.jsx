@@ -230,45 +230,45 @@ function ProgressLogs() {
   };
 
   const handleDeleteGoal = async (goalId) => {
-      try {
-        await api.delete(`/client/goals/${goalId}`);
-        showAlert("Goal deleted successfully!", "success");
-        setPopOpen(null);
-        setProgressModalOpen(false);
-        setSelectedGoal(null);
-        await fetchGoals(); 
-      } catch (err) {
-        console.error("Error deleting goal:", err.response?.data || err);
-        showAlert("Failed to delete goal", "error");
-      }
+    try {
+      await api.delete(`/client/goals/${goalId}`);
+      showAlert("Goal deleted successfully!", "success");
+      setPopOpen(null);
+      setProgressModalOpen(false);
+      setSelectedGoal(null);
+      await fetchGoals();
+    } catch (err) {
+      console.error("Error deleting goal:", err.response?.data || err);
+      showAlert("Failed to delete goal", "error");
+    }
   };
 
 
   const handleAddProgress = async (goalId, value) => {
-  try {
-    const goal = goalsData.find(g => g.goal_id === goalId);
-    
-    if (goal && (goal.goal_type !== "weight")) {
-      const currentProgress = parseFloat(goal.current_value) || 0;
-      const valueToAdd = parseFloat(value);
-      const newProgress = currentProgress + valueToAdd;
-      
-      await api.post(`/client/goals/${goalId}/progress`, {
-        value: newProgress
-      });
-      showAlert(`Added ${valueToAdd} ${goal.unit}! New total: ${newProgress} ${goal.unit}`, "success");
-    } else {
-      await api.post(`/client/goals/${goalId}/progress`, {
-        value: parseFloat(value)
-      });
-      showAlert("Progress updated!", "success");
+    try {
+      const goal = goalsData.find(g => g.goal_id === goalId);
+
+      if (goal && (goal.goal_type !== "weight")) {
+        const currentProgress = parseFloat(goal.current_value) || 0;
+        const valueToAdd = parseFloat(value);
+        const newProgress = currentProgress + valueToAdd;
+
+        await api.post(`/client/goals/${goalId}/progress`, {
+          value: newProgress
+        });
+        showAlert(`Added ${valueToAdd} ${goal.unit}! New total: ${newProgress} ${goal.unit}`, "success");
+      } else {
+        await api.post(`/client/goals/${goalId}/progress`, {
+          value: parseFloat(value)
+        });
+        showAlert("Progress updated!", "success");
+      }
+
+      await fetchGoals();
+    } catch (err) {
+      showAlert("Failed to update progress", "error");
     }
-    
-    await fetchGoals();
-  } catch (err) {
-    showAlert("Failed to update progress", "error");
-  }
-};
+  };
 
   const handleCreateGoal = async (e) => {
     e.preventDefault();
@@ -446,12 +446,12 @@ function ProgressLogs() {
         ? (filteredSurvey.reduce((sum, e) => sum + (e.energy_level || 0), 0) / filteredSurvey.length).toFixed(1)
         : 0,
       weight_change_lbs: (() => {
-          if (filteredSurvey.length < 3) return 0;
-          
-          const firstValid = filteredSurvey.find(s => s?.weight_lbs > 0)?.weight_lbs;
-          const lastValid = [...filteredSurvey].reverse().find(s => s?.weight_lbs > 0)?.weight_lbs;
-          
-          return firstValid && lastValid ? lastValid - firstValid : 0;
+        if (filteredSurvey.length < 3) return 0;
+
+        const firstValid = filteredSurvey.find(s => s?.weight_lbs > 0)?.weight_lbs;
+        const lastValid = [...filteredSurvey].reverse().find(s => s?.weight_lbs > 0)?.weight_lbs;
+
+        return firstValid && lastValid ? lastValid - firstValid : 0;
       })()
     };
 
@@ -530,76 +530,76 @@ function ProgressLogs() {
   }
 
   // Replace this entire section from where you create workoutByDate
-const workoutByDate = {};
-workoutData.forEach(workout => {
-  let date = workout.date;
-  if (!date && workout.scheduled_start) {
-    date = workout.scheduled_start.split('T')[0];
-  }
-  // Also check for completed_at or logged_at
-  if (!date && workout.completed_at) {
-    date = workout.completed_at.split('T')[0];
-  }
-  if (!date && workout.logged_at) {
-    date = workout.logged_at.split('T')[0];
-  }
-
-  if (date) {
-    if (!workoutByDate[date]) {
-      workoutByDate[date] = { 
-        total: 0, 
-        completed: 0, 
-        scheduled: 0, 
-        dateObj: new Date(date),
-        workouts: [] // Store workout details for debugging
-      };
+  const workoutByDate = {};
+  workoutData.forEach(workout => {
+    let date = workout.date;
+    if (!date && workout.scheduled_start) {
+      date = workout.scheduled_start.split('T')[0];
     }
-    workoutByDate[date].total++;
-    
-    // Check for different status fields
-    const status = workout.status || workout.workout_status;
-    if (status === 'completed' || workout.completed === true || workout.is_completed === true) {
-      workoutByDate[date].completed++;
-    } else if (status === 'scheduled' || workout.scheduled === true) {
-      workoutByDate[date].scheduled++;
+    // Also check for completed_at or logged_at
+    if (!date && workout.completed_at) {
+      date = workout.completed_at.split('T')[0];
     }
-    
-    workoutByDate[date].workouts.push(workout);
-  }
-});
+    if (!date && workout.logged_at) {
+      date = workout.logged_at.split('T')[0];
+    }
 
-console.log("Workout by date:", workoutByDate); // Debug log
-
-let workoutChartDataRaw = Object.keys(workoutByDate)
-  .sort((a, b) => new Date(a) - new Date(b))
-  .map(date => ({
-    date: date,
-    dateObj: workoutByDate[date].dateObj,
-    total: workoutByDate[date].total,
-    completed: workoutByDate[date].completed,
-    scheduled: workoutByDate[date].scheduled
-  }));
-
-// Add this after workoutChartDataRaw definition
-let workoutChartData;
-if (timeView === 'yearly') {
-  const monthlyWorkoutAggregated = {};
-  workoutChartDataRaw.forEach(workout => {
-    const date = new Date(workout.date);
-    if (date.getFullYear() === new Date().getFullYear()) {
-      const monthKey = date.toLocaleDateString('default', { month: 'short' });
-      if (!monthlyWorkoutAggregated[monthKey]) {
-        monthlyWorkoutAggregated[monthKey] = { period: monthKey, total: 0, completed: 0, scheduled: 0 };
+    if (date) {
+      if (!workoutByDate[date]) {
+        workoutByDate[date] = {
+          total: 0,
+          completed: 0,
+          scheduled: 0,
+          dateObj: new Date(date),
+          workouts: [] // Store workout details for debugging
+        };
       }
-      monthlyWorkoutAggregated[monthKey].total += workout.total;
-      monthlyWorkoutAggregated[monthKey].completed += workout.completed;
-      monthlyWorkoutAggregated[monthKey].scheduled += workout.scheduled;
+      workoutByDate[date].total++;
+
+      // Check for different status fields
+      const status = workout.status || workout.workout_status;
+      if (status === 'completed' || workout.completed === true || workout.is_completed === true) {
+        workoutByDate[date].completed++;
+      } else if (status === 'scheduled' || workout.scheduled === true) {
+        workoutByDate[date].scheduled++;
+      }
+
+      workoutByDate[date].workouts.push(workout);
     }
   });
-  workoutChartData = Object.values(monthlyWorkoutAggregated);
-} else {
-  workoutChartData = [];
-}
+
+  console.log("Workout by date:", workoutByDate); // Debug log
+
+  let workoutChartDataRaw = Object.keys(workoutByDate)
+    .sort((a, b) => new Date(a) - new Date(b))
+    .map(date => ({
+      date: date,
+      dateObj: workoutByDate[date].dateObj,
+      total: workoutByDate[date].total,
+      completed: workoutByDate[date].completed,
+      scheduled: workoutByDate[date].scheduled
+    }));
+
+  // Add this after workoutChartDataRaw definition
+  let workoutChartData;
+  if (timeView === 'yearly') {
+    const monthlyWorkoutAggregated = {};
+    workoutChartDataRaw.forEach(workout => {
+      const date = new Date(workout.date);
+      if (date.getFullYear() === new Date().getFullYear()) {
+        const monthKey = date.toLocaleDateString('default', { month: 'short' });
+        if (!monthlyWorkoutAggregated[monthKey]) {
+          monthlyWorkoutAggregated[monthKey] = { period: monthKey, total: 0, completed: 0, scheduled: 0 };
+        }
+        monthlyWorkoutAggregated[monthKey].total += workout.total;
+        monthlyWorkoutAggregated[monthKey].completed += workout.completed;
+        monthlyWorkoutAggregated[monthKey].scheduled += workout.scheduled;
+      }
+    });
+    workoutChartData = Object.values(monthlyWorkoutAggregated);
+  } else {
+    workoutChartData = [];
+  }
 
 
 
@@ -671,32 +671,32 @@ if (timeView === 'yearly') {
   }));
 
   const logDateSet = new Set(groupedArray.map(d => d.date));
-  
-    useEffect(() => {
-      async function fetchUser() {
-        try {
-          const response = await api.get("/client/daily-survey");
-          const response2 = await api.get("/client/survey-status");
-          const statusData = response2.data;
-  
-          const data = response.data;
-          console.log("GET response:", data, " ", statusData);
 
-          setData({
-            daily_goal: data.daily_goal ?? "",
-            energy_level: data.energy_level ?? "",
-            target_focus: data.target_focus ?? "",
-            water_oz: data.water_oz ?? "",
-            weight_lbs: data.weight_lbs ?? "",
-            sleep_hours: data.sleep_hours ?? "",
-            mood_score: data.mood_score ?? ""
-  
-          });
-          localStorage.setItem("dailyData", JSON.stringify(data));
-        } catch (err) {
-          console.error("Failed to fetch user:", err.response?.data || err);
-        }
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const response = await api.get("/client/daily-survey");
+        const response2 = await api.get("/client/survey-status");
+        const statusData = response2.data;
+
+        const data = response.data;
+        console.log("GET response:", data, " ", statusData);
+
+        setData({
+          daily_goal: data.daily_goal ?? "",
+          energy_level: data.energy_level ?? "",
+          target_focus: data.target_focus ?? "",
+          water_oz: data.water_oz ?? "",
+          weight_lbs: data.weight_lbs ?? "",
+          sleep_hours: data.sleep_hours ?? "",
+          mood_score: data.mood_score ?? ""
+
+        });
+        localStorage.setItem("dailyData", JSON.stringify(data));
+      } catch (err) {
+        console.error("Failed to fetch user:", err.response?.data || err);
       }
+    }
     fetchUser();
   }, []);
 
@@ -864,7 +864,7 @@ if (timeView === 'yearly') {
             </div>
           </div>
 
-           <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-4">
+          <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-4">
             <h2 className="text-lg font-bold mb-4">Workout Schedule Overview ({timeView === 'weekly' ? 'Last 7 Days' : timeView === 'monthly' ? 'This Month' : 'By Month'})</h2>
             {loadingInsights ? (
               <div className="flex items-center justify-center h-64">
@@ -879,7 +879,7 @@ if (timeView === 'yearly') {
                       {day}
                     </div>
                   ))}
-                  
+
                   {(() => {
                     const last7Days = [];
                     for (let i = 6; i >= 0; i--) {
@@ -887,9 +887,9 @@ if (timeView === 'yearly') {
                       date.setDate(date.getDate() - i);
                       date.setHours(0, 0, 0, 0);
                       const dateStr = date.toISOString().split('T')[0];
-                      
+
                       let dayData = workoutChartDataRaw.find(d => d.date === dateStr);
-                      
+
                       if (!dayData) {
                         dayData = {
                           date: dateStr,
@@ -899,19 +899,19 @@ if (timeView === 'yearly') {
                           scheduled: 0
                         };
                       }
-                      
+
                       last7Days.push({ date, dateStr, dayData });
                     }
-                    
+
                     return last7Days.map((day, idx) => {
                       const hasWorkout = day.dayData.total > 0 || day.dayData.scheduled > 0;
                       const completionRate = hasWorkout && (day.dayData.scheduled > 0 || day.dayData.total > 0)
-                        ? (day.dayData.completed / Math.max(day.dayData.scheduled, day.dayData.total)) * 100 
+                        ? (day.dayData.completed / Math.max(day.dayData.scheduled, day.dayData.total)) * 100
                         : 0;
-                      
+
                       let bgColor = 'bg-gray-200';
                       let textColor = 'text-gray-600';
-                      
+
                       if (hasWorkout) {
                         if (completionRate === 100) {
                           bgColor = 'bg-gray-800';
@@ -930,15 +930,15 @@ if (timeView === 'yearly') {
                         bgColor = 'bg-gray-100';
                         textColor = 'text-gray-400';
                       }
-                      
+
                       const completedCount = day.dayData.completed;
                       const scheduledCount = day.dayData.scheduled || day.dayData.total;
-                      
+
                       return (
                         <div
                           key={idx}
                           className={`aspect-square rounded-lg ${bgColor} flex flex-col items-center justify-center p-1 transition-all hover:scale-105 cursor-pointer`}
-                          title={`${day.date.toLocaleDateString('default', { weekday: 'long', month: 'short', day: 'numeric' })}: ${completedCount}/${scheduledCount} workouts completed (${Math.round(completionRate)}%)`}
+                          title={`${day.date.toLocaleDateString('default', { weekday: 'long', month: 'short', day: 'numeric' })}: ${completedCount}/${scheduledCount} plans completed (${Math.round(completionRate)}%)`}
                         >
                           <span className={`text-xs font-bold ${textColor}`}>
                             {day.date.getDate()}
@@ -958,7 +958,7 @@ if (timeView === 'yearly') {
                     });
                   })()}
                 </div>
-                
+
                 <div className="flex justify-center gap-4 mt-4 text-xs flex-wrap">
                   <div className="flex items-center gap-1"><div className="w-3 h-3 bg-gray-100 rounded"></div><span>No workout</span></div>
                   <div className="flex items-center gap-1"><div className="w-3 h-3 bg-gray-300 rounded"></div><span>&lt;50%</span></div>
@@ -976,14 +976,14 @@ if (timeView === 'yearly') {
                       {day}
                     </div>
                   ))}
-                  
+
                   {(() => {
                     const now = new Date();
                     const year = now.getFullYear();
                     const month = now.getMonth();
                     const firstDay = new Date(year, month, 1).getDay();
                     const daysInMonth = new Date(year, month + 1, 0).getDate();
-                    
+
                     const calendarDays = [];
                     for (let i = 0; i < firstDay; i++) {
                       calendarDays.push(null);
@@ -992,7 +992,7 @@ if (timeView === 'yearly') {
                       const date = new Date(year, month, i);
                       const dateStr = date.toISOString().split('T')[0];
                       let dayData = workoutChartDataRaw.find(d => d.date === dateStr);
-                      
+
                       if (!dayData) {
                         dayData = {
                           date: dateStr,
@@ -1002,23 +1002,23 @@ if (timeView === 'yearly') {
                           scheduled: 0
                         };
                       }
-                      
+
                       calendarDays.push({ date, dateStr, dayData, dayNum: i });
                     }
-                    
+
                     return calendarDays.map((day, idx) => {
                       if (!day) {
                         return <div key={`empty-${idx}`} className="aspect-square rounded-lg bg-gray-100" />;
                       }
-                      
+
                       const hasWorkout = day.dayData.total > 0 || day.dayData.scheduled > 0;
                       const completionRate = hasWorkout && (day.dayData.scheduled > 0 || day.dayData.total > 0)
-                        ? (day.dayData.completed / Math.max(day.dayData.scheduled, day.dayData.total)) * 100 
+                        ? (day.dayData.completed / Math.max(day.dayData.scheduled, day.dayData.total)) * 100
                         : 0;
-                      
+
                       let bgColor = 'bg-gray-100';
                       let textColor = 'text-gray-600';
-                      
+
                       if (hasWorkout) {
                         if (completionRate === 100) {
                           bgColor = 'bg-gray-800';
@@ -1034,7 +1034,7 @@ if (timeView === 'yearly') {
                           textColor = 'text-white';
                         }
                       }
-                      
+
                       return (
                         <div
                           key={idx}
@@ -1096,112 +1096,112 @@ if (timeView === 'yearly') {
                 <div className="space-y-3 overflow-y-auto max-h-64">
 
 
-{goalsData.map((goal, idx) => {
-  let calculatedProgress = 0;
-  let displayText = "";
-  
-  // SPECIAL HANDLING FOR WEIGHT GOALS - USE ONLY SURVEY DATA
-  if (goal.goal_type === "weight") {
-    const target = parseFloat(goal.target_value);
-    
-    // Get survey data sorted by date
-    const sortedSurvey = [...surveyData].sort((a, b) => new Date(b.date) - new Date(a.date));
-    const latestWeight = sortedSurvey.length > 0 ? parseFloat(sortedSurvey[0].weight_lbs) : null;
-    
-    if (latestWeight && latestWeight > 0) {
-      // Get starting weight (first survey entry ever)
-      // const earliestSurvey = [...surveyData].sort((a, b) => new Date(a.date) - new Date(b.date));
-      // const startingWeight = earliestSurvey.length > 0 ? parseFloat(earliestSurvey[0].weight_lbs) : latestWeight;
-      const startingWeight=latestWeight;
-      
-      // DEBUG LOG
-      console.log(`Goal: ${goal.title}`, {
-        target,
-        // startingWeight,
-        latestWeight,
-        isWeightLoss: target < startingWeight,
-        isWeightGain: target > startingWeight
-      });
-      
-      if (target < latestWeight) {
-        // WEIGHT LOSS GOAL
-        calculatedProgress = (target/latestWeight) * 100;
-        const leftToLose = latestWeight - target;
-        displayText = `${leftToLose.toFixed(1)} ${goal.unit} to lose`;
-        
-        
-      } else if (target > startingWeight) {
-        // WEIGHT GAIN GOAL
-        calculatedProgress = (latestWeight/target) * 100;
-        const leftToGain = target - latestWeight;
-        displayText = `${leftToGain.toFixed(1)} ${goal.unit} to gain`;
-        
-        
-      } else {
-        calculatedProgress = 100;
-        displayText = `Goal achieved!`;
-      }
-      
-      calculatedProgress = Math.min(100, Math.max(0, calculatedProgress));
-      
-    } else {
-      displayText = "Log your weight in daily survey";
-      calculatedProgress = 0;
-    }
-    
-  } else {
-    calculatedProgress = goal.progress || 0;
-    displayText = `${goal.current_value ?? 0} / ${Number(goal.target_value)} ${goal.unit}`;
-  }
-  
-  return (
-    <div 
-  key={idx} 
-  className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-4 cursor-pointer hover:bg-base-300 transition-all duration-300"
-  onClick={() => fetchGoalHistory(goal)}
->
-  <div className="flex justify-between items-start mb-3">
-    <div className="flex items-center gap-3">
-      <span className="text-2xl"></span>
-      <div>
-        <h3 className="font-bold text-sm">{goal.title}</h3>
-        <span className="text-xs opacity-60 capitalize">{goal.goal_type}</span>
-      </div>
-    </div>
-    <div className="text-right">
-      <div className="text-lg font-bold text-blue-900">
-        {calculatedProgress.toFixed(0)}%
-      </div>
-      <div className="text-xs opacity-60">
-        {displayText}
-      </div>
-    </div>
-  </div>
-  
-  <div className="flex justify-between text-xs opacity-50 mb-1">
-    <span>0%</span>
-    <span>25%</span>
-    <span>50%</span>
-    <span>75%</span>
-    <span>100%</span>
-  </div>
-  
-  <div className="w-full bg-gray-300 rounded h-6">
-    <div
-      className="h-full rounded transition-all duration-300 bg-gradient-to-r from-blue-300 to-blue-800"
-      style={{ width: `${Math.min(calculatedProgress, 100)}%` }}
-    />
-  </div>
-  
-  {calculatedProgress >= 100 && (
-    <div className="mt-2 text-right">
-      <span className="badge badge-success badge-sm">Completed</span>
-      <button className="btn btn-xs bg-red-600 text-white rounded-box ml-2">Delete</button>
-    </div>
-  )}
-</div>
-  );
-})}
+                  {goalsData.map((goal, idx) => {
+                    let calculatedProgress = 0;
+                    let displayText = "";
+
+                    // SPECIAL HANDLING FOR WEIGHT GOALS - USE ONLY SURVEY DATA
+                    if (goal.goal_type === "weight") {
+                      const target = parseFloat(goal.target_value);
+
+                      // Get survey data sorted by date
+                      const sortedSurvey = [...surveyData].sort((a, b) => new Date(b.date) - new Date(a.date));
+                      const latestWeight = sortedSurvey.length > 0 ? parseFloat(sortedSurvey[0].weight_lbs) : null;
+
+                      if (latestWeight && latestWeight > 0) {
+                        // Get starting weight (first survey entry ever)
+                        // const earliestSurvey = [...surveyData].sort((a, b) => new Date(a.date) - new Date(b.date));
+                        // const startingWeight = earliestSurvey.length > 0 ? parseFloat(earliestSurvey[0].weight_lbs) : latestWeight;
+                        const startingWeight = latestWeight;
+
+                        // DEBUG LOG
+                        console.log(`Goal: ${goal.title}`, {
+                          target,
+                          // startingWeight,
+                          latestWeight,
+                          isWeightLoss: target < startingWeight,
+                          isWeightGain: target > startingWeight
+                        });
+
+                        if (target < latestWeight) {
+                          // WEIGHT LOSS GOAL
+                          calculatedProgress = (target / latestWeight) * 100;
+                          const leftToLose = latestWeight - target;
+                          displayText = `${leftToLose.toFixed(1)} ${goal.unit} to lose`;
+
+
+                        } else if (target > startingWeight) {
+                          // WEIGHT GAIN GOAL
+                          calculatedProgress = (latestWeight / target) * 100;
+                          const leftToGain = target - latestWeight;
+                          displayText = `${leftToGain.toFixed(1)} ${goal.unit} to gain`;
+
+
+                        } else {
+                          calculatedProgress = 100;
+                          displayText = `Goal achieved!`;
+                        }
+
+                        calculatedProgress = Math.min(100, Math.max(0, calculatedProgress));
+
+                      } else {
+                        displayText = "Log your weight in daily survey";
+                        calculatedProgress = 0;
+                      }
+
+                    } else {
+                      calculatedProgress = goal.progress || 0;
+                      displayText = `${goal.current_value ?? 0} / ${Number(goal.target_value)} ${goal.unit}`;
+                    }
+
+                    return (
+                      <div
+                        key={idx}
+                        className="card bg-base-200 shadow-lg border border-base-500 rounded-box p-4 cursor-pointer hover:bg-base-300 transition-all duration-300"
+                        onClick={() => fetchGoalHistory(goal)}
+                      >
+                        <div className="flex justify-between items-start mb-3">
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl"></span>
+                            <div>
+                              <h3 className="font-bold text-sm">{goal.title}</h3>
+                              <span className="text-xs opacity-60 capitalize">{goal.goal_type}</span>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-lg font-bold text-blue-900">
+                              {calculatedProgress.toFixed(0)}%
+                            </div>
+                            <div className="text-xs opacity-60">
+                              {displayText}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex justify-between text-xs opacity-50 mb-1">
+                          <span>0%</span>
+                          <span>25%</span>
+                          <span>50%</span>
+                          <span>75%</span>
+                          <span>100%</span>
+                        </div>
+
+                        <div className="w-full bg-gray-300 rounded h-6">
+                          <div
+                            className="h-full rounded transition-all duration-300 bg-gradient-to-r from-blue-300 to-blue-800"
+                            style={{ width: `${Math.min(calculatedProgress, 100)}%` }}
+                          />
+                        </div>
+
+                        {calculatedProgress >= 100 && (
+                          <div className="mt-2 text-right">
+                            <span className="badge badge-success badge-sm">Completed</span>
+                            <button className="btn btn-xs bg-red-600 text-white rounded-box ml-2">Delete</button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="flex items-center justify-center h-48">
@@ -1323,7 +1323,22 @@ if (timeView === 'yearly') {
                       {session.entries.map((entry) => (
                         <div key={entry.workout_log_entry_id} className="bg-base-200 rounded p-2 text-xs">
                           <span className="font-semibold">Ex {entry.exercise.name}</span>
-                          <span className="ml-2 opacity-80">{entry.sets}x{entry.reps} @ {entry.weight}lb</span>
+
+                          {" — "}
+
+                          {entry.sets > 0 && entry.reps > 0 && (
+                            <>
+                              {entry.sets} sets × {entry.reps} reps
+                            </>
+                          )}
+
+                          {entry.weight > 0 && (
+                            <> @ {ex.weight} lbs</>
+                          )}
+
+                          {entry.duration_minutes > 0 && (
+                            <> @ {entry.duration_minutes} min</>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -1343,10 +1358,10 @@ if (timeView === 'yearly') {
       <PopUp isOpen={selectedGoal !== null} onClose={() => { setSelectedGoal(null); setGoalHistory([]); }}>
         {selectedGoal && (() => {
           const goalType = selectedGoal.goal_type;
-          
+
           let chartData = [];
           let chartYDomain = [0, parseFloat(selectedGoal.target_value) * 1.1];
-          
+
           if (goalType === "weight") {
             const goalStartDate = new Date(selectedGoal.start_date);
             const filteredSurvey = [...surveyData]
@@ -1357,9 +1372,9 @@ if (timeView === 'yearly') {
                 value: parseFloat(entry.weight_lbs),
                 type: 'survey'
               }));
-            
+
             chartData = filteredSurvey;
-            
+
             const allValues = chartData.map(d => d.value);
             const minValue = Math.min(...allValues, selectedGoal.target_value);
             const maxValue = Math.max(...allValues, selectedGoal.target_value);
@@ -1368,12 +1383,12 @@ if (timeView === 'yearly') {
             chartData = goalHistory;
             chartYDomain = [0, parseFloat(selectedGoal.target_value) * 1.1];
           }
-          
+
           return (
             <div className="fieldset bg-base-200 border-base-300 rounded-box w-full max-w-sm min-w-0 border p-4">
               <h2 className="font-bold text-lg mb-1">{selectedGoal.title}</h2>
               {/* <p className="text-xs opacity-60 mb-4">Target: {selectedGoal.target_value} {selectedGoal.unit}</p> */}
-{/* 
+              {/* 
               {goalType === "weight" ? (
                 chartData.length > 1 ? (
                   <ResponsiveContainer width="100%" height={200}>
@@ -1428,10 +1443,10 @@ if (timeView === 'yearly') {
               <div className="mt-4 flex justify-between items-center">
                 <div className="text-sm opacity-60">
                   <div>Target: <span className="font-bold">{selectedGoal.target_value} {selectedGoal.unit}</span></div>
-                  
+
                   {selectedGoal.goal_type === "weight" && (
                     <div className="mt-1">
-                      Latest weight: 
+                      Latest weight:
                       <span className="font-bold text-blue-600 ml-1">
                         {(() => {
                           const sortedSurvey = [...surveyData].sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -1442,7 +1457,7 @@ if (timeView === 'yearly') {
                     </div>
                   )}
                 </div>
-                
+
                 <div className="flex gap-2">
                   <button className="btn btn-sm btn-ghost" onClick={() => handleEditGoal(selectedGoal)}>
                     Edit Goal
@@ -1469,57 +1484,57 @@ if (timeView === 'yearly') {
 
 
       {progressModalOpen && (
-  <div className="fixed inset-0 flex items-center justify-center z-50">
-    <div className="bg-base-100 p-6 rounded-lg w-80 shadow-xl">
-      <h3 className="text-lg font-bold mb-4">Update Progress</h3>
-      
-      {progressIncrementMode ? (
-        <p className="text-sm text-gray-600 mb-3">
-          Add additional {(() => {
-            const goal = goalsData.find(g => g.goal_id === selectedGoalId);
-            return goal?.unit || 'units';
-          })()} to your progress
-        </p>
-      ) : (
-        <p className="text-sm text-gray-600 mb-3">
-          Set new progress value
-        </p>
-      )}
-      
-      <input
-        type="number"
-        step="any"
-        placeholder={progressIncrementMode ? "Amount to add" : "Enter value"}
-        className="input input-bordered w-full mb-4"
-        value={progressValue}
-        onChange={(e) => setProgressValue(e.target.value)}
-      />
-      
-      <div className="flex justify-end gap-2">
-        <button
-          className="btn btn-ghost"
-          onClick={() => {
-            setProgressModalOpen(false);
-            setProgressValue("");
-            setProgressIncrementMode(false);
-          }}
-        >
-          Cancel
-        </button>
-        
-        <button
-          className="btn bg-blue-800 text-white"
-          onClick={async () => {
-            await handleAddProgress(selectedGoalId, progressValue);
-            setProgressModalOpen(false);
-            setProgressValue("");
-            setProgressIncrementMode(false);
-          }}
-        >
-          {progressIncrementMode ? "Add" : "Save"}
-        </button>
-      </div>
-    </div>
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-base-100 p-6 rounded-lg w-80 shadow-xl">
+            <h3 className="text-lg font-bold mb-4">Update Progress</h3>
+
+            {progressIncrementMode ? (
+              <p className="text-sm text-gray-600 mb-3">
+                Add {(() => {
+                  const goal = goalsData.find(g => g.goal_id === selectedGoalId);
+                  return goal?.unit || 'units';
+                })()} to your progress, one by one
+              </p>
+            ) : (
+              <p className="text-sm text-gray-600 mb-3">
+                Set new progress value
+              </p>
+            )}
+
+            <input
+              type="number"
+              step="any"
+              placeholder={progressIncrementMode ? "Amount to add" : "Enter value"}
+              className="input input-bordered w-full mb-4"
+              value={progressValue}
+              onChange={(e) => setProgressValue(e.target.value)}
+            />
+
+            <div className="flex justify-end gap-2">
+              <button
+                className="btn btn-ghost"
+                onClick={() => {
+                  setProgressModalOpen(false);
+                  setProgressValue("");
+                  setProgressIncrementMode(false);
+                }}
+              >
+                Cancel
+              </button>
+
+              <button
+                className="btn bg-blue-800 text-white"
+                onClick={async () => {
+                  await handleAddProgress(selectedGoalId, progressValue);
+                  setProgressModalOpen(false);
+                  setProgressValue("");
+                  setProgressIncrementMode(false);
+                }}
+              >
+                {progressIncrementMode ? "Add" : "Save"}
+              </button>
+            </div>
+          </div>
 
           {/* 
           {goalType === "frequency" ? (
@@ -1577,7 +1592,7 @@ if (timeView === 'yearly') {
                   onChange={handleGoalChange}
                   required
                 >
-                  <option value="weight">Weight</option>
+                  <option value="weight">Gain Weight</option>
                   <option value="strength">Strength</option>
                   <option value="frequency">Frequency</option>
                   <option value="performance">Performance</option>
@@ -1785,10 +1800,11 @@ if (timeView === 'yearly') {
               <button
                 className="btn shadow-lg text-white bg-red-600 flex-1"
                 type="button"
-                onClick={(e) =>{
-                  e.preventDefault(); 
+                onClick={(e) => {
+                  e.preventDefault();
                   e.stopPropagation();
-                  handleDeleteGoal(editGoalData.goal_id)}}
+                  handleDeleteGoal(editGoalData.goal_id)
+                }}
               >
                 Delete Goal
               </button>

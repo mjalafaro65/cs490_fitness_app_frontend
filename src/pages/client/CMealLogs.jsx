@@ -85,7 +85,7 @@ function ClientMealLogs() {
     meal_id: "",
     servings: "",
     custom_meal_name: "",
-    calories: "",
+    calories: 0,
     notes: ""
   });
 
@@ -98,10 +98,10 @@ function ClientMealLogs() {
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [selectedMealLog, setSelectedMealLog] = useState(null);
   const [editLogData, setEditLogData] = useState({
-    custom_meal_name: "",
+    // custom_meal_name: "",
     servings: "",
     notes: "",
-    calories:""
+    calories:0,
   });
   const [mealPlans, setMealPlans] = useState([]);
   const [isLoadingPlans, setIsLoadingPlans] = useState(false);
@@ -169,10 +169,10 @@ function ClientMealLogs() {
       setSelectedMealLog(response.data);
 
       setEditLogData({
-        custom_meal_name: response.data.custom_meal_name || "", 
+        // custom_meal_name: response.data.custom_meal_name || "", 
         servings: response.data.servings || "",
         notes: response.data.notes || "",
-        calories: response.data.calories || ""
+        calories: response.data.calories || 0
       });
       console.log(editLogData)
       setPopOpen("editLog");
@@ -231,7 +231,7 @@ function ClientMealLogs() {
 
     console.log(selectedMealLog.meal_log_id)
     const payload = {
-      custom_meal_name: editLogData.custom_meal_name,
+      // custom_meal_name: editLogData.custom_meal_name,
       servings: editLogData.servings,
       notes: editLogData.notes,
       calories: editLogData.calories,
@@ -313,7 +313,7 @@ function ClientMealLogs() {
       setData({
         user_id: user?.user_id || "",
         meal_id: "",
-        calories: "",
+        calories: 0,
         servings: "",
         notes: ""
       });
@@ -745,15 +745,15 @@ function ClientMealLogs() {
                 <h2 className="text-xl font-bold">Edit Meal Log</h2>
               </div>
               <label className="label">
-                Meal Name:
-                <input
+                Meal Name: {selectedMealLog.custom_meal_name}
+                {/* <input
                   className="input w-full"
                   type="text"
                   name="custom_meal_name"
                   value={editLogData.custom_meal_name}
                   onChange={(e) => setEditLogData({ ...editLogData, custom_meal_name: e.target.value })}
                   required
-                />
+                /> */}
               </label>
 
               <label className="label">

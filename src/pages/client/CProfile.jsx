@@ -515,8 +515,9 @@ function CProfile() {
                         {payment.status}
                       </span>
 
+                            
                       {/* DISPUTE BUTTON */}
-                      {payment.can_dispute &&
+                      {/* {payment.can_dispute &&
                         payment.status !== "disputed" &&
                         payment.status !== "refunded" && (
                           <button
@@ -527,14 +528,14 @@ function CProfile() {
                           >
                             Dispute
                           </button>
-                        )}
+                        )} */}
 
                       {/* DISPUTED STATE */}
-                      {payment.status === "disputed" && (
+                      {/* {payment.status === "disputed" && (
                         <span className="text-xs text-orange-600">
                           Under review
                         </span>
-                      )}
+                      )} */}
                     </div>
                   </div>
                 ))}

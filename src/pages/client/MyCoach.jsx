@@ -177,6 +177,7 @@ function MyCoach() {
     const fetchCoach = async () => {
       try {
         const res = await api.get("client/my-coaches");
+        
         const all = res.data?.active_relationships || [];
 
         const active = all.filter(c => c.status === "active");

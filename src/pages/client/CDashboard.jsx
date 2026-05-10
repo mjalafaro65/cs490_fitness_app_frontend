@@ -184,19 +184,19 @@ function CDashboard() {
 
   const fetchLogForDate = async (date) => {
     if (!date) return;
-  
+
     setIsLoadingLog(true);
     try {
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');
       const dateStr = `${year}-${month}-${day}`;
-      
+
       const response = await api.get("/insights/survey");
       const history = response.data?.history || [];
-    
+
       const logEntry = history.find(entry => entry.date === dateStr);
-      
+
       if (logEntry) {
         setSelectedDayLog({
           daily_goal: logEntry.daily_goal || "",
@@ -214,8 +214,8 @@ function CDashboard() {
       console.error("Failed to fetch log for date:", err);
       setSelectedDayLog(null);
     } finally {
-    setIsLoadingLog(false);
-  }
+      setIsLoadingLog(false);
+    }
   };
 
   const formatLocalDate = (d) => {
@@ -261,7 +261,7 @@ function CDashboard() {
     fetchScheduledWorkouts(weekAnchor, "week");
 
     const isSelectedInWeek = weekDays.some(day => isSameDay(day, selectedDay));
-  
+
     if (!isSelectedInWeek) {
       const today = new Date();
       if (weekDays.some(day => isSameDay(day, today))) {
@@ -381,7 +381,10 @@ function CDashboard() {
     const fetchCoach = async () => {
       try {
         const res = await api.get("client/my-coaches");
-        const all = res.data?.active_relationships || [];
+        console.log(res.data)
+        const activeCoaches = res.data.active_relationships.filter(
+          (coach) => coach.status !== "terminated"
+        );
 
         const active = all.filter(c => c.status === "active");
         const terminated = all.filter(c => c.status === "terminated");
@@ -395,88 +398,86 @@ function CDashboard() {
 
     fetchAllInsights();
 
- 
+
 
     fetchUser();
     fetchCoach();
 
   }, []);
 
-  const activeCoachId = hiredCoaches?.[0]?.coach_id;
+const activeCoachId = hiredCoaches?.[0]?.coach_id;
 
 useEffect(() => {
   let isMounted = true;
-  
-  if (selectedDay) {
+
+  const fetchData = async () => {
+    if (!selectedDay) return;
+
     const today = new Date();
     const isToday = isSameDay(selectedDay, today);
-    
+
+    // If today → use live state
     if (isToday) {
-      // For today, use the daily state directly
-      if (isMounted) {
-        setSelectedDayLog(daily);
-      }
-    } else {
-      // For other days, fetch from API
-      const fetchData = async () => {
-        setIsLoadingLog(true);
-        try {
-          const year = selectedDay.getFullYear();
-          const month = String(selectedDay.getMonth() + 1).padStart(2, '0');
-          const day = String(selectedDay.getDate()).padStart(2, '0');
-          const dateStr = `${year}-${month}-${day}`;
-          
-          const response = await api.get("/insights/survey");
-          // Only update if this date is still the selected one
-          if (!isMounted) return;
-          
-          const history = response.data?.history || [];
-          const logEntry = history.find(entry => entry.date === dateStr);
-          
-          if (logEntry) {
-            setSelectedDayLog({
-              daily_goal: logEntry.daily_goal || "",
-              energy_level: logEntry.energy_level || "",
-              target_focus: logEntry.target_focus || "",
-              water_oz: logEntry.water_oz || "",
-              weight_lbs: logEntry.weight_lbs || "",
-              sleep_hours: logEntry.sleep_hours || "",
-              mood_score: logEntry.mood_score || ""
-            });
-          } else {
-            setSelectedDayLog(null);
-          }
-        } catch (err) {
-          if (isMounted) {
-            console.error("Failed to fetch log for date:", err);
-            setSelectedDayLog(null);
-          }
-        } finally {
-          if (isMounted) {
-            setIsLoadingLog(false);
-          }
-        }
-      };
-      
-      fetchData();
+      if (isMounted) setSelectedDayLog(daily);
+      return;
     }
-  }
-  
+
+    // Otherwise fetch history
+    setIsLoadingLog(true);
+
+    try {
+      const year = selectedDay.getFullYear();
+      const month = String(selectedDay.getMonth() + 1).padStart(2, "0");
+      const day = String(selectedDay.getDate()).padStart(2, "0");
+      const dateStr = `${year}-${month}-${day}`;
+
+      const response = await api.get("/insights/survey");
+
+      if (!isMounted) return;
+
+      const history = response.data?.history || [];
+      const logEntry = history.find((entry) => entry.date === dateStr);
+
+      if (logEntry) {
+        setSelectedDayLog({
+          daily_goal: logEntry.daily_goal || "",
+          energy_level: logEntry.energy_level || "",
+          target_focus: logEntry.target_focus || "",
+          water_oz: logEntry.water_oz || "",
+          weight_lbs: logEntry.weight_lbs || "",
+          sleep_hours: logEntry.sleep_hours || "",
+          mood_score: logEntry.mood_score || "",
+        });
+      } else {
+        setSelectedDayLog(null);
+      }
+    } catch (err) {
+      if (isMounted) {
+        console.error("Failed to fetch log for date:", err);
+        setSelectedDayLog(null);
+      }
+    } finally {
+      if (isMounted) setIsLoadingLog(false);
+    }
+  };
+
+  fetchData();
+
   return () => {
     isMounted = false;
   };
-}, [selectedDay, daily]); // Keep daily so today updates when daily changes
+}, [selectedDay, daily]);// Keep daily so today updates when daily changes
 
-//     useEffect(() => {
-//       if (selectedDay) {
-//         const today = new Date();
-//         const isToday = isSameDay(selectedDay, today);
-        
-//         if (!isToday) {
-//           fetchLogForDate(selectedDay);
-//         }
-//       }
-//     }, [selectedDay, daily]); 
+  //     useEffect(() => {
+  //       if (selectedDay) {
+  //         const today = new Date();
+  //         const isToday = isSameDay(selectedDay, today);
+
+  //         if (!isToday) {
+  //           fetchLogForDate(selectedDay);
+  //         }
+  //       }
+  //     }, [selectedDay, daily]); 
 
   const filterDataForCurrentWeek = (data) => {
     if (!data.length) return [];
@@ -918,11 +919,11 @@ useEffect(() => {
 
                             <li key={`ex-${ex.day_exercise_id ?? ex.de_id ?? ex.exercise_id}`} className="opacity-70">
 
-                              • {ex.exercise?.name || ex.name}
+                              •   {ex.exercise?.name || ex.name} {ex.sets > 0 && ex.reps > 0 && ` — ${ex.sets}×${ex.reps}`}
 
-                              {ex.sets && ex.reps ? ` — ${ex.sets}×${ex.reps}` : ""}
+                              {ex.weight > 0 && ` @ ${ex.weight} lbs`}
 
-                              {ex.weight ? ` @ ${ex.weight} lbs` : ""}
+                              {ex.duration_minutes > 0 && ` @ ${ex.duration_minutes} min`}
 
                             </li>
 
@@ -984,53 +985,53 @@ useEffect(() => {
               </div>
 
               <div className="card bg-base-200 shadow-lg border border-base-500 rounded-box w-60 p-4 shrink-0">
-  <h2 className="text-base font-bold mb-3">
-    Daily Log - {selectedDay.toLocaleDateString("default", { 
-      weekday: 'short', 
-      month: 'short', 
-      day: 'numeric' 
-    })}
-  </h2>
+                <h2 className="text-base font-bold mb-3">
+                  Daily Log - {selectedDay.toLocaleDateString("default", {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric'
+                  })}
+                </h2>
 
-  {isLoadingLog ? (
-    <div className="flex justify-center py-4">
-      <span className="loading loading-spinner loading-sm"></span>
-    </div>
-  ) : selectedDayLog ? (
-    <div className="flex flex-col gap-2 text-sm">
-      {[
-        ...(isSameDay(selectedDay, new Date()) ? [
-          { label: "Goal", value: selectedDayLog.daily_goal || null },
-          { label: "Focus", value: selectedDayLog.target_focus || null },
-        ] : []),
-        { label: "Mood", value: selectedDayLog.mood_score ? `${selectedDayLog.mood_score} / 5` : null },
-        { label: "Weight", value: selectedDayLog.weight_lbs ? `${selectedDayLog.weight_lbs} lbs` : null },
-        { label: "Energy", value: selectedDayLog.energy_level ? `${selectedDayLog.energy_level} / 5` : null },
-        { label: "Sleep", value: selectedDayLog.sleep_hours ? `${selectedDayLog.sleep_hours} hrs` : null },
-        { label: "Water", value: selectedDayLog.water_oz ? `${selectedDayLog.water_oz} oz` : null },
-      ].map(({ label, value }) => (
-        <div key={label} className="flex justify-between border-b border-base-content/10 pb-1">
-          <span className="opacity-60">{label}</span>
-          <span className="font-semibold">{value || "---"}</span>
-        </div>
-      ))}
-    </div>
-  ) : (
-    <p className="text-xs opacity-40">
-      No wellness log found for this day.
-    </p>
-  )}
-  
-  {/* Only show Update button for today */}
-  {isSameDay(selectedDay, new Date()) && (
-    <button
-      className="btn bg-blue-800 text-white btn-xs p-3 mt-4 w-full"
-      onClick={() => setPopOpen("update")}
-    >
-      Update Today's Log
-    </button>
-  )}
-</div>
+                {isLoadingLog ? (
+                  <div className="flex justify-center py-4">
+                    <span className="loading loading-spinner loading-sm"></span>
+                  </div>
+                ) : selectedDayLog ? (
+                  <div className="flex flex-col gap-2 text-sm">
+                    {[
+                      ...(isSameDay(selectedDay, new Date()) ? [
+                        { label: "Goal", value: selectedDayLog.daily_goal || null },
+                        { label: "Focus", value: selectedDayLog.target_focus || null },
+                      ] : []),
+                      { label: "Mood", value: selectedDayLog.mood_score ? `${selectedDayLog.mood_score} / 5` : null },
+                      { label: "Weight", value: selectedDayLog.weight_lbs ? `${selectedDayLog.weight_lbs} lbs` : null },
+                      { label: "Energy", value: selectedDayLog.energy_level ? `${selectedDayLog.energy_level} / 5` : null },
+                      { label: "Sleep", value: selectedDayLog.sleep_hours ? `${selectedDayLog.sleep_hours} hrs` : null },
+                      { label: "Water", value: selectedDayLog.water_oz ? `${selectedDayLog.water_oz} oz` : null },
+                    ].map(({ label, value }) => (
+                      <div key={label} className="flex justify-between border-b border-base-content/10 pb-1">
+                        <span className="opacity-60">{label}</span>
+                        <span className="font-semibold">{value || "---"}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs opacity-40">
+                    No wellness log found for this day.
+                  </p>
+                )}
+
+                {/* Only show Update button for today */}
+                {isSameDay(selectedDay, new Date()) && (
+                  <button
+                    className="btn bg-blue-800 text-white btn-xs p-3 mt-4 w-full"
+                    onClick={() => setPopOpen("update")}
+                  >
+                    Update Today's Log
+                  </button>
+                )}
+              </div>
 
 
 

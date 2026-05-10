@@ -13,6 +13,17 @@ function Sign_Up() {
         password: ""
     });
 
+    const [alert, setShowAlert] = useState(false);
+    const [alertMsg, setAlertMsg] = useState('');
+    const [alertType, setAlertType] = useState('success');
+
+    const showAlert = (message, type = 'success') => {
+        console.log("ALERT FUNCTION CALLED with:", message, type);
+        setAlertMsg(message);
+        setAlertType(type);
+        setShowAlert(true);
+    };
+
     const navigate = useNavigate();
 
     const handleChange = (e) => {
@@ -60,7 +71,7 @@ function Sign_Up() {
         }
         catch (error) {
             console.error("Signup failed:", error.response?.data);
-            showAlert("Signup failed, please try again", "error");
+            showAlert("Signup failed. Account might already exist ", "error");
         }
     };
 
