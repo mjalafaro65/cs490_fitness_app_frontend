@@ -106,7 +106,6 @@ function Initial_Survey() {
         }
         catch (error) {
             console.error("Survey failed:", error.response?.data);
-            showAlert("Survey failed, please try again", "error");
         }
     };
 
@@ -297,12 +296,6 @@ function Initial_Survey() {
                 </div>
             </div>
 
-
-            <Alert
-                isOpen={alert}
-                message={alertMsg}
-                type={alertType}
-                onClose={() => setShowAlert(false)} />
         </div>
     );
 }

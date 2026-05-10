@@ -381,12 +381,12 @@ function CDashboard() {
     const fetchCoach = async () => {
       try {
         const res = await api.get("client/my-coaches");
-        console.log(res.data)
-        const activeCoaches = res.data.filter(
-          (coach) => coach.status !== "terminated"
-        );
+        const all = res.data?.active_relationships || [];
 
-        setHiredCoaches(activeCoaches);
+        const active = all.filter(c => c.status === "active");
+        const terminated = all.filter(c => c.status === "terminated");
+
+        setHiredCoaches(active);
 
       } catch (err) {
         console.log(err);
@@ -401,6 +401,8 @@ function CDashboard() {
     fetchCoach();
 
   }, []);
+
+  const activeCoachId = hiredCoaches?.[0]?.coach_id;
 
 useEffect(() => {
   let isMounted = true;
