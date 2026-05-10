@@ -230,8 +230,9 @@ function CoachApply() {
                                             >
                                                 <option value="" disabled>Select Type...</option>
                                                 <option value="Certification">Certification</option>
-                                                <option value="ID">ID</option>
-                                                {/* <option value="Insurance">Other</option> */}
+                                                <option value="Identification">Identification</option>
+                                                <option value="Insurance">Insurance</option>
+                                                <option value="Other">Other</option>
                                             </select>
 
                                             <button
