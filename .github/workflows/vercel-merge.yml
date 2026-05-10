@@ -34,7 +34,7 @@ jobs:
       - name: Deploy to Vercel
         id: deploy
         run: |
-          vercel deploy --token=${{ secrets.VERCEL_TOKEN }} > preview.txt
+          vercel deploy --yes --token=${{ secrets.VERCEL_TOKEN }} > preview.txt
 
       - name: Show preview URL
         run: cat preview.txt
