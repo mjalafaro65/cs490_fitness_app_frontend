@@ -386,10 +386,7 @@ function CDashboard() {
           (coach) => coach.status !== "terminated"
         );
 
-        const active = all.filter(c => c.status === "active");
-        const terminated = all.filter(c => c.status === "terminated");
-
-        setHiredCoaches(active);
+        setHiredCoaches(activeCoaches);
 
       } catch (err) {
         console.log(err);
