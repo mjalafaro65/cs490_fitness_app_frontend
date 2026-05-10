@@ -21,6 +21,17 @@ function Sign_Up() {
         });
     };
 
+    const [alert, setShowAlert] = useState(false);
+    const [alertMsg, setAlertMsg] = useState('');
+    const [alertType, setAlertType] = useState('success');
+
+    const showAlert = (message, type = 'success') => {
+        console.log("ALERT FUNCTION CALLED with:", message, type);
+        setAlertMsg(message);
+        setAlertType(type);
+        setShowAlert(true);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         const termsAndCond = document.getElementById("terms");
