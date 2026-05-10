@@ -1,25 +1,40 @@
-# vercel-pull-request.yml
 name: Create vercel preview URL on pull request
+
 on:
   pull_request:
     branches:
       - develop3
+
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
+
     permissions:
       contents: write
       pull-requests: write
-      repository-projects: write
+
     steps:
       - uses: actions/checkout@v4
-      - uses: amondnet/vercel-action@v20
-        id: vercel-deploy
+
+      # Node setup
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          vercel-org-id: ${{ secrets.ORG_ID }}
-          vercel-project-id: ${{ secrets.PROJECT_ID }}
-      - name: preview-url
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      - name: Deploy to Vercel
+        id: deploy
         run: |
-          echo ${{ steps.vercel-deploy.outputs.preview-url }}
+          vercel deploy --token=${{ secrets.VERCEL_TOKEN }} > preview.txt
+
+      - name: Show preview URL
+        run: cat preview.txt
