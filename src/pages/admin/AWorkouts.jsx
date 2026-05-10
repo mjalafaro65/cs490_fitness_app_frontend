@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import api from "../../axios";
 import Alert from "../../components/Alert.jsx";
 import PopUp from "../../components/PopUp";
-import Confirm from "../../components/confirm.jsx";
+import Confirm from "../../components/Confirm.jsx";
 
 function AWorkoutPlans() {
   const [activeTab, setActiveTab] = useState("plans");

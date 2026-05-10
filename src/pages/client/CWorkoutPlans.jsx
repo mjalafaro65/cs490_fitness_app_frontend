@@ -5,7 +5,7 @@ import api from "../../axios";
 import BrowseExercises from "../Exercises";
 import { useNavigate } from "react-router-dom";
 import Alert from "../../components/Alert";
-import Confirm from "../../components/confirm";
+import Confirm from "../../components/Confirm";
 import { useAuth } from "../../AuthContext";
 
 
