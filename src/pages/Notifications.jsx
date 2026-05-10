@@ -62,31 +62,38 @@ function Notifications() {
     return past.toLocaleDateString();
   };
 
-  const grouped = notifications.reduce((acc, notif) => {
-    const key = `${notif.title}||${notif.body}`; // fallback = single
+  const grouped = Object.values(
+    [...notifications]
+      .sort((a, b) => {
+        new Date(b.created_at) - new Date(a.created_at)}) // newest first
 
-    if (!acc[key]) {
-      acc[key] = {
-        key,
-        type: notif.type_slug ? "group" : "single",
-        title: notif.title,
-        ids: notif.type_slug ? [notif.notification_id] : [],
-        notification_id: notif.notification_id,
-        is_read: notif.is_read,
-        created_at: notif.created_at
-      };
-    } else {
-      acc[key].ids.push(notif.notification_id);
+      .reduce((acc, notif) => {
+        const key = `${notif.title}||${notif.body}`;
 
-      acc[key].is_read = acc[key].is_read && notif.is_read;
+        if (!acc[key]) {
+          acc[key] = {
+            key,
+            type: notif.type_slug ? "group" : "single",
+            title: notif.title,
+            body: notif.body,
+            ids: notif.type_slug ? [notif.notification_id] : [],
+            notification_id: notif.notification_id,
+            is_read: notif.is_read,
+            created_at: notif.created_at,
+          };
+        } else {
+          acc[key].ids.push(notif.notification_id);
 
-      if (new Date(notif.created_at) > new Date(acc[key].created_at)) {
-        acc[key].created_at = notif.created_at;
-      }
-    }
+          acc[key].is_read = acc[key].is_read && notif.is_read;
 
-    return acc;
-  }, {});
+          if (new Date(notif.created_at) > new Date(acc[key].created_at)) {
+            acc[key].created_at = notif.created_at;
+          }
+        }
+
+        return acc;
+      }, {})
+  );
   const groupedList = Object.values(grouped);
 
 

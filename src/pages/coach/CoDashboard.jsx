@@ -51,25 +51,35 @@ function CoDashboard() {
 
 
   const [weekWorkouts, setWeekWorkouts] = useState([]);
+  const [selectedSession, setSelectedSession] = useState(null);
 
 
 
   const getClientsWorkoutsForDate = (date) => {
-    const seen = new Set();
-    return weekWorkouts
-      .filter(w => isSameDay(new Date(w.scheduled_start), date))
-      .map(w => ({
-        clientName: w.user_name || `User ${w.for_user_id}`,
-        workoutName: w.plan_day_name || "Workout",
-        status: w.status,
+    const workouts = weekWorkouts.filter(w => isSameDay(new Date(w.scheduled_start), date));
+
+    const grouped = {};
+    workouts.forEach(w => {
+      const key = w.for_user_id;
+      if (!grouped[key]) {
+        grouped[key] = {
+          clientName: w.user_name || `User ${w.for_user_id}`,  // ← use user_name
+          for_user_id: w.for_user_id,
+          sessions: []
+        };
+      }
+      grouped[key].sessions.push({
         calendar_workout_id: w.calendar_workout_id,
-        for_user_id: w.for_user_id
-      }))
-      .filter(w => {
-        if (seen.has(w.for_user_id)) return false;
-        seen.add(w.for_user_id);
-        return true;
+        plan_day_name: w.plan_day?.day_label || "Workout",
+        plan_name: w.plan_day?.plan?.name || "",
+        status: w.status,
+        scheduled_start: w.scheduled_start,
+        exercises: w.plan_day?.exercises || [],  // ← store exercises
+        user_name: w.user_name                   // ← store name
       });
+    });
+
+    return Object.values(grouped);
   };
 
   const fetchCoachWeekWorkouts = async (anchorDate) => {
@@ -127,27 +137,26 @@ function CoDashboard() {
     }
   };
 
-  const getWorkoutsForDate = (date) => {
-    if (!date) return [];
+  // const getWorkoutsForDate = (date) => {
+  //   if (!date) return [];
 
-    return clientWorkouts.filter(
-      (w) => new Date(w.date).toDateString() === date.toDateString()
-    );
-  };
+  //   return clientWorkouts.filter(
+  //     (w) => new Date(w.date).toDateString() === date.toDateString()
+  //   );
 
-  // useEffect(() => {
-  //   fetchCoachDashboardData();
-  //   const d = new Date(weekAnchor);
-  //   d.setDate(d.getDate() - 7);
-  //   fetchCoachWeekWorkouts(d);
-  // }, []);
+  // };
 
   useEffect(() => {
     fetchCoachDashboardData();
+  }, []);
+
+  useEffect(() => {
     fetchCoachWeekWorkouts(weekAnchor);
   }, [weekAnchor]);
 
-  const selectedWorkouts = getWorkoutsForDate(selectedDay);
+  const selectedWorkouts = getClientsWorkoutsForDate(selectedDay);
+
+  console.log(selectedWorkouts)
 
   const acceptRequest = async (request) => {
     try {
@@ -252,7 +261,7 @@ function CoDashboard() {
                     {hasSession ? (
                       <div className="relative group">
                         <div className="bg-blue-400/20 text-blue-400 rounded px-1.5 py-0.5 text-[10px] font-semibold text-center">
-                          {sessions.length} client {sessions.length > 1 ? 's' : ''}
+                          {sessions.length} client{sessions.length > 1 ? 's' : ''}
                         </div>
 
                         {/* hover tooltip */}
@@ -284,34 +293,36 @@ function CoDashboard() {
                 })}
               </h2>
 
+
               {isLoadingDashboard ? (
                 <p className="text-sm opacity-50">Loading workouts...</p>
               ) : selectedWorkouts.length === 0 ? (
-                <p className="text-sm opacity-50">
-                  No client workouts scheduled for this day.
-                </p>
+                <p className="text-sm opacity-50">No client workouts scheduled for this day.</p>
               ) : (
-                selectedWorkouts.map((s, si) => (
-                  <div
-                    key={`workout-${si}`}
-                    className="mb-3 p-3 bg-base-200 rounded-lg"
-                  >
-                    <div className="flex justify-between items-start mb-1">
-                      <p className="font-semibold text-sm">
-                        {s.clientName} — {s.workoutName}
-                      </p>
-                      {s.time && (
-                        <span className="text-xs opacity-50">{s.time}</span>
-                      )}
+                selectedWorkouts.map((client, ci) => (
+                  <div key={`client-${ci}`} className="mb-3 p-3 bg-base-100 rounded-lg">
+                    <p className="font-semibold text-sm mb-2">{client.clientName}</p>
+                    <div className="flex flex-col gap-1">
+                      {client.sessions.map((session) => (
+                        <div
+                          key={session.calendar_workout_id}
+                          className="flex justify-between items-center text-xs p-2 bg-base-200 rounded cursor-pointer hover:bg-base-300 transition-colors"
+                          onClick={() => setSelectedSession(session)}
+                        >
+                          <span>{session.plan_name} — {session.plan_day_name}</span>
+                          <span className={`px-2 py-0.5 rounded-full text-white text-[10px] ${session.status === 'completed' ? 'bg-green-600' :
+                            session.status === 'scheduled' ? 'bg-blue-600' : 'bg-gray-500'
+                            }`}>
+                            {session.status}
+                          </span>
+                        </div>
+                      ))}
                     </div>
-
                     <button
-                      className="btn btn-sm btn-outline mt-2"
-                      onClick={() =>
-                        navigate(`/coach/clients/${s.clientId}/workouts`)
-                      }
+                      className="btn btn-xs btn-outline mt-2"
+                      onClick={() => navigate(`/coach/clients/${client.for_user_id}`)}
                     >
-                      View Workout
+                      View Client
                     </button>
                   </div>
                 ))
@@ -510,6 +521,47 @@ function CoDashboard() {
             >
               Close
             </button>
+          </div>
+        </div>
+      )}
+
+      {selectedSession && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-base-100 rounded-xl p-6 w-96 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h2 className="font-bold">{selectedSession.plan_name}</h2>
+                <p className="text-xs opacity-60">{selectedSession.plan_day_name} — {selectedSession.user_name}</p>
+              </div>
+              <button className="btn btn-xs btn-ghost" onClick={() => setSelectedSession(null)}>✕</button>
+            </div>
+
+            <div className="flex gap-2 mb-4">
+              <span className={`text-xs px-2 py-0.5 rounded-full text-white ${selectedSession.status === 'completed' ? 'bg-green-600' :
+                selectedSession.status === 'scheduled' ? 'bg-blue-600' : 'bg-gray-500'
+                }`}>{selectedSession.status}</span>
+              <span className="text-xs opacity-60">
+                {new Date(selectedSession.scheduled_start).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}              </span>
+            </div>
+
+            <h3 className="font-semibold text-sm mb-2">Exercises</h3>
+            <div className="flex flex-col gap-2">
+              {selectedSession.exercises.map((ex) => (
+                <div key={ex.day_exercise_id} className="bg-base-200 rounded-lg p-3 text-xs">
+                  <p className="font-semibold">{ex.exercise?.name}</p>
+                  <p className="opacity-60 mt-0.5">{ex.exercise?.muscle_group} — {ex.exercise?.equipment}</p>
+                  <div className="flex gap-3 mt-1 opacity-80">
+                    {ex.sets > 0 && ex.reps > 0 && <span>{ex.sets}×{ex.reps}</span>}
+                    {ex.weight > 0 && <span>@ {ex.weight} lbs</span>}
+                    {ex.duration_minutes > 0 && <span>{ex.duration_minutes} min</span>}
+                    {ex.notes && <span className="opacity-60 italic">{ex.notes}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

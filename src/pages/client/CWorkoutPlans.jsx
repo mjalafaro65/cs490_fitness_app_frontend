@@ -691,13 +691,14 @@ function ClientWorkoutPlans() {
     try {
 
       const payload = {
-        occurrences: Object.entries(selectedDatesA)
-          .filter(([_, val]) => val?.date)
-          .map(([plan_day_id, val]) => {
+        occurrences: assignment.days
+          .filter(day => selectedDatesA[day.plan_day_id]?.date)
+          .map(day => {
+            const val = selectedDatesA[day.plan_day_id];
             const time = val.time || DEFAULT_TIME;
 
             return {
-              plan_day_id: Number(plan_day_id),
+              plan_day_id: day.plan_day_id,
               scheduled_start: `${val.date}T${time}:00`,
             };
           }),
@@ -891,7 +892,7 @@ function ClientWorkoutPlans() {
 
                               return (
                                 <li key={exId} className="text-xs">
-                                  {`${ex.exercise?.name} —`|| `${ex.name} —` }
+                                  {`${ex.exercise?.name} —` || `${ex.name} —`}
                                   {ex.sets > 0 && ex.reps > 0 && `  ${ex.sets} sets × ${ex.reps} reps`}
                                   {ex.weight > 0 && ` @ ${ex.weight} lbs`}
                                   {ex.duration_minutes > 0 && ` @ ${ex.duration_minutes} min`}
@@ -1190,6 +1191,7 @@ function ClientWorkoutPlans() {
                           type="date"
                           className="input input-sm input-bordered w-full"
                           value={selectedDatesA[d.plan_day_id]?.date || ""}
+                          min={today}
                           onChange={(e) =>
                             setSelectedDatesA(prev => ({
                               ...prev,

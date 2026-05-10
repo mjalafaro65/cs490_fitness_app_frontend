@@ -361,7 +361,7 @@ function AWorkoutPlans() {
     }
   };
 
-const handleDeleteExercise = async (exercise) => {
+  const handleDeleteExercise = async (exercise) => {
     const ok = await confirm(`Are you sure you want to delete this exercise?`);
 
     if (!ok) return;
@@ -376,228 +376,244 @@ const handleDeleteExercise = async (exercise) => {
       console.error("");
       showAlert(err.response?.data?.message || "Failed to delete exercise", "error");
     }
-  
-};
 
-const closePopUp = () => {
-  setPopOpen(null);
-  setSelectedPlan(null);
-  setSelectedExercise(null);
-  setIsEditing(false);
-};
+  };
 
-return (
-  <div className="drawer lg:drawer-open">
-    <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
-    <div className="drawer-content">
-      <section className="p-6 flex flex-col gap-6">
-        <div className="text-2xl font-bold">Workout Management</div>
+  const closePopUp = () => {
+    setPopOpen(null);
+    setSelectedPlan(null);
+    setSelectedExercise(null);
+    setIsEditing(false);
+  };
 
-        <div className="flex gap-2">
-          <div>
-            <div className="flex justify-between items-right mb-4">
-              <button className="btn btn-primary bg-blue-800 text-white btn-sm ml-auto"
-                onClick={() => setPopOpen("create")}
-              >+ Add</button>
-            </div>
-            <div className="mb-4">
-              <div className="flex gap-2 mb-2">
-                <input
-                  type="text"
-                  name="q"
-                  placeholder="Search exercises..."
-                  value={exercisesFilters.q}
-                  onChange={handleExercisesFilterChange}
-                  className="input input-bordered flex-1"
-                />
-                <button
-                  onClick={clearExercisesFilters}
-                  className="btn btn-ghost btn-sm"
-                >
-                  Clear
-                </button>
+  return (
+    <div className="drawer lg:drawer-open">
+      <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
+      <div className="drawer-content">
+        <section className="p-6 flex flex-col gap-6">
+          <div className="text-2xl font-bold">Workout Management</div>
+
+          <div className="flex gap-2">
+            <div>
+              <div className="flex justify-between items-right mb-4">
+                <button className="btn btn-primary bg-blue-800 text-white btn-sm ml-auto"
+                  onClick={() => setPopOpen("create")}
+                >+ Add</button>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 bg-base-200 rounded-box">
-                <select
-                  name="muscle_group"
-                  value={exercisesFilters.muscle_group}
-                  onChange={handleExercisesFilterChange}
-                  className="select select-bordered select-sm"
-                >
-                  <option value="">All Muscle Groups</option>
-                  <option value="Chest">Chest</option>
-                  <option value="Back">Back</option>
-                  <option value="Shoulders">Shoulders</option>
-                  <option value="Legs">Legs</option>
-                  <option value="Arms">Arms</option>
-                  <option value="Core">Core</option>
-                  <option value="Quads/Glutes">Quads/Glutes</option>
-                </select>
-
-                <select
-                  name="equipment"
-                  value={exercisesFilters.equipment}
-                  onChange={handleExercisesFilterChange}
-                  className="select select-bordered select-sm"
-                >
-                  <option value="">All Equipment</option>
-                  <option value="Barbell">Barbell</option>
-                  <option value="Dumbbell">Dumbbell</option>
-                  <option value="Machine">Machine</option>
-                  <option value="Cables">Cables</option>
-                  <option value="Bodyweight">Bodyweight</option>
-                  <option value="Bands">Bands</option>
-                  <option value="Kettlebell">Kettlebell</option>
-                </select>
-
-                <select
-                  name="training_type"
-                  value={exercisesFilters.training_type}
-                  onChange={handleExercisesFilterChange}
-                  className="select select-bordered select-sm"
-                >
-                  <option value="">All Training Types</option>
-                  <option value="strength">Strength</option>
-                  <option value="hypertrophy">Hypertrophy</option>
-                  <option value="endurance">Endurance</option>
-                  <option value="power">Power</option>
-                  <option value="cardio">Cardio</option>
-                </select>
-              </div>
-            </div>
-
-            {exercisesLoading ? (
-              <div className="text-center py-8">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                <p className="text-sm opacity-70 mt-2">Loading exercises...</p>
-              </div>
-            ) : exercises.length === 0 ? (
-              <div className="text-center py-8 opacity-50">No exercises found</div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {exercises.map((exercise) => (
-                  <div
-                    key={exercise.id || exercise.exercise_id}
-                    className="card bg-base-200 shadow-lg border border-gray-200 rounded-box p-4 hover:shadow-lg transition cursor-pointer"
-                    onClick={() => handleViewExercise(exercise)}
+              <div className="mb-4">
+                <div className="flex gap-2 mb-2">
+                  <input
+                    type="text"
+                    name="q"
+                    placeholder="Search exercises..."
+                    value={exercisesFilters.q}
+                    onChange={handleExercisesFilterChange}
+                    className="input input-bordered flex-1"
+                  />
+                  <button
+                    onClick={clearExercisesFilters}
+                    className="btn btn-ghost btn-sm"
                   >
-                    <h3 className="font-bold text-lg mb-2">{exercise.name}</h3>
-                    {exercise.description && (
-                      <p className="text-sm opacity-70 mb-3 line-clamp-2">{exercise.description}</p>
-                    )}
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      {exercise.muscle_group && (
-                        <span className="badge badge-sm">{exercise.muscle_group}</span>
+                    Clear
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 bg-base-200 rounded-box">
+                  <select
+                    name="muscle_group"
+                    value={exercisesFilters.muscle_group}
+                    onChange={handleExercisesFilterChange}
+                    className="select select-bordered select-sm"
+                  >
+                    <option value="">All Muscle Groups</option>
+                    <option value="Chest">Chest</option>
+                    <option value="Back">Back</option>
+                    <option value="Shoulders">Shoulders</option>
+                    <option value="Legs">Legs</option>
+                    <option value="Arms">Arms</option>
+                    <option value="Core">Core</option>
+                    <option value="Quads/Glutes">Quads/Glutes</option>
+                    <option value="Glutes">Glutes</option>
+                    <option value="Quads">Quads</option>
+                    <option value="Cardio">Cardio</option>
+                    <option value="Hamstrings">Hamstrings</option>
+                    <option value="Core">Lats</option>
+                    <option value="Abs">Abs</option>
+                    <option value="Triceps"> Triceps </option>
+                  </select>
+
+                  <select
+                    name="equipment"
+                    value={exercisesFilters.equipment}
+                    onChange={handleExercisesFilterChange}
+                    className="select select-bordered select-sm"
+                  >
+                    <option value="">All Equipment</option>
+                    <option value="Barbell">Barbell</option>
+                    <option value="Dumbbell">Dumbbells</option>
+                    <option value="Machine">Machine</option>
+                    <option value="Cables">Cables</option>
+                    <option value="Bodyweight">Bodyweight</option>
+                    <option value="Bands">Bands</option>
+                    <option value="Kettlebell">Kettlebell</option>
+
+                    <option value="Bench">Bench</option>
+                    <option value="Swiss Ball">Swiss Ball</option>
+                    <option value="Cable Machine">Cable Machine</option>
+
+                    <option value="Pull-up Bar">Pull-up Bar</option>
+                    <option value=" SZ-Bar"> SZ-Bar</option>
+                    <option value="Incline bench">Incline bench</option>
+                    <option value="Gym mat">Gym mat</option>
+                  </select>
+
+                  {/* <select
+                    name="training_type"
+                    value={exercisesFilters.training_type}
+                    onChange={handleExercisesFilterChange}
+                    className="select select-bordered select-sm"
+                  >
+                    <option value="">All Training Types</option>
+                    <option value="strength">Strength</option>
+                    <option value="hypertrophy">Hypertrophy</option>
+                    <option value="endurance">Endurance</option>
+                    <option value="power">Power</option>
+                    <option value="cardio">Cardio</option>
+                  </select> */}
+                </div>
+              </div>
+
+              {exercisesLoading ? (
+                <div className="text-center py-8">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  <p className="text-sm opacity-70 mt-2">Loading exercises...</p>
+                </div>
+              ) : exercises.length === 0 ? (
+                <div className="text-center py-8 opacity-50">No exercises found</div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {exercises.map((exercise) => (
+                    <div
+                      key={exercise.id || exercise.exercise_id}
+                      className="card bg-base-200 shadow-lg border border-gray-200 rounded-box p-4 hover:shadow-lg transition cursor-pointer"
+                      onClick={() => handleViewExercise(exercise)}
+                    >
+                      <h3 className="font-bold text-lg mb-2">{exercise.name}</h3>
+                      {exercise.description && (
+                        <p className="text-sm opacity-70 mb-3 line-clamp-2">{exercise.description}</p>
                       )}
-                      {exercise.equipment && (
-                        <span className="badge badge-sm bg-blue-800 text-white">{exercise.equipment}</span>
-                      )}
-                      {exercise.training_type && (
-                        <span className="badge badge-sm bg-blue-900 text-white">{exercise.training_type}</span>
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {exercise.muscle_group && (
+                          <span className="badge badge-sm">{exercise.muscle_group}</span>
+                        )}
+                        {exercise.equipment && (
+                          <span className="badge badge-sm bg-blue-800 text-white">{exercise.equipment}</span>
+                        )}
+                        {exercise.training_type && (
+                          <span className="badge badge-sm bg-blue-900 text-white">{exercise.training_type}</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      </div>
+      {/* View Plan Popup - Enhanced */}
+      <PopUp isOpen={popOpen === "viewPlan"} onClose={closePopUp}>
+        <div className="card bg-base-200 border-base-300 border p-6 rounded-box w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+          <h2 className="text-xl font-bold mb-4">Plan Details</h2>
+          <div className="space-y-4">
+            <div className="grid gap-3 pb-3 border-b border-base-300">
+              <div>
+                <span className="font-semibold opacity-70 text-sm">Name:</span>
+                <p className="font-medium mt-1">{selectedPlan?.name}</p>
+              </div>
+            </div>
+
+            <div className="pb-3 border-b border-base-300">
+              <span className="font-semibold opacity-70 text-sm">Description:</span>
+              <p className="mt-1">{selectedPlan?.description || "N/A"}</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 pb-3 border-b border-base-300">
+              <div>
+                <span className="font-semibold opacity-70 text-sm">Owner:</span>
+                <p className="mt-1">{selectedPlan?.owner_name || "N/A"}</p>
+              </div>
+              <div>
+                <span className="font-semibold opacity-70 text-sm">Public Status:</span>
+                <p className="mt-1">
+                  <span className={`badge bage-sm text-white ${selectedPlan?.is_public ? 'bg-blue-800' : 'bg-blue-600'}`}>
+                    {selectedPlan?.is_public ? 'Public' : 'Private'}
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            {selectedPlan?.days && selectedPlan.days.length > 0 && (
+              <div className="pb-3">
+                <span className="font-semibold opacity-70 text-sm block mb-2">
+                  Workout Days ({selectedPlan.days.length}):
+                </span>
+                <div className="space-y-3">
+                  {selectedPlan.days.map((day, index) => (
+                    <div key={day.plan_day_id || index} className="bg-base-300 rounded-lg p-3">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-semibold text-sm">
+                          Day {index + 1}: {day.day_label || `Day ${index + 1}`}
+                        </h4>
+                        {day.day_of_week && (
+                          <span className="badge badge-ghost badge-xs">
+                            {day.day_of_week}
+                          </span>
+                        )}
+                      </div>
+
+                      {day.exercises && day.exercises.length > 0 && (
+                        <div className="mt-2">
+                          <span className="text-xs opacity-70">Exercises:</span>
+                          <ul className="mt-1 space-y-1">
+                            {day.exercises.map((exercise, exIndex) => (
+                              <li key={exIndex} className="text-xs ml-2">
+                                • {exercise.exercise?.name || exercise.name || `Exercise ${exIndex + 1}`}
+                                {exercise.sets && exercise.reps && (
+                                  <span className="opacity-70 ml-1">
+                                    ({exercise.sets} × {exercise.reps})
+                                  </span>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
                       )}
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
-          </div>
-        </div>
-      </section>
-    </div>
-    {/* View Plan Popup - Enhanced */}
-    <PopUp isOpen={popOpen === "viewPlan"} onClose={closePopUp}>
-      <div className="card bg-base-200 border-base-300 border p-6 rounded-box w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-        <h2 className="text-xl font-bold mb-4">Plan Details</h2>
-        <div className="space-y-4">
-          <div className="grid gap-3 pb-3 border-b border-base-300">
-            <div>
-              <span className="font-semibold opacity-70 text-sm">Name:</span>
-              <p className="font-medium mt-1">{selectedPlan?.name}</p>
-            </div>
-          </div>
 
-          <div className="pb-3 border-b border-base-300">
-            <span className="font-semibold opacity-70 text-sm">Description:</span>
-            <p className="mt-1">{selectedPlan?.description || "N/A"}</p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 pb-3 border-b border-base-300">
-            <div>
-              <span className="font-semibold opacity-70 text-sm">Owner:</span>
-              <p className="mt-1">{selectedPlan?.owner_name || "N/A"}</p>
-            </div>
-            <div>
-              <span className="font-semibold opacity-70 text-sm">Public Status:</span>
-              <p className="mt-1">
-                <span className={`badge bage-sm text-white ${selectedPlan?.is_public ? 'bg-blue-800' : 'bg-blue-600'}`}>
-                  {selectedPlan?.is_public ? 'Public' : 'Private'}
-                </span>
-              </p>
-            </div>
-          </div>
-
-          {selectedPlan?.days && selectedPlan.days.length > 0 && (
-            <div className="pb-3">
-              <span className="font-semibold opacity-70 text-sm block mb-2">
-                Workout Days ({selectedPlan.days.length}):
-              </span>
-              <div className="space-y-3">
-                {selectedPlan.days.map((day, index) => (
-                  <div key={day.plan_day_id || index} className="bg-base-300 rounded-lg p-3">
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-semibold text-sm">
-                        Day {index + 1}: {day.day_label || `Day ${index + 1}`}
-                      </h4>
-                      {day.day_of_week && (
-                        <span className="badge badge-ghost badge-xs">
-                          {day.day_of_week}
-                        </span>
-                      )}
-                    </div>
-
-                    {day.exercises && day.exercises.length > 0 && (
-                      <div className="mt-2">
-                        <span className="text-xs opacity-70">Exercises:</span>
-                        <ul className="mt-1 space-y-1">
-                          {day.exercises.map((exercise, exIndex) => (
-                            <li key={exIndex} className="text-xs ml-2">
-                              • {exercise.exercise?.name || exercise.name || `Exercise ${exIndex + 1}`}
-                              {exercise.sets && exercise.reps && (
-                                <span className="opacity-70 ml-1">
-                                  ({exercise.sets} × {exercise.reps})
-                                </span>
-                              )}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                ))}
+            {/* Dates */}
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <div>
+                <span className="font-semibold opacity-70 text-sm">Created:</span>
+                <p className="text-xs opacity-60 mt-1">
+                  {selectedPlan?.created_at ? new Date(selectedPlan.created_at).toLocaleDateString() : "N/A"}
+                </p>
+              </div>
+              <div>
+                <span className="font-semibold opacity-70 text-sm">Last Updated:</span>
+                <p className="text-xs opacity-60 mt-1">
+                  {selectedPlan?.updated_at ? new Date(selectedPlan.updated_at).toLocaleDateString() : "N/A"}
+                </p>
               </div>
             </div>
-          )}
-
-          {/* Dates */}
-          <div className="grid grid-cols-2 gap-3 pt-2">
-            <div>
-              <span className="font-semibold opacity-70 text-sm">Created:</span>
-              <p className="text-xs opacity-60 mt-1">
-                {selectedPlan?.created_at ? new Date(selectedPlan.created_at).toLocaleDateString() : "N/A"}
-              </p>
-            </div>
-            <div>
-              <span className="font-semibold opacity-70 text-sm">Last Updated:</span>
-              <p className="text-xs opacity-60 mt-1">
-                {selectedPlan?.updated_at ? new Date(selectedPlan.updated_at).toLocaleDateString() : "N/A"}
-              </p>
-            </div>
           </div>
-        </div>
 
-        <div className="flex gap-2 mt-6">
-          {/* <button 
+          <div className="flex gap-2 mt-6">
+            {/* <button 
         onClick={() => {
           closePopUp();
           handleEditPlan(selectedPlan);
@@ -606,23 +622,23 @@ return (
       >
         Edit Plan
       </button> */}
-          <button
-            onClick={async () => {
-              const ok = await confirm(
-                `Are you sure you want to delete "${selectedPlan?.name}"?`);
+            <button
+              onClick={async () => {
+                const ok = await confirm(
+                  `Are you sure you want to delete "${selectedPlan?.name}"?`);
 
-              if (ok) {
-                handleDeletePlan(selectedPlan?.plan_id, selectedPlan?.name);
-              }
-            }}
-            className="btn bg-red-600 text-white flex-1"
-          >
-            Delete
-          </button>
+                if (ok) {
+                  handleDeletePlan(selectedPlan?.plan_id, selectedPlan?.name);
+                }
+              }}
+              className="btn bg-red-600 text-white flex-1"
+            >
+              Delete
+            </button>
+          </div>
         </div>
-      </div>
-    </PopUp>
-    {/*
+      </PopUp>
+      {/*
 <PopUp isOpen={popOpen === "editPlan"} onClose={closePopUp}>
   <form onSubmit={handleUpdatePlan} className="card bg-base-200 border-base-300 border p-6 rounded-box w-full max-w-2xl max-h-[80vh] overflow-y-auto">
     <h2 className="text-xl font-bold mb-4">Edit Plan</h2>
@@ -746,275 +762,298 @@ return (
   </form>
 </PopUp>
 */}
-    {/* View Exercise Popup */}
-    <PopUp isOpen={popOpen === "viewExercise"} onClose={closePopUp}>
-      <div className="card bg-base-200 border-base-300 border p-6 rounded-box w-full max-w-md max-h-[80vh] overflow-y-auto">
-        <h2 className="text-xl font-bold mb-4">Exercise Details</h2>
-        <div className="space-y-4">
-          <div className="grid gap-3 pb-3 border-b border-base-300">
-            <div>
-              <span className="font-semibold opacity-70 text-sm">Name:</span>
-              <p className="mt-1">{selectedExercise?.name}</p>
+      {/* View Exercise Popup */}
+      <PopUp isOpen={popOpen === "viewExercise"} onClose={closePopUp}>
+        <div className="card bg-base-200 border-base-300 border p-6 rounded-box w-full max-w-md max-h-[80vh] overflow-y-auto">
+          <h2 className="text-xl font-bold mb-4">Exercise Details</h2>
+          <div className="space-y-4">
+            <div className="grid gap-3 pb-3 border-b border-base-300">
+              <div>
+                <span className="font-semibold opacity-70 text-sm">Name:</span>
+                <p className="mt-1">{selectedExercise?.name}</p>
+              </div>
+            </div>
+
+            <div className="pb-3 border-b border-base-300">
+              <span className="font-semibold opacity-70 text-sm">Description:</span>
+              <p className="mt-1">{selectedExercise?.description || "N/A"}</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 pb-3 border-b border-base-300">
+              <div>
+                <span className="font-semibold opacity-70 text-sm">Muscle Group:</span>
+                <p className="mt-1">{selectedExercise?.muscle_group || "N/A"}</p>
+              </div>
+              <div>
+                <span className="font-semibold opacity-70 text-sm">Equipment:</span>
+                <p className="mt-1">{selectedExercise?.equipment || "N/A"}</p>
+              </div>
+            </div>
+
+            <div className="pb-3">
+              <div>
+                <span className="font-semibold opacity-70 text-sm">Training Type:</span>
+                <p className="mt-1">{selectedExercise?.training_type || "N/A"}</p>
+              </div>
             </div>
           </div>
 
-          <div className="pb-3 border-b border-base-300">
-            <span className="font-semibold opacity-70 text-sm">Description:</span>
-            <p className="mt-1">{selectedExercise?.description || "N/A"}</p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 pb-3 border-b border-base-300">
-            <div>
-              <span className="font-semibold opacity-70 text-sm">Muscle Group:</span>
-              <p className="mt-1">{selectedExercise?.muscle_group || "N/A"}</p>
-            </div>
-            <div>
-              <span className="font-semibold opacity-70 text-sm">Equipment:</span>
-              <p className="mt-1">{selectedExercise?.equipment || "N/A"}</p>
-            </div>
-          </div>
-
-          <div className="pb-3">
-            <div>
-              <span className="font-semibold opacity-70 text-sm">Training Type:</span>
-              <p className="mt-1">{selectedExercise?.training_type || "N/A"}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex gap-2 mt-6">
-          <button
-            onClick={() => {
-              closePopUp();
-              handleEditExercise(selectedExercise);
-            }}
-            className="btn btn-primary bg-blue-800 flex-1"
-          >
-            Edit
-          </button>
-          <button
-            onClick={() => {
-              handleDeleteExercise(selectedExercise);
-            }}
-            className="btn bg-red-600 text-white shadow-md flex-1 hover:bg-red-700"
-          >
-            Delete
-          </button>
-        </div>
-      </div>
-    </PopUp>
-
-    {/* Edit Exercise Popup */}
-    <PopUp isOpen={popOpen === "editExercise"} onClose={closePopUp}>
-      <form onSubmit={handleUpdateExercise} className="card bg-base-200 border-base-300 border p-6 rounded-box w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Edit Exercise</h2>
-        <div className="space-y-3">
-          <div>
-            <label className="label font-semibold opacity-70">Name</label>
-            <input
-              type="text"
-              value={editExerciseData.name}
-              onChange={(e) => setEditExerciseData({ ...editExerciseData, name: e.target.value })}
-              className="input input-bordered w-full"
-              required
-            />
-          </div>
-          <div>
-            <label className="label font-semibold opacity-70">Description</label>
-            <textarea
-              value={editExerciseData.description}
-              onChange={(e) => setEditExerciseData({ ...editExerciseData, description: e.target.value })}
-              className="textarea textarea-bordered w-full"
-              rows="3"
-            />
-          </div>
-          <div>
-            <label className="label font-semibold opacity-70">Muscle Group</label>
-            <select
-              value={editExerciseData.muscle_group}
-              onChange={(e) => setEditExerciseData({ ...editExerciseData, muscle_group: e.target.value })}
-              className="select select-bordered w-full"
-            >
-              <option value="">Select Muscle Group</option>
-              <option value="Chest">Chest</option>
-              <option value="Back">Back</option>
-              <option value="Shoulders">Shoulders</option>
-              <option value="Legs">Legs</option>
-              <option value="Arms">Arms</option>
-              <option value="Core">Core</option>
-              <option value="Quads/Glutes">Quads/Glutes</option>
-            </select>
-          </div>
-          <div>
-            <label className="label font-semibold opacity-70">Equipment</label>
-            <select
-              value={editExerciseData.equipment}
-              onChange={(e) => setEditExerciseData({ ...editExerciseData, equipment: e.target.value })}
-              className="select select-bordered w-full"
-            >
-              <option value="">Select Equipment</option>
-              <option value="Barbell">Barbell</option>
-              <option value="Dumbbell">Dumbbell</option>
-              <option value="Machine">Machine</option>
-              <option value="Cables">Cables</option>
-              <option value="Bodyweight">Bodyweight</option>
-              <option value="Bands">Bands</option>
-              <option value="Kettlebell">Kettlebell</option>
-            </select>
-          </div>
-          <div>
-            <label className="label font-semibold opacity-70">Training Type</label>
-            <select
-              value={editExerciseData.training_type}
-              onChange={(e) => setEditExerciseData({ ...editExerciseData, training_type: e.target.value })}
-              className="select select-bordered w-full"
-            >
-              <option value="">Select Training Type</option>
-              <option value="strength">Strength</option>
-              <option value="hypertrophy">Hypertrophy</option>
-              <option value="endurance">Endurance</option>
-              <option value="power">Power</option>
-              <option value="cardio">Cardio</option>
-            </select>
-          </div>
-        </div>
-        <div className="flex gap-2 mt-6">
-          <button type="submit" className="btn btn-primary bg-blue-800 text-white flex-1">Save Changes</button>
-          <button type="button" onClick={closePopUp} className="btn btn-ghost flex-1">Cancel</button>
-        </div>
-      </form>
-    </PopUp>
-
-    <PopUp isOpen={popOpen === "create"} onClose={() => setPopOpen(null)}>
-      <form onSubmit={handleCreateExercise} className="card bg-base-200 border-base-300 border p-6 rounded-box w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Create New Exercise</h2>
-        <div className="space-y-3">
-          <div>
-            <label className="label font-semibold opacity-70">Name</label>
-            <input
-              name="name"
-              type="text"
-              value={newExercise.name}
-              onChange={handleNewExChange}
-              className="input input-bordered w-full"
-              required
-            />
-          </div>
-          <div>
-            <label className="label font-semibold opacity-70">Description</label>
-            <textarea
-              name="description"
-              value={newExercise.description}
-              onChange={handleNewExChange}
-              className="textarea textarea-bordered w-full"
-              rows="3"
-            />
-          </div>
-          <div>
-            <label className="label font-semibold opacity-70">Muscle Group</label>
-            <select
-              name="muscle_group"
-              value={newExercise.muscle_group}
-              onChange={handleNewExChange}
-              className="select select-bordered w-full"
-            >
-              <option value="">Select Muscle Group</option>
-              <option value="Chest">Chest</option>
-              <option value="Back">Back</option>
-              <option value="Shoulders">Shoulders</option>
-              <option value="Legs">Legs</option>
-              <option value="Arms">Arms</option>
-              <option value="Core">Core</option>
-              <option value="Quads/Glutes">Quads/Glutes</option>
-            </select>
-          </div>
-          <div>
-            <label className="label font-semibold opacity-70">Equipment</label>
-            <select
-              name="equipment"
-              value={newExercise.equipment}
-              onChange={handleNewExChange}
-              className="select select-bordered w-full"
-            >
-              <option value="">Select Equipment</option>
-              <option value="Barbell">Barbell</option>
-              <option value="Dumbbell">Dumbbell</option>
-              <option value="Machine">Machine</option>
-              <option value="Cables">Cables</option>
-              <option value="Bodyweight">Bodyweight</option>
-              <option value="Bands">Bands</option>
-              <option value="Kettlebell">Kettlebell</option>
-            </select>
-          </div>
-          <div>
-            <label className="label font-semibold opacity-70">Training Type</label>
-            <select
-              name="training_type"
-              value={newExercise.training_type}
-              onChange={handleNewExChange}
-              className="select select-bordered w-full"
-            >
-              <option value="">Select Training Type</option>
-              <option value="strength">Strength</option>
-              <option value="hypertrophy">Hypertrophy</option>
-              <option value="endurance">Endurance</option>
-              <option value="power">Power</option>
-              <option value="cardio">Cardio</option>
-            </select>
-          </div>
-        </div>
-        <div className="flex gap-2 mt-6">
-          <button type="submit" className="btn btn-primary bg-blue-800 text-white flex-1">Create</button>
-          <button type="button" onClick={() => setPopOpen(null)} className="btn btn-ghost flex-1">Cancel</button>
-        </div>
-      </form>
-    </PopUp>
-
-
-    {confirmState.open && (
-      <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-        <div className="bg-white rounded-xl shadow-xl p-6 w-96">
-
-          <p className="text-sm text-gray-700 mb-6">
-            {confirmState.message}
-          </p>
-
-          <div className="flex justify-end gap-2">
+          <div className="flex gap-2 mt-6">
             <button
-              className="btn btn-xs"
               onClick={() => {
-                confirmState.onResolve(false);
-                setConfirmState({ ...confirmState, open: false });
+                closePopUp();
+                handleEditExercise(selectedExercise);
               }}
+              className="btn btn-primary bg-blue-800 flex-1"
             >
-              No
+              Edit
             </button>
-
             <button
-              className={`btn btn-xs text-white ${confirmState.type === "cancel"
-                ? "bg-red-600"
-                : "bg-blue-700"
-                }`}
               onClick={() => {
-                confirmState.onResolve(true);
-                setConfirmState({ ...confirmState, open: false });
+                handleDeleteExercise(selectedExercise);
               }}
+              className="btn bg-red-600 text-white shadow-md flex-1 hover:bg-red-700"
             >
-              Yes
+              Delete
             </button>
           </div>
-
         </div>
-      </div>
-    )}
-    <Alert
-      isOpen={alert}
-      message={alertMsg}
-      type={alertType}
-      onClose={() => setShowAlert(false)}
-    />
-  </div>
-);
+      </PopUp>
+
+      {/* Edit Exercise Popup */}
+      <PopUp isOpen={popOpen === "editExercise"} onClose={closePopUp}>
+        <form onSubmit={handleUpdateExercise} className="card bg-base-200 border-base-300 border p-6 rounded-box w-full max-w-md">
+          <h2 className="text-xl font-bold mb-4">Edit Exercise</h2>
+          <div className="space-y-3">
+            <div>
+              <label className="label font-semibold opacity-70">Name</label>
+              <input
+                type="text"
+                value={editExerciseData.name}
+                onChange={(e) => setEditExerciseData({ ...editExerciseData, name: e.target.value })}
+                className="input input-bordered w-full"
+                required
+              />
+            </div>
+            <div>
+              <label className="label font-semibold opacity-70">Description</label>
+              <textarea
+                value={editExerciseData.description}
+                onChange={(e) => setEditExerciseData({ ...editExerciseData, description: e.target.value })}
+                className="textarea textarea-bordered w-full"
+                rows="3"
+              />
+            </div>
+            <div>
+              <label className="label font-semibold opacity-70">Muscle Group</label>
+              <select
+                value={editExerciseData.muscle_group}
+                onChange={(e) => setEditExerciseData({ ...editExerciseData, muscle_group: e.target.value })}
+                className="select select-bordered w-full"
+              >
+                <option value="">Select Muscle Group</option>
+                <option value="Chest">Chest</option>
+                <option value="Back">Back</option>
+                <option value="Shoulders">Shoulders</option>
+                <option value="Legs">Legs</option>
+                <option value="Arms">Arms</option>
+                <option value="Core">Core</option>
+                <option value="Quads/Glutes">Quads/Glutes</option>
+              </select>
+            </div>
+            <div>
+              <label className="label font-semibold opacity-70">Equipment</label>
+              <select
+                value={editExerciseData.equipment}
+                onChange={(e) => setEditExerciseData({ ...editExerciseData, equipment: e.target.value })}
+                className="select select-bordered w-full"
+              >
+                <option value="">Select Equipment</option>
+                <option value="Barbell">Barbell</option>
+                <option value="Dumbbell">Dumbbell</option>
+                <option value="Machine">Machine</option>
+                <option value="Cables">Cables</option>
+                <option value="Bodyweight">Bodyweight</option>
+                <option value="Bands">Bands</option>
+                <option value="Kettlebell">Kettlebell</option>
+              </select>
+            </div>
+            <div>
+              <label className="label font-semibold opacity-70">Training Type</label>
+              <select
+                value={editExerciseData.training_type}
+                onChange={(e) => setEditExerciseData({ ...editExerciseData, training_type: e.target.value })}
+                className="select select-bordered w-full"
+              >
+                <option value="">Select Training Type</option>
+                <option value="strength">Strength</option>
+                <option value="hypertrophy">Hypertrophy</option>
+                <option value="endurance">Endurance</option>
+                <option value="power">Power</option>
+                <option value="cardio">Cardio</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex gap-2 mt-6">
+            <button type="submit" className="btn btn-primary bg-blue-800 text-white flex-1">Save Changes</button>
+            <button type="button" onClick={closePopUp} className="btn btn-ghost flex-1">Cancel</button>
+          </div>
+        </form>
+      </PopUp>
+
+      <PopUp isOpen={popOpen === "create"} onClose={() => setPopOpen(null)}>
+        <form onSubmit={handleCreateExercise} className="card bg-base-200 border-base-300 border p-6 rounded-box w-full max-w-md">
+          <h2 className="text-xl font-bold mb-4">Create New Exercise</h2>
+          <div className="space-y-3">
+            <div>
+              <label className="label font-semibold opacity-70">Name</label>
+              <input
+                name="name"
+                type="text"
+                value={newExercise.name}
+                onChange={handleNewExChange}
+                className="input input-bordered w-full"
+                required
+              />
+            </div>
+            <div>
+              <label className="label font-semibold opacity-70">Description</label>
+              <textarea
+                name="description"
+                value={newExercise.description}
+                onChange={handleNewExChange}
+                className="textarea textarea-bordered w-full"
+                rows="3"
+              />
+            </div>
+            <div>
+              <label className="label font-semibold opacity-70">Muscle Group</label>
+              <select
+                name="muscle_group"
+                value={newExercise.muscle_group}
+                onChange={handleNewExChange}
+                className="select select-bordered w-full"
+              >
+                <option value="">All Muscle Groups</option>
+                <option value="Chest">Chest</option>
+                <option value="Back">Back</option>
+                <option value="Shoulders">Shoulders</option>
+                <option value="Legs">Legs</option>
+                <option value="Arms">Arms</option>
+                <option value="Core">Core</option>
+                <option value="Quads/Glutes">Quads/Glutes</option>
+                <option value="Glutes">Glutes</option>
+                <option value="Quads">Quads</option>
+                <option value="Cardio">Cardio</option>
+                <option value="Hamstrings">Hamstrings</option>
+                <option value="Core">Lats</option>
+                <option value="Abs">Abs</option>
+                <option value="Triceps"> Triceps </option>
+
+              </select>
+            </div>
+            <div>
+              <label className="label font-semibold opacity-70">Equipment</label>
+              <select
+                name="equipment"
+                value={newExercise.equipment}
+                onChange={handleNewExChange}
+                className="select select-bordered w-full"
+              >
+                <option value="">All Equipment</option>
+                <option value="Barbell">Barbell</option>
+                <option value="Dumbbell">Dumbbells</option>
+                <option value="Machine">Machine</option>
+                <option value="Cables">Cables</option>
+                <option value="Bodyweight">Bodyweight</option>
+                <option value="Bands">Bands</option>
+                <option value="Kettlebell">Kettlebell</option>
+
+                <option value="Bench">Bench</option>
+                <option value="Swiss Ball">Swiss Ball</option>
+                <option value="Cable Machine">Cable Machine</option>
+
+                <option value="Pull-up Bar">Pull-up Bar</option>
+                <option value=" SZ-Bar"> SZ-Bar</option>
+                <option value="Incline bench">Incline bench</option>
+                <option value="Gym mat">Gym mat</option>
+
+              </select>
+            </div>
+            <div>
+              <label className="label font-semibold opacity-70">Training Type</label>
+              <select
+                name="training_type"
+                value={newExercise.training_type}
+                onChange={handleNewExChange}
+                className="select select-bordered w-full"
+              >
+                <option value="">Select Training Type</option>
+                <option value="strength">Strength</option>
+                <option value="hypertrophy">Hypertrophy</option>
+                <option value="endurance">Endurance</option>
+                <option value="power">Power</option>
+                <option value="cardio">Cardio</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex gap-2 mt-6">
+            <button type="submit" className="btn btn-primary bg-blue-800 text-white flex-1">Create</button>
+            <button type="button" onClick={() => setPopOpen(null)} className="btn btn-ghost flex-1">Cancel</button>
+          </div>
+        </form>
+      </PopUp>
+
+
+
+
+
+      {
+        confirmState.open && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+            <div className="bg-white rounded-xl shadow-xl p-6 w-96">
+
+              <p className="text-sm text-gray-700 mb-6">
+                {confirmState.message}
+              </p>
+
+              <div className="flex justify-end gap-2">
+                <button
+                  className="btn btn-xs"
+                  onClick={() => {
+                    confirmState.onResolve(false);
+                    setConfirmState({ ...confirmState, open: false });
+                  }}
+                >
+                  No
+                </button>
+
+                <button
+                  className={`btn btn-xs text-white ${confirmState.type === "cancel"
+                    ? "bg-red-600"
+                    : "bg-blue-700"
+                    }`}
+                  onClick={() => {
+                    confirmState.onResolve(true);
+                    setConfirmState({ ...confirmState, open: false });
+                  }}
+                >
+                  Yes
+                </button>
+              </div>
+
+            </div>
+          </div>
+        )
+      }
+      <Alert
+        isOpen={alert}
+        message={alertMsg}
+        type={alertType}
+        onClose={() => setShowAlert(false)}
+      />
+    </div >
+  );
 }
 
 export default AWorkoutPlans;
