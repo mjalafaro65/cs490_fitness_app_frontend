@@ -259,7 +259,7 @@ function CoClientDashboardView() {
         <section className="p-6 flex flex-col gap-6">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-2xl font-bold mb-4">{client.first_name || "Client"}{client.last_name ? ` ${client.last_name}` : ""}'s Dashboard</div>
+              {/* <div className="text-2xl font-bold mb-4">{client.first_name || "Client"}{client.last_name ? ` ${client.last_name}` : ""}'s Dashboard</div> */}
               <div className="flex items-center gap-4">
                 <button
                   className="cursor-pointer border flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200"

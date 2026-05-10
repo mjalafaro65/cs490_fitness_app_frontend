@@ -97,8 +97,6 @@ function SetupPage() {
             navigate("/client/initial-survey");
         } catch (error) {
             console.error("Upload failed:", error);
-
-            showAlert("Error saving profile", "error");
         }
     };
 
@@ -261,12 +259,6 @@ function SetupPage() {
                     <button className="btn btn-primary md:col-span-2 mt-6">Save and Continue</button>
                 </form>
             </div>
-
-            <Alert
-                isOpen={alert}
-                message={alertMsg}
-                type={alertType}
-                onClose={() => setShowAlert(false)} />
         </div>
     );
 }

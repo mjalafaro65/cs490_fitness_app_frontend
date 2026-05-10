@@ -195,7 +195,7 @@ function CReviews() {
           ) : (
             <div className="space-y-4">
               {reviews.map((review) => (
-                <div key={review.review_id} className="card bg-base-200 shadow-lg">
+                <div key={review.review_id} className="card bg-base-100 border border-gray-300 shadow-lg">
                   <div className="card-body">
                     <div className="flex justify-between items-start mb-2">
                       <div>
@@ -230,7 +230,7 @@ function CReviews() {
                           Edit
                         </button>
                         <button
-                          className="btn btn-ghost btn-sm text-red-500"
+                          className="btn btn-ghost btn-sm text-red-600"
                           onClick={async () => {
                             const ok = await confirm({
                               message: "Are you sure you want to delete this review?",

@@ -386,7 +386,10 @@ function CDashboard() {
           (coach) => coach.status !== "terminated"
         );
 
-        setHiredCoaches(activeCoaches);
+        const active = all.filter(c => c.status === "active");
+        const terminated = all.filter(c => c.status === "terminated");
+
+        setHiredCoaches(active);
 
       } catch (err) {
         console.log(err);
@@ -402,68 +405,68 @@ function CDashboard() {
 
   }, []);
 
-  useEffect(() => {
-    let isMounted = true;
+const activeCoachId = hiredCoaches?.[0]?.coach_id;
 
-    if (selectedDay) {
-      const today = new Date();
-      const isToday = isSameDay(selectedDay, today);
+useEffect(() => {
+  let isMounted = true;
 
-      if (isToday) {
-        // For today, use the daily state directly
-        if (isMounted) {
-          setSelectedDayLog(daily);
-        }
-      } else {
-        // For other days, fetch from API
-        const fetchData = async () => {
-          setIsLoadingLog(true);
-          try {
-            const year = selectedDay.getFullYear();
-            const month = String(selectedDay.getMonth() + 1).padStart(2, '0');
-            const day = String(selectedDay.getDate()).padStart(2, '0');
-            const dateStr = `${year}-${month}-${day}`;
+  const fetchData = async () => {
+    if (!selectedDay) return;
 
-            const response = await api.get("/insights/survey");
-            // Only update if this date is still the selected one
-            if (!isMounted) return;
+    const today = new Date();
+    const isToday = isSameDay(selectedDay, today);
 
-            const history = response.data?.history || [];
-            const logEntry = history.find(entry => entry.date === dateStr);
-
-            if (logEntry) {
-              setSelectedDayLog({
-                daily_goal: logEntry.daily_goal || "",
-                energy_level: logEntry.energy_level || "",
-                target_focus: logEntry.target_focus || "",
-                water_oz: logEntry.water_oz || "",
-                weight_lbs: logEntry.weight_lbs || "",
-                sleep_hours: logEntry.sleep_hours || "",
-                mood_score: logEntry.mood_score || ""
-              });
-            } else {
-              setSelectedDayLog(null);
-            }
-          } catch (err) {
-            if (isMounted) {
-              console.error("Failed to fetch log for date:", err);
-              setSelectedDayLog(null);
-            }
-          } finally {
-            if (isMounted) {
-              setIsLoadingLog(false);
-            }
-          }
-        };
-
-        fetchData();
-      }
+    // If today → use live state
+    if (isToday) {
+      if (isMounted) setSelectedDayLog(daily);
+      return;
     }
 
-    return () => {
-      isMounted = false;
-    };
-  }, [selectedDay, daily]); // Keep daily so today updates when daily changes
+    // Otherwise fetch history
+    setIsLoadingLog(true);
+
+    try {
+      const year = selectedDay.getFullYear();
+      const month = String(selectedDay.getMonth() + 1).padStart(2, "0");
+      const day = String(selectedDay.getDate()).padStart(2, "0");
+      const dateStr = `${year}-${month}-${day}`;
+
+      const response = await api.get("/insights/survey");
+
+      if (!isMounted) return;
+
+      const history = response.data?.history || [];
+      const logEntry = history.find((entry) => entry.date === dateStr);
+
+      if (logEntry) {
+        setSelectedDayLog({
+          daily_goal: logEntry.daily_goal || "",
+          energy_level: logEntry.energy_level || "",
+          target_focus: logEntry.target_focus || "",
+          water_oz: logEntry.water_oz || "",
+          weight_lbs: logEntry.weight_lbs || "",
+          sleep_hours: logEntry.sleep_hours || "",
+          mood_score: logEntry.mood_score || "",
+        });
+      } else {
+        setSelectedDayLog(null);
+      }
+    } catch (err) {
+      if (isMounted) {
+        console.error("Failed to fetch log for date:", err);
+        setSelectedDayLog(null);
+      }
+    } finally {
+      if (isMounted) setIsLoadingLog(false);
+    }
+  };
+
+  fetchData();
+
+  return () => {
+    isMounted = false;
+  };
+}, [selectedDay, daily]);// Keep daily so today updates when daily changes
 
   //     useEffect(() => {
   //       if (selectedDay) {

@@ -371,7 +371,7 @@ function Messages() {
                     onChange={(e) => setNewMessage(e.target.value)}
                     placeholder="Type message..."
                   />
-                  <button className="btn bg-blue-900 btn-primary rounded-full px-6">
+                  <button className="btn bg-blue-800 btn-primary text-white rounded-full px-6">
                     Send
                   </button>
                 </form>
