@@ -199,7 +199,7 @@ function ClientWorkoutPlans() {
   function simplifyAssignments(data = []) {
     return data.map((assignment) => ({
       assignment_id: assignment.assignment_id,
-      assigned_by_user_id : assignment.assigned_by_user_id,
+      assigned_by_user_id: assignment.assigned_by_user_id,
       plan_name: assignment.plan?.name,
       start_date: assignment.start_date,
       end_date: assignment.end_date,
@@ -891,8 +891,10 @@ function ClientWorkoutPlans() {
 
                               return (
                                 <li key={exId} className="text-xs">
-                                  {ex.exercise?.name || ex.name} — {ex.sets} sets × {ex.reps} reps
-                                  {ex.weight ? ` @ ${ex.weight} lbs` : ""}
+                                  {`${ex.exercise?.name} —`|| `${ex.name} —` }
+                                  {ex.sets > 0 && ex.reps > 0 && `  ${ex.sets} sets × ${ex.reps} reps`}
+                                  {ex.weight > 0 && ` @ ${ex.weight} lbs`}
+                                  {ex.duration_minutes > 0 && ` @ ${ex.duration_minutes} min`}
                                 </li>
                               );
                             })}
@@ -1003,7 +1005,7 @@ function ClientWorkoutPlans() {
                                     await fetchWorkoutsForDate(selectedDateC);
                                   }}
                                 >
-                                  Delete Planned Workout
+                                  Cancel Planned Workout
                                 </button>
                               </div>
                             ) : (

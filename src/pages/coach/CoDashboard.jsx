@@ -74,7 +74,7 @@ function CoDashboard() {
 
   const fetchCoachWeekWorkouts = async (anchorDate) => {
     const dateStr = anchorDate.toISOString().split('T')[0];
-    const res = await api.get(`/workouts/calendar-workouts-view?view=week`);
+    const res = await api.get(`/workouts/calendar-workouts-view?view=week&date=${dateStr}`);
     console.log(res.data)
     setWeekWorkouts(res.data);
   };
@@ -135,12 +135,17 @@ function CoDashboard() {
     );
   };
 
+  // useEffect(() => {
+  //   fetchCoachDashboardData();
+  //   const d = new Date(weekAnchor);
+  //   d.setDate(d.getDate() - 7);
+  //   fetchCoachWeekWorkouts(d);
+  // }, []);
+
   useEffect(() => {
     fetchCoachDashboardData();
-    const d = new Date(weekAnchor);
-    d.setDate(d.getDate() - 7);
-    fetchCoachWeekWorkouts(d);
-  }, []);
+    fetchCoachWeekWorkouts(weekAnchor);
+  }, [weekAnchor]);
 
   const selectedWorkouts = getWorkoutsForDate(selectedDay);
 
@@ -494,9 +499,9 @@ function CoDashboard() {
                 Message Client
               </button>
 
-              <button className="btn btn-sm bg-black text-white hover:bg-red-600 hover:text-white transition">
+              {/* <button className="btn btn-sm bg-black text-white hover:bg-red-600 hover:text-white transition">
                 Drop Client
-              </button>
+              </button> */}
             </div>
 
             <button

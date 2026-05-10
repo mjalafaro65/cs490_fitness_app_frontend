@@ -19,6 +19,16 @@ function Initial_Survey() {
         "weight_lbs": 0,
         "sleep_hours": 0,
     });
+    const [alert, setShowAlert] = useState(false);
+    const [alertMsg, setAlertMsg] = useState('');
+    const [alertType, setAlertType] = useState('success');
+
+    const showAlert = (message, type = 'success') => {
+        console.log("ALERT FUNCTION CALLED with:", message, type);
+        setAlertMsg(message);
+        setAlertType(type);
+        setShowAlert(true);
+    };
     useEffect(() => {
         const checkStatus = async () => {
             const token = localStorage.getItem("token");

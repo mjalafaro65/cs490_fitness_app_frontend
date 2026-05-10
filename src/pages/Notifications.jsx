@@ -70,7 +70,7 @@ function Notifications() {
         key,
         type: notif.type_slug ? "group" : "single",
         title: notif.title,
-        ids: notif.type_slug ? [notif.notification_id] : null,
+        ids: notif.type_slug ? [notif.notification_id] : [],
         notification_id: notif.notification_id,
         is_read: notif.is_read,
         created_at: notif.created_at

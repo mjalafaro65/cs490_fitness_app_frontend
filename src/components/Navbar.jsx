@@ -98,9 +98,9 @@ function Navbar() {
         {
             to: "/coach/workoutplans", label: "Workout Plans", icon: (Icons.Workout)
         },
-        {
-            to: "/coach/meallogs", label: "Meal Logs", icon: (Icons.Meal)
-        },
+        // {
+        //     to: "/coach/meallogs", label: "Meal Logs", icon: (Icons.Meal)
+        // },
         {
             to: "/coach/invoices", label: "Invoices", icon: (Icons.Logs)
         },

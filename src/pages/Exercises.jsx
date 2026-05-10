@@ -361,6 +361,14 @@ function BrowseExercises({ planId, dayId, weekday, onExerciseAdded, onClose }) {
                 <option value="Arms">Arms</option>
                 <option value="Core">Core</option>
                 <option value="Quads/Glutes">Quads/Glutes</option>
+                <option value="Glutes">Glutes</option>
+                <option value="Quads">Quads</option>
+                <option value="Cardio">Cardio</option>
+                <option value="Hamstrings">Hamstrings</option>
+                <option value="Core">Lats</option>
+                <option value="Abs">Abs</option>
+                <option value="Triceps"> Triceps </option>
+
               </select>
 
               <select
@@ -371,15 +379,25 @@ function BrowseExercises({ planId, dayId, weekday, onExerciseAdded, onClose }) {
               >
                 <option value="">All Equipment</option>
                 <option value="Barbell">Barbell</option>
-                <option value="Dumbbell">Dumbbell</option>
+                <option value="Dumbbell">Dumbbells</option>
                 <option value="Machine">Machine</option>
                 <option value="Cables">Cables</option>
                 <option value="Bodyweight">Bodyweight</option>
                 <option value="Bands">Bands</option>
                 <option value="Kettlebell">Kettlebell</option>
+
+                <option value="Bench">Bench</option>
+                <option value="Swiss Ball">Swiss Ball</option>
+                <option value="Cable Machine">Cable Machine</option>
+
+                <option value="Pull-up Bar">Pull-up Bar</option>
+                <option value=" SZ-Bar"> SZ-Bar</option>
+                <option value="Incline bench">Incline bench</option>
+                <option value="Gym mat">Gym mat</option>
+
               </select>
 
-              <select
+              {/* <select
                 name="training_type"
                 value={exercisesFilters.training_type}
                 onChange={handleExercisesFilterChange}
@@ -391,7 +409,7 @@ function BrowseExercises({ planId, dayId, weekday, onExerciseAdded, onClose }) {
                 <option value="endurance">Endurance</option>
                 <option value="power">Power</option>
                 <option value="cardio">Cardio</option>
-              </select>
+              </select> */}
             </div>
           </div>
 
