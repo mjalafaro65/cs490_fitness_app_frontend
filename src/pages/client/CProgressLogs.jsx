@@ -248,7 +248,7 @@ function ProgressLogs() {
   try {
     const goal = goalsData.find(g => g.goal_id === goalId);
     
-    if (goal && (goal.goal_type === "frequency" || goal.goal_type === "performance")) {
+    if (goal && (goal.goal_type !== "weight")) {
       const currentProgress = parseFloat(goal.current_value) || 0;
       const valueToAdd = parseFloat(value);
       const newProgress = currentProgress + valueToAdd;
@@ -1139,13 +1139,13 @@ if (timeView === 'yearly') {
         
       } else {
         calculatedProgress = 100;
-        displayText = `Goal achieved! 🎉`;
+        displayText = `Goal achieved!`;
       }
       
       calculatedProgress = Math.min(100, Math.max(0, calculatedProgress));
       
     } else {
-      displayText = "📝 Log your weight in daily survey";
+      displayText = "Log your weight in daily survey";
       calculatedProgress = 0;
     }
     
@@ -1372,7 +1372,7 @@ if (timeView === 'yearly') {
           return (
             <div className="fieldset bg-base-200 border-base-300 rounded-box w-full max-w-sm min-w-0 border p-4">
               <h2 className="font-bold text-lg mb-1">{selectedGoal.title}</h2>
-              <p className="text-xs opacity-60 mb-4">Target: {selectedGoal.target_value} {selectedGoal.unit}</p>
+              {/* <p className="text-xs opacity-60 mb-4">Target: {selectedGoal.target_value} {selectedGoal.unit}</p> */}
 {/* 
               {goalType === "weight" ? (
                 chartData.length > 1 ? (
@@ -1447,13 +1447,13 @@ if (timeView === 'yearly') {
                   <button className="btn btn-sm btn-ghost" onClick={() => handleEditGoal(selectedGoal)}>
                     Edit Goal
                   </button>
-                  {selectedGoal.status == "active" && selectedGoal.goal_type !== "weight" && (
+                  {selectedGoal.status == "active" && (selectedGoal.goal_type !== "weight") && (
                     <button
                       className="btn btn-sm bg-blue-800 text-white"
                       onClick={async (e) => {
                         e.stopPropagation();
                         setSelectedGoalId(selectedGoal.goal_id);
-                        setProgressIncrementMode(selectedGoal.goal_type === "frequency" || selectedGoal.goal_type === "performance");
+                        setProgressIncrementMode(selectedGoal.goal_type !== "weight");
                         setProgressModalOpen(true);
                       }}
                     >
