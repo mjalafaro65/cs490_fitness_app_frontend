@@ -5,6 +5,8 @@ import Navbar from "../../components/Navbar.jsx";
 import api from "../../axios.jsx";
 import { useAuth } from "../../AuthContext.jsx";
 import Alert from "../../components/Alert.jsx";
+import { openCloudinaryWidget } from "../../cloudinary";
+import Confirm from "../../components/Confirm.jsx";
 
 const capitalize = (str) => {
   if (!str) return "—";
@@ -53,7 +55,7 @@ const DAYS = [
 
 
 
-function AvailabilitySection() {
+function AvailabilitySection({ showAlert }) {
 
 
 
@@ -73,19 +75,19 @@ function AvailabilitySection() {
     end_time: "17:00",
   });
 
-  const [alert, setAlert] = useState({
-    open: false,
-    message: "",
-    type: "success",
-  });
+  // const [alert, setAlert] = useState({
+  //   open: false,
+  //   message: "",
+  //   type: "success",
+  // });
 
-  const showAlert = (message, type = "success") => {
-    setAlert({
-      open: true,
-      message,
-      type,
-    });
-  };
+  // const showAlert = (message, type = "success") => {
+  //   setAlert({
+  //     open: true,
+  //     message,
+  //     type,
+  //   });
+  // };
 
 
   const load = async () => {
@@ -248,7 +250,12 @@ function AvailabilitySection() {
     </div>
   );
 }
-function PaymentPlansSection({ coachId }) {
+
+
+function PaymentPlansSection({ coachId, showAlert }) {
+
+
+
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -423,13 +430,33 @@ function PaymentPlansSection({ coachId }) {
   );
 }
 
-function DocumentsSection() {
+function DocumentsSection({ showAlert }) {
+
+
+  const [confirmState, setConfirmState] = useState({
+    open: false,
+    message: "",
+    type: "default",
+    resolve: null,
+  });
+
+  const confirm = ({ message, type = "default" }) => {
+    return new Promise((resolve) => {
+      setConfirmState({
+        open: true,
+        message,
+        type,
+        onResolve: resolve,
+      });
+    });
+  };
+
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
-    doc_type: "certification",
-    doc_url: "",
+    document_type: "Certification",
+    document_url: "",
     notes: "",
   });
   const [uploading, setUploading] = useState(false);
@@ -438,6 +465,7 @@ function DocumentsSection() {
     setLoading(true);
     try {
       const r = await api.get("/coach/coach-profile/documents");
+      console.log(r.data)
       setDocs(r.data || []);
     } finally {
       setLoading(false);
@@ -447,27 +475,61 @@ function DocumentsSection() {
   useEffect(() => {
     load();
   }, []);
-
   const handleUpload = async (e) => {
     e.preventDefault();
+
+    if (!form.document_url) {
+      showAlert("Please upload a document first", "error");
+      return;
+    }
+
     setUploading(true);
     try {
-      await api.post("/coach/coach-profile/documents", form);
+      console.log([form]);
+      await api.post("/coach/coach-profile/documents", [form]);
 
       setShowForm(false);
-      setForm({ doc_type: "certification", doc_url: "", notes: "" });
+      setForm({ document_type: "certification", document_url: "" });
+
       await load();
+      showAlert("Document uploaded successfully", "success");
     } catch (err) {
       showAlert(err.response?.data?.message || "Failed to upload.", "error");
     } finally {
       setUploading(false);
     }
   };
+  const openCloudinaryWidget = (onSuccess) => {
+    const widget = window.cloudinary.createUploadWidget(
+      {
+        cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME,
+        uploadPreset: import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET,
+        sources: ["local", "url", "camera"],
+        clientAllowedFormats: ["jpg", "png", "jpeg", "pdf"],
+        multiple: false,
+      },
+      (error, result) => {
+        if (!error && result?.event === "success") {
+          onSuccess(result.info.secure_url);
+        }
+      }
+    );
+    widget.open();
+  };
+  const handleCloudUpload = () => {
+    openCloudinaryWidget((url) => {
+      setForm((prev) => ({
+        ...prev,
+        document_url: url,
+      }));
+    });
+  };
+
+
 
   const handleDelete = async (id) => {
-    if (!confirm("Delete this document?")) return;
     try {
-      await api.delete(`/coach-profile/documents/${id}`);
+      await api.delete(`/coach/coach-profile/documents/${id}`);
       await load();
     } catch (e) {
       console.error(e);
@@ -509,12 +571,12 @@ function DocumentsSection() {
               </label>
               <select
                 className="select select-bordered select-sm"
-                value={form.doc_type}
+                value={form.document_type}
                 onChange={(e) =>
-                  setForm({ ...form, doc_type: e.target.value })
+                  setForm({ ...form, document_type: e.target.value })
                 }
               >
-                {["certification", "license", "insurance", "other"].map((o) => (
+                {["Certification", "License", "Insurance", "Other"].map((o) => (
                   <option key={o} value={o}>
                     {capitalize(o)}
                   </option>
@@ -540,20 +602,13 @@ function DocumentsSection() {
             <label className="text-xs font-semibold text-base-content/60">
               Document URL
             </label>
-            <label className="text-xs font-semibold text-base-content/60">
-              Link
-            </label>
-
-            <input
-              type="url"
-              required
-              placeholder="Paste document link here"
-              className="input input-bordered input-sm"
-              value={form.doc_url}
-              onChange={(e) =>
-                setForm({ ...form, doc_url: e.target.value })
-              }
-            />
+            <button
+              type="button"
+              className="btn btn-sm btn-outline"
+              onClick={handleCloudUpload}
+            >
+              Upload Document
+            </button>
           </div>
 
           <button
@@ -611,7 +666,7 @@ function DocumentsSection() {
 
 
 /* ── Invoices ── */
-function InvoicesSection() {
+function InvoicesSection({ showAlert }) {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [payingId, setPayingId] = useState(null);
@@ -714,6 +769,17 @@ const SPECIALTY_TITLES = {
 function Profile() {
   const { coachStatus, fetchUser } = useAuth()
   const navigate = useNavigate()
+
+
+  const [alert, setShowAlert] = useState(false);
+  const [alertMsg, setAlertMsg] = useState("");
+  const [alertType, setAlertType] = useState("success");
+
+  const showAlert = (message, type = "success") => {
+    setAlertMsg(message);
+    setAlertType(type);
+    setShowAlert(true);
+  };
 
   const [fetchData, setData] = useState(null);
 
@@ -834,12 +900,14 @@ function Profile() {
             </div>
           }
 
-          <AvailabilitySection />
-          <PaymentPlansSection coachId={fetchData?.coach_profile_id} />
-          <DocumentsSection />
+          <AvailabilitySection showAlert={showAlert} />
+          <PaymentPlansSection
+            coachId={fetchData?.coach_profile_id}
+            showAlert={showAlert}
+          />
+          <DocumentsSection showAlert={showAlert} />
 
-          <InvoicesSection />
-
+          <InvoicesSection showAlert={showAlert} />
 
 
 
@@ -851,12 +919,10 @@ function Profile() {
 
       </div>
       <Alert
-        isOpen={alert.open}
-        message={alert.message}
-        type={alert.type}
-        onClose={() =>
-          setAlert((prev) => ({ ...prev, open: false }))
-        }
+        isOpen={alert}
+        message={alertMsg}
+        type={alertType}
+        onClose={() => setShowAlert(false)}
       />
 
     </div>

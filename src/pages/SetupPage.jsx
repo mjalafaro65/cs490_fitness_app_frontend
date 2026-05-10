@@ -82,9 +82,7 @@ function SetupPage() {
         try {
             const payload = {
                 ...profileData,
-                profile_photo:
-                    profileData.profile_photo === null
-                    && DEFAULT_PHOTO
+                profile_photo: profileData.profile_photo || DEFAULT_PHOTO
 
             };
 
@@ -117,7 +115,7 @@ function SetupPage() {
                 uploadPreset: myPreset,
                 sources: ["local", "url", "camera"],
                 multiple: false,
-                cropping: true,
+                cropping: false,
                 clientAllowedFormats: ["jpg", "png", "jpeg", "pdf"],
                 // so widget stays on top of other elements
                 zIndex: 2000
