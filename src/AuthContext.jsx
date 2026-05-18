@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }) => {
     window.location.href = "/";
   };
 
-  useEffect(() => { fetchUser(); }, []);
+  // useEffect(() => { fetchUser(); }, []);
 
   return (
     <AuthContext.Provider value={{ user, loading, coachStatus, fetchUser, logout }}>

@@ -1,12 +1,12 @@
 import axios from "axios";
 
-const api = axios.create({
-  baseURL: "http://127.0.0.1:5000",
-});
-
 // const api = axios.create({
-//   baseURL: "https://nmzn3h98-5000.use.devtunnels.ms/" ,
+//   baseURL: "http://127.0.0.1:5000",
 // });
+
+const api = axios.create({
+  baseURL: "https://cs490-fitness-app-backend-i1ads2w75-mjalafaro65s-projects.vercel.app" ,
+});
 
 // const api = axios.create({
 //   baseURL: "https://cs490-fitness-app-backend.onrender.com/" ,
