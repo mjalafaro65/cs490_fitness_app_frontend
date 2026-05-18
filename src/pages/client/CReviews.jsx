@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "../../App.css";
 import api from "../../axios";
 import Alert from "../../components/Alert";
-import Confirm from "../../components/confirm";
+import Confirm from "../../components/Confirm";
 import PopUp from "../../components/PopUp";
 
 
