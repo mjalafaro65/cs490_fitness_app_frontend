@@ -30,11 +30,17 @@ jobs:
 
       - name: Install Vercel CLI
         run: npm install -g vercel
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+        
 
       - name: Deploy to Vercel
         id: deploy
         run: |
-          vercel deploy --yes --token=${{ secrets.VERCEL_TOKEN }} > preview.txt
+          # Deploying with the --prod flag off creates a preview URL. 
+          # We use the stdout redirect but ensure we only grab the actual URL.
+          URL=$(vercel deploy --yes --token=${{ secrets.VERCEL_TOKEN }})
+          echo "preview_url=$URL" >> $GITHUB_OUTPUT
 
       - name: Show preview URL
         run: cat preview.txt
