@@ -5,9 +5,9 @@ function VisitorNavbar() {
     const navigate = useNavigate();
     const isLoggedIn = localStorage.getItem("token")
 
-        const { user, loading, logout } = useAuth();
+        const { user, logout } = useAuth();
 
-        if (loading) return null; 
+        // if (loading) return null; 
 
         const getDashboardPath = () => {
             if (!user) return "/login";
